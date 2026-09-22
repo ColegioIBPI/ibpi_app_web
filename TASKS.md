@@ -85,9 +85,13 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.2 Cadastro de alunos
 
-- [ ] Modelar a coleção `alunos` no Firestore
-- [ ] Criar os esquemas Zod de validação do cadastro
-- [ ] Implementar a listagem de alunos com busca por nome, matrícula e turma
+- [x] Modelar **todas** as coleções em Zod (`src/core/modelo/`), inclusive as ainda vazias
+- [x] Documentar o modelo em `docs/modelo-dados.md`
+- [x] Criar os esquemas Zod de validação do cadastro
+- [x] Implementar a listagem de alunos com busca por nome, matrícula e turma
+- [x] Implementar a ficha do aluno, nos blocos do cadastro de origem
+- [x] Aplicar o escopo de acesso na leitura pelo servidor (Admin SDK ignora as rules)
+- [ ] Implementar a edição do cadastro (Server Action + auditoria)
 - [ ] Implementar o formulário de cadastro — bloco Identificação
 - [ ] Implementar o formulário — bloco Documentos (CPF, identidade, certidão)
 - [ ] Implementar o formulário — bloco Contato (endereço, telefones, e-mails)

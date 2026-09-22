@@ -34,7 +34,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "cadastros",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/gestao/turmas",

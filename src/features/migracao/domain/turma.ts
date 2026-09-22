@@ -1,3 +1,4 @@
+import type { Segmento, Turno } from "@/core/modelo/comum";
 import {
   chaveDeComparacao,
   limparTexto,
@@ -16,10 +17,10 @@ import {
  * planilha (é o dado do dia a dia) e a divergência vai para o relatório.
  */
 
-export type Segmento =
-  "fundamental" | "medio" | "eja-fundamental" | "eja-medio";
-
-export type Turno = "manha" | "tarde" | "flex";
+// Os tipos e rótulos vivem no modelo de dados: a migração usa o mesmo
+// vocabulário do resto do sistema, não um paralelo.
+export type { Segmento, Turno } from "@/core/modelo/comum";
+export { ROTULOS_DE_SEGMENTO, ROTULOS_DE_TURNO } from "@/core/modelo/comum";
 
 export interface TurmaDerivada {
   /** Código como a secretaria escreve: `EM1A`, `EF9A`, `E.J.A. EM`. */
@@ -86,16 +87,3 @@ function ehSerieCombinada(serie: string): boolean {
 export function idDaTurma(anoLetivo: number, codigo: string): string {
   return `${anoLetivo}-${codigo.replace(/[^A-Za-z0-9]/g, "")}`;
 }
-
-export const ROTULOS_DE_SEGMENTO: Record<Segmento, string> = {
-  fundamental: "Ensino Fundamental",
-  medio: "Ensino Médio",
-  "eja-fundamental": "EJA — Fundamental",
-  "eja-medio": "EJA — Médio",
-};
-
-export const ROTULOS_DE_TURNO: Record<Turno, string> = {
-  manha: "Manhã",
-  tarde: "Tarde",
-  flex: "Flex",
-};
