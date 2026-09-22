@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "check:firebase": "node --env-file=.env.local scripts/check-firebase.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
@@ -18,7 +19,7 @@
     "@hookform/resolvers": "^5.2.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "firebase": "^12.5.0",
+    "firebase": "^12.19.0",
     "firebase-admin": "^13.6.0",
     "framer-motion": "^12.23.28",
     "lucide-react": "^0.552.0",

@@ -62,6 +62,31 @@ npm run test:e2e
 > Num clone novo, rode `npm run build` (ou `npm run dev`) pelo menos uma vez
 > antes, senão o TypeScript não encontra `LayoutProps` e afins.
 
+## Diagnóstico do Firebase
+
+```bash
+npm run check:firebase
+```
+
+Confere, com as credenciais do `.env.local`, se Authentication (com o provedor
+e-mail/senha), Firestore e Storage estão ativos no projeto — e aponta o
+caminho no console quando algum não está. Não imprime nenhuma credencial.
+
+Serve para separar "o código está errado" de "o serviço não foi ligado", que
+é a confusão mais comum no começo.
+
+### Serviços que precisam estar ligados no console
+
+| Serviço         | Onde                                       | Observação                                                               |
+| --------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| Authentication  | Console → Authentication → Sign-in method  | Habilitar **E-mail/senha**. Não habilitar link por e-mail                |
+| Cloud Firestore | Console → Firestore Database → Criar banco | Região `southamerica-east1`, **modo de produção**. A região é permanente |
+| Cloud Storage   | Console → Storage → Começar                | Mesma região                                                             |
+
+> O modo de teste do Firestore deixa a base aberta a qualquer leitura por 30
+> dias. Com dado de menor de idade isso não é aceitável nem temporariamente —
+> comece em modo de produção; as regras reais entram na FASE 2.
+
 ## Ambientes
 
 Hoje existe **um único projeto Firebase** (`colegioibpi`), compartilhado entre
