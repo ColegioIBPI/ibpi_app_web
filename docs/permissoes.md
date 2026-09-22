@@ -93,6 +93,32 @@ aluno de outra turma, financeiro não enxerga nota, e ninguém escreve.
 > máquina de desenvolvimento tem JDK 17. Ao migrar para o Java 21, dá para
 > soltar a versão.
 
+### Publicar as regras
+
+```bash
+npm run deploy:rules
+```
+
+Rodar os testes **não** coloca as regras em vigor: elas precisam ser
+publicadas no projeto. Toda mudança em `firestore.rules` só vale depois disso.
+
+O script usa a conta de serviço do Admin SDK e fala direto com a API de
+regras, em vez de `firebase deploy --only firestore:rules`. O motivo: o CLI
+sempre roda um dry-run em `projects/{id}:test`, que exige a permissão
+`firebaserules.rulesets.test` — a conta de serviço não tem essa, mas tem as
+que importam (criar ruleset e atualizar release). A compilação continua
+acontecendo: regra com erro de sintaxe é recusada na criação do ruleset.
+
+> A conta Google `jorgealbertojas@gmail.com`, usada no `firebase login`, **não
+> tem permissão** no projeto `colegioibpi` — o `firebase deploy` responde 403
+> com ela. Vale pedir ao dono do projeto (provavelmente a conta que criou o
+> Firebase para o app Android) o papel de **Owner** ou **Firebase Rules
+> Admin**; com isso o CLI passa a funcionar normalmente e o script vira
+> opcional.
+
+Cada publicação cria um ruleset novo e o anterior continua no projeto — dá
+para voltar pelo console, em Firestore → Regras → histórico.
+
 ## 4. Sessão
 
 ```
