@@ -1,0 +1,12 @@
+# Normaliza o fim de linha: o repositório guarda sempre LF.
+# Sem isso, um checkout no Windows grava CRLF e qualquer script `.sh` rodado
+# num runner Linux quebra com "bad interpreter". Mesma armadilha já mapeada
+# no projeto Android.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.accdb binary
+*.xlsx binary
+*.pdf binary

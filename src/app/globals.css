@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/*
+ * Design system do Portal IBPI.
+ *
+ * A paleta vem do Manual da Marca do Colégio IBPI. O azul oficial (#0098DA)
+ * tem contraste 3.2:1 sobre branco — abaixo do mínimo AA (4.5:1) para texto.
+ * Por isso ele é usado apenas em preenchimento, borda e foco, e as variações
+ * `brand-600`/`brand-700` cobrem texto, link e botão. Todos os valores abaixo
+ * foram calculados, não estimados; os contrastes estão anotados em cada linha.
+ */
+@theme {
+  /* Azul IBPI — mesma matiz e saturação da marca, variando a luminosidade */
+  --color-brand-50: #f0faff;
+  --color-brand-100: #dbf4ff;
+  --color-brand-200: #b2e8ff;
+  --color-brand-300: #70d4ff;
+  --color-brand-400: #29beff;
+  --color-brand-500: #0098da; /* oficial · 3.2:1 — preenchimento, borda, foco */
+  --color-brand-600: #007cb2; /* 4.6:1 — texto, link, botão primário */
+  --color-brand-700: #00648f; /* 6.5:1 — hover e títulos */
+  --color-brand-800: #004e70; /* 9.0:1 */
+  --color-brand-900: #003952; /* 12.3:1 */
+
+  /* Complementares da marca */
+  --color-accent: #fdd900; /* amarelo · fundo de alerta, sempre com texto escuro */
+  --color-accent-ink: #002738; /* 11.2:1 sobre o amarelo */
+
+  /* Neutros */
+  --color-ink: #1a1a1a; /* 17.4:1 — texto principal */
+  --color-ink-muted: #666666; /* 5.7:1 no branco · 4.6:1 no cinza da marca */
+  --color-line: #e7e5e6; /* cinza da marca — bordas e divisórias */
+  --color-surface: #fefefe; /* branco da marca */
+  --color-surface-subtle: #f7f8f9;
+
+  /* Semânticas — aprovado/pago, reprovado/vencido, atenção */
+  --color-success: #0e7c3a; /* 5.3:1 */
+  --color-success-surface: #e8f5ed;
+  --color-danger: #b3261e; /* 6.5:1 */
+  --color-danger-surface: #fdeceb;
+  --color-warning: #8a6100; /* 5.5:1 */
+  --color-warning-surface: #fff8e0;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  --radius-card: 0.75rem;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+/* Foco visível e consistente em todo o sistema, inclusive navegação por teclado */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
