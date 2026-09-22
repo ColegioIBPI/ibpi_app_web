@@ -17,7 +17,11 @@ Referência de requisitos: [README.md](README.md).
 - [x] Configurar o SDK cliente do Firebase (`colegioibpi`) com variáveis de ambiente
 - [x] Configurar o Firebase Admin SDK no servidor, com a chave em variável de ambiente
 - [x] Criar `.env.example` e documentar todas as variáveis necessárias
-- [ ] Preencher o `.env.local` com as chaves reais do Firebase *(depende de acesso ao console)*
+- [x] Preencher o `.env.local` com as chaves reais do Firebase
+- [x] Criar o app Web no Firebase e habilitar Authentication (e-mail/senha)
+- [x] Criar o banco Firestore em `southamerica-east1`, em modo de produção
+- [x] Adicionar `npm run check:firebase` para diagnosticar a configuração
+- [ ] Ativar o Cloud Storage — exige upgrade para o plano Blaze, com limite de orçamento _(só é necessário na FASE 3.2)_
 - [ ] Conectar o repositório à Vercel e validar o primeiro deploy
 - [ ] Configurar as variáveis de ambiente no painel da Vercel
 
