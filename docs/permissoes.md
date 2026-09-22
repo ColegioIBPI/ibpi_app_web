@@ -96,25 +96,30 @@ aluno de outra turma, financeiro não enxerga nota, e ninguém escreve.
 ### Publicar as regras
 
 ```bash
-npm run deploy:rules
+npx firebase deploy --only firestore:rules --project colegioibpi
 ```
 
 Rodar os testes **não** coloca as regras em vigor: elas precisam ser
 publicadas no projeto. Toda mudança em `firestore.rules` só vale depois disso.
 
-O script usa a conta de serviço do Admin SDK e fala direto com a API de
-regras, em vez de `firebase deploy --only firestore:rules`. O motivo: o CLI
-sempre roda um dry-run em `projects/{id}:test`, que exige a permissão
-`firebaserules.rulesets.test` — a conta de serviço não tem essa, mas tem as
-que importam (criar ruleset e atualizar release). A compilação continua
-acontecendo: regra com erro de sintaxe é recusada na criação do ruleset.
+Exige que a sua conta Google tenha papel de **Proprietário** (ou Firebase
+Rules Admin) no projeto `colegioibpi`. Sem isso, o CLI responde 403 no
+dry-run que ele faz antes de publicar.
 
-> A conta Google `jorgealbertojas@gmail.com`, usada no `firebase login`, **não
-> tem permissão** no projeto `colegioibpi` — o `firebase deploy` responde 403
-> com ela. Vale pedir ao dono do projeto (provavelmente a conta que criou o
-> Firebase para o app Android) o papel de **Owner** ou **Firebase Rules
-> Admin**; com isso o CLI passa a funcionar normalmente e o script vira
-> opcional.
+#### Alternativa sem conta com permissão
+
+```bash
+npm run deploy:rules
+```
+
+Publica usando a **conta de serviço do Admin SDK**, falando direto com a API
+de regras. Existe porque o CLI sempre roda um dry-run em
+`projects/{id}:test`, que exige `firebaserules.rulesets.test` — permissão que
+a conta de serviço não tem, embora tenha as que importam (criar ruleset e
+atualizar release).
+
+Útil em CI, ou em uma máquina onde ninguém fez `firebase login`. A compilação
+não é pulada: regra com erro de sintaxe é recusada na criação do ruleset.
 
 Cada publicação cria um ruleset novo e o anterior continua no projeto — dá
 para voltar pelo console, em Firestore → Regras → histórico.

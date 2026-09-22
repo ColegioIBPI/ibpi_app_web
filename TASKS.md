@@ -55,7 +55,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Documentar o modelo de permissões em `docs/permissoes.md`
 - [ ] Aplicar as _custom claims_ de perfil na criação de conta pela secretaria _(entra junto com o cadastro, FASE 3.2)_
 - [x] Publicar as Security Rules no projeto `colegioibpi` (`npm run deploy:rules`)
-- [ ] Dar à conta Google do desenvolvedor permissão no projeto Firebase, para o `firebase deploy` funcionar pelo CLI
+- [x] Dar à conta Google do desenvolvedor permissão no projeto Firebase, para o `firebase deploy` funcionar pelo CLI
 - [ ] Criar as contas de teste dos seis perfis para os testes E2E autenticados
 
 ---
