@@ -44,7 +44,14 @@ export const config = {
   // Sem matcher, o proxy rodaria também em CSS, imagem e arquivo estático —
   // e o redirecionamento de login bloquearia o carregamento da própria tela
   // de login.
+  //
+  // `api` fica de fora por um motivo diferente e importante: redirecionar
+  // uma chamada de API devolve o HTML da tela de login com status 200, e o
+  // `fetch` do cliente quebra ao tentar lê-lo como JSON — com uma mensagem
+  // que não tem nada a ver com o problema real. Rota de API responde em
+  // JSON, inclusive quando nega; cada handler verifica a sessão por conta
+  // própria, que é onde a verificação vale de verdade.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|brand/|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|brand/|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)",
   ],
 };

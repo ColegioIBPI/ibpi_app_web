@@ -39,18 +39,41 @@ export async function entrar(email: string, senha: string): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
+    // A rota responde em JSON, sempre. Seguir um redirecionamento traria o
+    // HTML de outra página, e o erro apareceria como "token inesperado '<'"
+    // — mensagem que não ajuda ninguém a entender o que houve.
+    redirect: "error",
   });
+
+  // Ler como texto antes de interpretar: assim uma resposta que não é JSON
+  // vira uma mensagem honesta em vez de um erro de sintaxe.
+  const corpo = await lerJson(resposta);
 
   if (!resposta.ok) {
     // A sessão do servidor não foi criada; não deixe o SDK logado por conta
     // própria, senão a interface mostra um estado que o servidor não aceita.
     await signOut(auth).catch(() => undefined);
-    const corpo = await resposta.json().catch(() => null);
     throw new Error(corpo?.erro ?? "Não foi possível entrar. Tente de novo.");
   }
 
-  const { rota } = (await resposta.json()) as { rota: string };
-  return rota;
+  if (typeof corpo?.rota !== "string") {
+    await signOut(auth).catch(() => undefined);
+    throw new Error(
+      "O servidor respondeu de forma inesperada ao iniciar a sessão.",
+    );
+  }
+
+  return corpo.rota;
+}
+
+async function lerJson(
+  resposta: Response,
+): Promise<{ rota?: string; erro?: string } | null> {
+  try {
+    return await resposta.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function sair(): Promise<void> {

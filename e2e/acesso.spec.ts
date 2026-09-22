@@ -87,3 +87,31 @@ test.describe("definição de senha", () => {
     await expect(page.getByText("Link inválido ou expirado")).toBeVisible();
   });
 });
+
+test.describe("rota de sessão", () => {
+  test("responde em JSON quando não há sessão, nunca em HTML", async ({
+    request,
+  }) => {
+    // Regressão: o proxy redirecionava a chamada de API para a tela de
+    // login, e o cliente quebrava com "token inesperado '<'" ao tentar ler
+    // o HTML como JSON.
+    const resposta = await request.post("/api/auth/session", {
+      data: { idToken: "token-invalido" },
+      maxRedirects: 0,
+    });
+
+    expect(resposta.status()).toBe(401);
+    expect(resposta.headers()["content-type"]).toContain("application/json");
+    expect(await resposta.json()).toHaveProperty("erro");
+  });
+
+  test("recusa corpo sem token", async ({ request }) => {
+    const resposta = await request.post("/api/auth/session", {
+      data: {},
+      maxRedirects: 0,
+    });
+
+    expect(resposta.status()).toBe(400);
+    expect(await resposta.json()).toHaveProperty("erro");
+  });
+});
