@@ -1,0 +1,199 @@
+rules_version = '2';
+
+// Regras de segurança do Portal IBPI.
+//
+// Espelham a matriz de acesso do README (seção 3.1) e a implementação em
+// `src/core/auth/roles.ts`. Ao mudar uma, mude a outra — e rode
+// `npm run test:rules`.
+//
+// Duas decisões estruturais:
+//
+// 1. NENHUMA ESCRITA PELO CLIENTE. Todo lançamento de nota, falta, ocorrência
+//    e cobrança passa por Server Action ou Route Handler usando o Admin SDK,
+//    que valida perfil, escopo e grava a auditoria. Regra de escrita
+//    permissiva no cliente tornaria a auditoria contornável.
+//
+// 2. O PERFIL VEM DO TOKEN. A `role` é uma custom claim aplicada pelo
+//    servidor; o cliente não consegue forjá-la. Vínculos (filhos do
+//    responsável, turmas do professor) vêm do documento em `users`, que o
+//    próprio usuário não pode escrever.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- base
+
+    function autenticado() {
+      return request.auth != null && request.auth.token.role != null;
+    }
+
+    function temPerfil(perfis) {
+      return autenticado() && request.auth.token.role in perfis;
+    }
+
+    function secretariaOuCoordenacao() {
+      return temPerfil(['secretaria', 'coordenacao']);
+    }
+
+    // Documento do próprio usuário: fonte dos vínculos. Custa uma leitura,
+    // e é o preço de não confiar em nada que o cliente informa.
+    function eu() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function ehProprioAluno(matricula) {
+      return temPerfil(['aluno']) && eu().matricula == matricula;
+    }
+
+    function ehFilho(matricula) {
+      return temPerfil(['responsavel'])
+        && eu().alunosVinculados is list
+        && matricula in eu().alunosVinculados;
+    }
+
+    function professorDaTurma(turmaId) {
+      return temPerfil(['professor'])
+        && eu().turmas is list
+        && turmaId in eu().turmas;
+    }
+
+    // ------------------------------------------------------------- usuários
+
+    match /users/{uid} {
+      // Cada um lê o próprio cadastro de acesso; secretaria e coordenação
+      // leem todos, porque são elas que criam e corrigem as contas.
+      allow read: if (autenticado() && request.auth.uid == uid)
+                  || secretariaOuCoordenacao();
+      allow write: if false;
+    }
+
+    // --------------------------------------------------------------- alunos
+
+    match /alunos/{matricula} {
+      // O financeiro lê o cadastro para contato e cobrança — mas não tem
+      // acesso a nota, frequência nem ocorrência (ver adiante).
+      allow read: if secretariaOuCoordenacao()
+                  || temPerfil(['financeiro'])
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehProprioAluno(matricula)
+                  || ehFilho(matricula);
+      allow write: if false;
+    }
+
+    match /responsaveis/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || (autenticado() && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /professores/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || (autenticado() && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ----------------------------------------------- estrutura da escola
+
+    // Turma, disciplina, sala e alocação não são dado pessoal: qualquer
+    // pessoa autenticada pode ler, e é o que permite montar as telas sem
+    // uma consulta privilegiada para cada rótulo.
+    match /turmas/{id} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    match /disciplinas/{id} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    match /salas/{id} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    match /alocacoes/{id} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    match /matriculas/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehProprioAluno(resource.data.matricula)
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    // ----------------------------------------------------------- frequência
+
+    match /frequenciaDiaria/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehProprioAluno(resource.data.matricula)
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    match /diarioClasse/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId);
+      allow write: if false;
+    }
+
+    // ---------------------------------------------------------- ocorrências
+
+    match /ocorrencias/{id} {
+      // O aluno não vê a própria ocorrência disciplinar: ela é tratada com o
+      // responsável e a equipe escolar.
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    // ---------------------------------------------------------- notas
+
+    match /notas/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehProprioAluno(resource.data.matricula)
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    match /boletins/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || professorDaTurma(resource.data.turmaId)
+                  || ehProprioAluno(resource.data.matricula)
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------ financeiro
+
+    match /cobrancas/{id} {
+      // Professor e aluno não têm nada a ver com mensalidade.
+      allow read: if secretariaOuCoordenacao()
+                  || temPerfil(['financeiro'])
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------ auditoria
+
+    match /auditoria/{id} {
+      // Trilha de auditoria é só de leitura, e só para quem administra.
+      allow read: if secretariaOuCoordenacao();
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------- fallback
+
+    // Coleção nova nasce fechada. Sem isto, criar uma coleção na FASE 3 e
+    // esquecer a regra deixaria os dados abertos.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

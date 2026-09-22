@@ -39,19 +39,23 @@ Referência de requisitos: [README.md](README.md).
 
 ## [FASE 2] Autenticação e Controle de Acesso
 
-- [ ] Modelar a coleção `users` com `role` compatível com o app MyIBPI
-- [ ] Implementar a tela de login (e-mail e senha)
-- [ ] Implementar recuperação de senha por e-mail
-- [ ] Implementar o fluxo de primeiro acesso: link por e-mail e definição da própria senha
-- [ ] Implementar a sessão e o `middleware` de proteção de rotas
-- [ ] Implementar _custom claims_ de perfil no Admin SDK
-- [ ] Implementar o roteamento inicial por perfil (gestão × consulta)
-- [ ] Implementar o guarda de permissão por perfil nas rotas e nos componentes
-- [ ] Implementar o seletor de aluno para responsáveis com mais de um filho
-- [ ] Escrever as Firestore Security Rules espelhando a matriz de acesso (seção 3.1)
-- [ ] Testar as Security Rules no emulador do Firebase
-- [ ] Implementar a tela de logout e expiração de sessão
-- [ ] Documentar o modelo de permissões em `docs/permissoes.md`
+- [x] Modelar a coleção `users` com `role` compatível com o app MyIBPI
+- [x] Implementar a matriz de permissões e escopo (`core/auth/roles.ts`)
+- [x] Implementar a tela de login (e-mail e senha)
+- [x] Implementar recuperação de senha por e-mail
+- [x] Implementar o fluxo de primeiro acesso: link por e-mail e definição da própria senha
+- [x] Implementar a sessão com cookie HttpOnly e o `proxy.ts` de proteção de rotas
+- [x] Implementar o roteamento inicial por perfil (gestão × consulta)
+- [x] Implementar o guarda de permissão por perfil nas rotas
+- [x] Implementar o menu derivado da matriz de permissões
+- [x] Implementar o seletor de aluno para responsáveis com mais de um filho
+- [x] Escrever as Firestore Security Rules espelhando a matriz de acesso (seção 3.1)
+- [x] Testar as Security Rules no emulador do Firebase
+- [x] Implementar o logout com revogação dos tokens
+- [x] Documentar o modelo de permissões em `docs/permissoes.md`
+- [ ] Aplicar as _custom claims_ de perfil na criação de conta pela secretaria _(entra junto com o cadastro, FASE 3.2)_
+- [ ] Publicar as Security Rules no projeto `colegioibpi` (`firebase deploy --only firestore:rules`)
+- [ ] Criar as contas de teste dos seis perfis para os testes E2E autenticados
 
 ---
 

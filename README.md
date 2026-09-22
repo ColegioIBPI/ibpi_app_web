@@ -65,12 +65,29 @@ Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso just
 
 ### 3.1 Matriz de acesso
 
-| Perfil                                               | Cadastros              | Frequência                   | Ocorrências     | Notas/Boletim                     | Financeiro      |
-| ---------------------------------------------------- | ---------------------- | ---------------------------- | --------------- | --------------------------------- | --------------- |
-| **Administrador** (secretaria, direção, coordenação) | Lê e **gerencia** tudo | Lê e **lança**               | Lê e **lança**  | Lê e **corrige**                  | Lê e **lança**  |
-| **Professor**                                        | Lê (suas turmas)       | Lê e **lança** (suas turmas) | Lê e **lança**  | Lê e **lança** (suas disciplinas) | ❌ Sem acesso   |
-| **Aluno**                                            | Lê (próprio cadastro)  | Lê (própria)                 | ❌ Sem acesso   | Lê (próprio)                      | ❌ Sem acesso   |
-| **Responsável**                                      | Lê (dos filhos)        | Lê (dos filhos)              | Lê (dos filhos) | Lê (dos filhos)                   | Lê (dos filhos) |
+**Seis perfis**, os mesmos do app MyIBPI. Cada célula vale dentro do escopo
+definido em 3.2 — "lê" para o professor significa "lê dos alunos que ele
+leciona", não da escola inteira.
+
+| Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      |
+| --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- |
+| **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              |
+| **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              |
+| **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  |
+| **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   |
+| **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | ❌ Sem acesso   | Lê (próprio)     | ❌ Sem acesso   |
+| **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) |
+
+A separação do **Financeiro** é intencional: quem cuida de mensalidade não
+precisa ver nota, falta nem ocorrência disciplinar de aluno. É o mesmo
+recorte que o app MyIBPI já adota, e reduz a superfície de exposição de dado
+de menor de idade.
+
+**Secretaria e coordenação têm hoje a mesma permissão.** Ficam como perfis
+separados mesmo assim, porque o recorte entre elas tende a aparecer com o uso
+(quem fecha boletim, quem publica comunicado), e separar depois um perfil que
+nasceu unificado exige mexer em conta de usuário — separar agora não custa
+nada.
 
 ### 3.2 Regras de escopo
 
@@ -82,15 +99,26 @@ Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso just
 
 ### 3.3 Compatibilidade de perfis com o app MyIBPI
 
-O app define **seis** perfis (aluno, responsável, professor, secretaria, coordenação, financeiro); o portal web trabalha com **quatro**, agrupando secretaria, coordenação e financeiro em _Administrador_.
+O portal e o app usam **exatamente os mesmos seis perfis**, gravados no campo
+`role` do documento em `users`:
 
-Para não quebrar a compatibilidade, o campo `role` no Firestore mantém os **seis valores do app**, e o portal trata os três perfis de equipe como administradores.
+`aluno` · `responsavel` · `professor` · `secretaria` · `coordenacao` · `financeiro`
 
-> ⚠️ A definir: o colégio quer de fato que o setor financeiro enxergue notas e frequência? Hoje, no app, não enxerga. Se a separação importar, o portal passa a distinguir os três perfis de equipe em vez de agrupá-los. Decisão que muda a tela de permissões, não a modelagem.
+O valor também vai para as _custom claims_ do Firebase Auth, o que permite às
+Security Rules do Firestore decidirem o acesso sem precisar ler o documento do
+usuário a cada consulta.
+
+Onde o portal fala em "área de gestão", entenda secretaria, coordenação,
+financeiro e professor; "área de consulta" é aluno e responsável. É uma
+divisão de navegação, não um sétimo perfil.
 
 ### 3.4 Criação de contas
 
 **Não existe autocadastro.** A secretaria cria as contas (ou importa em lote do Access) e o sistema envia um e-mail com link para a pessoa **definir a própria senha**. Isso garante que todo acesso corresponde a uma matrícula válida e evita que a secretaria conheça senhas de famílias.
+
+Primeiro acesso e recuperação de senha usam **o mesmo mecanismo** — um link
+com código enviado por e-mail — e a mesma tela. Detalhes em
+[`docs/permissoes.md`](docs/permissoes.md).
 
 ---
 
@@ -497,11 +525,12 @@ Toda mudança de comportamento, arquitetura, contrato de dados ou navegação at
 | 1   | Conversão do histórico bimestral (Access) para trimestral                  | FASE 3 — migração de notas         |
 | 2   | Consolidação das disciplinas duplicadas no Access                          | FASE 3 — migração de disciplinas   |
 | 3   | Reconstrução do vínculo aluno↔turma (tabela vazia no Access)               | FASE 3 — migração de matrículas    |
-| 4   | Separar ou não os perfis de secretaria, coordenação e financeiro           | FASE 2 — tela de permissões        |
-| 5   | Prazo de retenção de dados de ex-alunos                                    | FASE 6 — política de privacidade   |
-| 6   | Domínio definitivo do sistema                                              | FASE 7 — deploy                    |
+| 4   | Prazo de retenção de dados de ex-alunos                                    | FASE 6 — política de privacidade   |
+| 5   | Domínio definitivo do sistema                                              | FASE 7 — deploy                    |
+| 6   | Ativar o Cloud Storage (exige plano Blaze)                                 | FASE 3.2 — foto e documentos       |
 | 7   | Separação de ambientes dev/produção                                        | Entrada em uso real                |
 | 8   | Atualizar o README do app MyIBPI com as regras de avaliação definidas aqui | Alinhamento entre os dois projetos |
+| 9   | Alinhar a modelagem de `users` do app MyIBPI com a adotada aqui            | Alinhamento entre os dois projetos |
 
 ---
 

@@ -69,12 +69,12 @@ a `text-2xl`, espaçamento em múltiplos de `0.25rem`). É uma decisão, não um
 omissão: uma escala própria só se justifica quando há um layout específico que
 a padrão não atende, e não é o caso aqui. Na prática o sistema usa:
 
-| Uso | Classe |
-|---|---|
-| Título de página | `text-xl font-semibold` |
-| Título de bloco | `text-base font-semibold` |
-| Texto padrão e tabela | `text-sm` |
-| Apoio, dica, erro | `text-xs` |
+| Uso                   | Classe                    |
+| --------------------- | ------------------------- |
+| Título de página      | `text-xl font-semibold`   |
+| Título de bloco       | `text-base font-semibold` |
+| Texto padrão e tabela | `text-sm`                 |
+| Apoio, dica, erro     | `text-xs`                 |
 
 Raio de borda de cartão e modal: `rounded-card` (`0.75rem`).
 
