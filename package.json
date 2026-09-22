@@ -16,7 +16,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:rules": "firebase emulators:exec --only firestore --project ibpi-regras-teste \"vitest run --config vitest.rules.config.mts\""
+    "test:rules": "firebase emulators:exec --only firestore --project ibpi-regras-teste \"vitest run --config vitest.rules.config.mts\"",
+    "migrar:extrair": "python scripts/migrate-access/extrair.py",
+    "migrar": "tsx --env-file=.env.local scripts/migrate-access/carregar.mts",
+    "migrar:validar": "tsx --env-file=.env.local scripts/migrate-access/validar.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.3",
@@ -54,6 +57,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"

@@ -111,6 +111,11 @@ beforeEach(async () => {
     });
     await setDoc(doc(db, "diarioClasse/d1"), { turmaId: TURMA_DO_PROFESSOR });
     await setDoc(doc(db, "cobrancas/c1"), { matricula: FILHO, valor: 800 });
+    await setDoc(doc(db, "contratos/ct1"), {
+      matricula: FILHO,
+      tipo: "anuidade",
+      valor: 1603,
+    });
     await setDoc(doc(db, "auditoria/a1"), { acao: "nota.alterada" });
     await setDoc(doc(db, "turmas/EM1A"), { nome: "EM1A" });
     await setDoc(doc(db, "coisa-nova/x1"), { qualquer: true });
@@ -157,6 +162,7 @@ describe("aluno", () => {
   it("não lê o financeiro", async () => {
     const { aluno } = contextos();
     await assertFails(ler(aluno, "cobrancas/c1"));
+    await assertFails(ler(aluno, "contratos/ct1"));
   });
 
   it("não lê o cadastro de outro aluno", async () => {
@@ -173,6 +179,7 @@ describe("responsável", () => {
     await assertSucceeds(ler(responsavel, "frequenciaDiaria/f1"));
     await assertSucceeds(ler(responsavel, "ocorrencias/o1"));
     await assertSucceeds(ler(responsavel, "cobrancas/c1"));
+    await assertSucceeds(ler(responsavel, "contratos/ct1"));
   });
 
   it("não lê dado de aluno que não é filho dele", async () => {
@@ -202,6 +209,7 @@ describe("professor", () => {
   it("não lê o financeiro", async () => {
     const { professor } = contextos();
     await assertFails(ler(professor, "cobrancas/c1"));
+    await assertFails(ler(professor, "contratos/ct1"));
   });
 
   it("não lê a auditoria", async () => {
@@ -215,6 +223,7 @@ describe("financeiro", () => {
     const { financeiro } = contextos();
     await assertSucceeds(ler(financeiro, `alunos/${FILHO}`));
     await assertSucceeds(ler(financeiro, "cobrancas/c1"));
+    await assertSucceeds(ler(financeiro, "contratos/ct1"));
   });
 
   it("não enxerga a vida escolar do aluno", async () => {

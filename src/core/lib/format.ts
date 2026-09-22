@@ -6,6 +6,8 @@
  * coluna e 8.477777778 na outra.
  */
 
+import { paraData } from "@/core/lib/datas";
+
 const LOCALE = "pt-BR";
 
 const currencyFormatter = new Intl.NumberFormat(LOCALE, {
@@ -33,12 +35,12 @@ export function formatCurrency(value: number): string {
 
 /** `2026-03-27` → `27/03/2026` */
 export function formatDate(value: Date | string): string {
-  return dateFormatter.format(toDate(value));
+  return dateFormatter.format(paraData(value));
 }
 
 /** `2026-03-27` → `27/03` — usado nas grades de aula, onde o ano é redundante */
 export function formatShortDate(value: Date | string): string {
-  return shortDateFormatter.format(toDate(value));
+  return shortDateFormatter.format(paraData(value));
 }
 
 /**
@@ -57,12 +59,4 @@ export function formatGrade(value: number | null | undefined): string {
 /** `0.7` → `70%` */
 export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
-}
-
-function toDate(value: Date | string): Date {
-  if (value instanceof Date) return value;
-  // Data pura (`2026-03-27`) é interpretada como UTC pelo construtor, o que
-  // joga o dia para trás no fuso de São Paulo. Fixar meio-dia evita isso.
-  const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  return new Date(isDateOnly ? `${value}T12:00:00` : value);
 }

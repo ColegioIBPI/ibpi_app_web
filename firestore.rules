@@ -180,6 +180,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Itens contratados do ano: anuidade, matrícula, taxa de material,
+    // dependência. Vieram da tabela `Fatos` do Access, cujo nome sugere
+    // ocorrência disciplinar mas guarda financeiro.
+    match /contratos/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || temPerfil(['financeiro'])
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
     // ------------------------------------------------------------ auditoria
 
     match /auditoria/{id} {

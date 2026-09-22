@@ -65,19 +65,23 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.1 Migração do sistema Access
 
-- [ ] Escrever o leitor ODBC das tabelas do `SISIBPIDADOS2026.accdb`
-- [ ] Resolver o problema de encoding UTF-16 na tabela `Professores`
-- [ ] Mapear e consolidar as disciplinas duplicadas (`PORTUGUES/LITERATURA` × `PORTUGUÊS/LITERATURA`)
-- [ ] Separar as 126 linhas de `Cursos` em curso + período letivo
-- [ ] Reconstruir o vínculo aluno↔turma a partir das planilhas de frequência (tabela `Alunos_Turma` está vazia)
-- [ ] Definir com a coordenação a conversão do histórico bimestral para trimestral _(pendência bloqueante)_
-- [ ] Escrever o script de migração de alunos (73 registros, ~100 campos)
-- [ ] Escrever o script de migração de turmas, disciplinas, professores e salas
-- [ ] Escrever o script de migração de pagamentos (847 registros)
-- [ ] Escrever o script de migração de ocorrências (`Fatos`, 274 registros)
-- [ ] Garantir idempotência: rodar duas vezes não pode duplicar registro
-- [ ] Escrever o relatório de validação pós-migração (contagens e divergências)
-- [ ] Documentar o mapeamento Access → Firestore em `docs/migracao.md`
+- [x] Escrever o leitor ODBC das tabelas do `SISIBPIDADOS2026.accdb`
+- [x] Investigar a falha de leitura da tabela `Professores` — não era encoding, a tabela está vazia
+- [x] Mapear e consolidar as disciplinas duplicadas (44 → 43)
+- [x] Reconstruir o vínculo aluno↔turma pelo cadastro, conferido com a planilha de frequência
+- [x] Consolidar responsáveis duplicados entre irmãos (146 → 118)
+- [x] Escrever o script de migração de alunos (73 registros)
+- [x] Escrever o script de migração de turmas, disciplinas, salas e matrículas
+- [x] Escrever o script de migração de pagamentos (847 registros)
+- [x] Migrar os itens contratados (`Fatos`, 274 registros) para `contratos`
+- [x] Garantir idempotência: id determinístico e gravação com `merge`
+- [x] Escrever o relatório de validação pós-migração (`npm run migrar:validar`)
+- [x] Documentar o mapeamento Access → Firestore em `docs/migracao.md`
+- [x] Executar a carga no projeto `colegioibpi` e validar
+- [ ] Definir com a coordenação a conversão do histórico bimestral para trimestral _(pendência bloqueante das notas)_
+- [ ] Migrar as notas, depois de definida a conversão
+- [ ] Revisar com a secretaria as 4 divergências de turma e o significado do turno "E"
+- [ ] Recadastrar a oferta de cursos (as 126 linhas de `Cursos` misturam curso e período)
 
 ### 3.2 Cadastro de alunos
 

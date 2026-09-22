@@ -38,15 +38,15 @@ A divisão acordada:
 
 Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso justifica escolhas simples de infraestrutura:
 
-| Entidade                 | Registros                |
-| ------------------------ | ------------------------ |
-| Alunos                   | 73                       |
-| Turmas                   | 68 (histórico; 9 ativas) |
-| Disciplinas              | 44                       |
-| Cursos/ofertas           | 126                      |
-| Salas                    | 10                       |
-| Lançamentos de pagamento | 847                      |
-| Ocorrências (`Fatos`)    | 274                      |
+| Entidade                    | Registros                |
+| --------------------------- | ------------------------ |
+| Alunos                      | 73                       |
+| Turmas                      | 68 (histórico; 9 ativas) |
+| Disciplinas                 | 44                       |
+| Cursos/ofertas              | 126                      |
+| Salas                       | 10                       |
+| Lançamentos de pagamento    | 847                      |
+| Itens contratados (`Fatos`) | 274                      |
 
 ---
 
@@ -258,7 +258,13 @@ Reproduz a `PAUTA DE CONTEÚDO` / `diciplina.pdf`. Por professor, disciplina, tu
 
 ### 5.5 Ocorrências
 
-Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descrição e autor do lançamento. Migra a tabela `Fatos` do Access (274 registros). Visível para responsável e equipe; **oculto para o aluno**.
+Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descrição e autor do lançamento. Visível para responsável e equipe; **oculto para o aluno**.
+
+> Não há ocorrência disciplinar a migrar do Access. A tabela `Fatos`, apesar
+> do nome, guarda **itens financeiros contratados** — anuidade, matrícula,
+> taxa de material, dependência. As ocorrências de comportamento vivem no
+> `CONTROLE DE FALTAS.xlsx` (uniforme, celular, saída antecipada) e entram
+> junto com a frequência.
 
 ### 5.6 Notas e boletim
 
@@ -356,7 +362,11 @@ Registro de **quem alterou, o que, quando e qual era o valor anterior** em três
 - **Frequência** — quem marcou e quem alterou uma falta.
 - **Financeiro** — quem lançou a cobrança e quem deu baixa.
 
-É o que permite ao colégio responder a uma contestação de família. O Access atual já tem uma tabela `log`, o que confirma que a necessidade é real.
+É o que permite ao colégio responder a uma contestação de família.
+
+> O Access tem uma tabela `log`, mas ela está **vazia** — a intenção de
+> rastrear existia e nunca foi usada. Não há histórico a migrar; a trilha de
+> auditoria começa do zero no sistema novo.
 
 ### 6.4 Conformidade com a LGPD
 
@@ -457,17 +467,53 @@ O sistema legado é um aplicativo **Microsoft Access** com dois arquivos:
 | `SISIBPIDADOS2026.accdb` | Dados acadêmicos — 34 tabelas: `Tabela_Aluno`, `Turma`, `Disciplina`, `Professores`, `Tabela_pagamento`, `Fatos`, `Cursos`, `Salas` |
 | `SISIBPI_2026.accdb`     | Cadastro de clientes e serviços — 12 tabelas                                                                                        |
 
-A migração é **completa** e acontece por script (`scripts/migrate-access/`), lendo via ODBC e escrevendo no Firestore. Deve ser **idempotente** — rodar duas vezes não pode duplicar registro — porque na prática ela roda várias vezes até os dados saírem certos.
+A migração acontece em duas etapas, detalhadas em [`docs/migracao.md`](docs/migracao.md):
+extração para JSON (Python + ODBC) e carga no Firestore (TypeScript, com as
+mesmas funções de transformação que a aplicação usa). É **idempotente** —
+todo documento tem id determinístico, e rodar de novo sobrescreve em vez de
+duplicar.
 
-Pontos de atenção já identificados na leitura da base:
+**Concluída em 22/09/2026** para cadastro, estrutura e financeiro:
 
-- **Encoding:** a tabela `Professores` falha ao ser lida como UTF-16 pelo driver ODBC. Precisa de tratamento específico.
-- **Duplicidade:** existem disciplinas repetidas com grafias diferentes (`PORTUGUES/LITERATURA` e `PORTUGUÊS/LITERATURA`; `MATEMATICA` e `MATEMÁTICA /FÍSICA`). Exigem consolidação manual antes da carga.
-- **Tabelas vazias:** `Alunos_Turma`, `dados_vida_escolar`, `Dias de Aulas` e `Movimento de Pagamento` estão zeradas — o vínculo aluno↔turma vive em outro lugar e precisa ser reconstruído a partir das planilhas de frequência.
-- **Cursos como ofertas:** as 126 linhas de `Cursos` misturam curso e período (`APOIO ESCOLAR - 1A SERIE EM - BIMESTRE 1`), o que no modelo novo se separa em curso + período letivo.
-- **Bimestre × trimestre:** o Access está organizado em **bimestres**, mas o boletim atual é **trimestral**. A conversão precisa de regra definida pela coordenação.
+| Coleção        | Registros |
+| -------------- | --------- |
+| `alunos`       | 73        |
+| `responsaveis` | 118       |
+| `turmas`       | 10        |
+| `disciplinas`  | 43        |
+| `salas`        | 10        |
+| `matriculas`   | 73        |
+| `cobrancas`    | 847       |
+| `contratos`    | 274       |
 
-> ⚠️ **Pendência bloqueante da migração:** como converter o histórico bimestral do Access para o modelo trimestral atual. Alternativa: migrar apenas o cadastro e começar as notas de 2026 em branco.
+Pontos de atenção encontrados na base, e o que foi feito com cada um:
+
+- **`Professores` está vazia.** Não é problema de encoding, como se suspeitou
+  no levantamento: a tabela nunca foi preenchida. O cadastro de professores
+  começa do zero.
+- **Disciplinas duplicadas:** `PORTUGUES/LITERATURA` e `PORTUGUÊS/LITERATURA`
+  são a mesma matéria. Consolidadas por chave sem acento — 44 viraram 43, com
+  as grafias originais preservadas no documento.
+- **Vínculo aluno↔turma:** `Alunos_Turma` está vazia. A turma é derivada de
+  `Curso1`/`Etapa1`/`Turno1`, e conferida contra o `CONTROLE DE FALTAS.xlsx`.
+  Em 4 casos as duas fontes discordam; vence a planilha, e a divergência fica
+  no relatório para a secretaria revisar.
+- **Responsáveis duplicados:** o Access guarda o responsável em colunas do
+  aluno, então irmãos duplicam a mesma pessoa — às vezes com o nome grafado
+  diferente. Consolidados por e-mail, CPF e nome: 146 registros viraram 118,
+  e 8 responsáveis ficaram com mais de um filho vinculado.
+- **`Fatos` não é ocorrência.** Apesar do nome, guarda os itens contratados do
+  ano (anuidade, matrícula, taxa de material, dependência). Foi para a coleção
+  `contratos`.
+- **Cursos como ofertas:** as 126 linhas de `Cursos` misturam curso e período
+  (`APOIO ESCOLAR - 1A SERIE EM - BIMESTRE 1`). Não foram migradas: a
+  estrutura de oferta será recadastrada no modelo novo.
+- **Bimestre × trimestre:** o Access está organizado em bimestres e o boletim
+  atual é trimestral.
+
+> ⚠️ **Pendência que segue aberta:** o histórico de **notas** não foi migrado,
+> porque depende da regra de conversão bimestre → trimestre. Cadastro,
+> estrutura e financeiro não dependem dela e já estão no ar.
 
 ---
 
