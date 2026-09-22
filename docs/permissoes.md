@@ -157,6 +157,41 @@ Navegador                    Servidor                    Firebase
 e-mail de definição de senha do próprio Firebase. A pessoa escolhe a senha
 dela; ninguém da escola chega a conhecê-la.
 
+### Criar uma conta hoje
+
+Enquanto a tela da secretaria não existe (FASE 3.2), as contas são criadas
+por script:
+
+```bash
+npm run criar:usuario -- --email alguem@ibpi.com.br --nome "Fulano de Tal" --perfil secretaria
+```
+
+Ele faz as três coisas que uma conta precisa para funcionar:
+
+1. cria o usuário no Firebase Authentication;
+2. aplica a **custom claim** `role` — sem ela a pessoa entra e não lê nada,
+   porque é a claim que as Security Rules enxergam;
+3. grava o documento em `users/{uid}` com nome, perfil, vínculos e `ativo`.
+
+Por perfil, os vínculos que importam:
+
+| Perfil                                    | Parâmetro            |
+| ----------------------------------------- | -------------------- |
+| `aluno`                                   | `--matricula 1001`   |
+| `responsavel`                             | `--alunos 1001,1002` |
+| `professor`                               | `--turmas EM1A,EF7A` |
+| `secretaria`, `coordenacao`, `financeiro` | nenhum               |
+
+Sem `--senha`, o script imprime um link para a pessoa criar a própria senha —
+o mesmo mecanismo do primeiro acesso de verdade. O parâmetro `--senha` existe
+para conta descartável de teste; não use em conta de pessoa real.
+
+> Rodar o script de novo com o mesmo e-mail **atualiza** a conta em vez de
+> duplicar: serve para corrigir perfil ou vínculo.
+
+A lógica deste script é a base da Server Action de criação de conta na
+FASE 3.2.
+
 Primeiro acesso e recuperação usam **a mesma tela** (`/definir-senha`), porque
 são o mesmo mecanismo: um link com código (`oobCode`) enviado por e-mail.
 

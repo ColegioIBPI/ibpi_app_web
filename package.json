@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "check:firebase": "node --env-file=.env.local scripts/check-firebase.mjs",
     "deploy:rules": "node --env-file=.env.local scripts/deploy-rules.mjs",
+    "criar:usuario": "node --env-file=.env.local scripts/criar-usuario.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

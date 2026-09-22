@@ -53,7 +53,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Testar as Security Rules no emulador do Firebase
 - [x] Implementar o logout com revogação dos tokens
 - [x] Documentar o modelo de permissões em `docs/permissoes.md`
-- [ ] Aplicar as _custom claims_ de perfil na criação de conta pela secretaria _(entra junto com o cadastro, FASE 3.2)_
+- [x] Aplicar as _custom claims_ de perfil na criação de conta (`npm run criar:usuario`)
+- [ ] Levar a criação de conta para a tela da secretaria _(FASE 3.2 — o script vira Server Action)_
 - [x] Publicar as Security Rules no projeto `colegioibpi` (`npm run deploy:rules`)
 - [x] Dar à conta Google do desenvolvedor permissão no projeto Firebase, para o `firebase deploy` funcionar pelo CLI
 - [ ] Criar as contas de teste dos seis perfis para os testes E2E autenticados
