@@ -1,9 +1,10 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { pode } from "@/core/auth/roles";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 
@@ -28,21 +29,34 @@ export default async function AlunoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          href="/gestao/alunos"
-          className="text-ink-muted hover:text-ink inline-flex items-center gap-1.5 text-sm"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Alunos
-        </Link>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Link
+            href="/gestao/alunos"
+            className="text-ink-muted hover:text-ink inline-flex items-center gap-1.5 text-sm"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+            Alunos
+          </Link>
 
-        <h1 className="text-ink mt-2 text-xl font-semibold">{aluno.nome}</h1>
-        <p className="text-ink-muted mt-1 text-sm">
-          Matrícula {aluno.matricula}
-          {aluno.turmaCodigo ? ` · ${aluno.turmaCodigo}` : ""}
-          {aluno.ativo ? "" : " · ex-aluno"}
-        </p>
+          <h1 className="text-ink mt-2 text-xl font-semibold">{aluno.nome}</h1>
+          <p className="text-ink-muted mt-1 text-sm">
+            Matrícula {aluno.matricula}
+            {aluno.turmaCodigo ? ` · ${aluno.turmaCodigo}` : ""}
+            {aluno.ativo ? "" : " · ex-aluno"}
+          </p>
+        </div>
+
+        {/* Professor e financeiro leem o cadastro, mas não editam. */}
+        {pode(sessao.role, "cadastros", "gerenciar") && (
+          <Link
+            href={`/gestao/alunos/${aluno.matricula}/editar`}
+            className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <Pencil className="size-4" aria-hidden />
+            Editar
+          </Link>
+        )}
       </div>
 
       <FichaDoAluno aluno={aluno} />

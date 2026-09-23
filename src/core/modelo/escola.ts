@@ -22,6 +22,15 @@ import {
  * depois.
  */
 
+/**
+ * Id do documento da turma: ela sempre pertence a um ano letivo, então o
+ * ano faz parte da chave (`2026-EM1A`). A pontuação sai porque id de
+ * documento não pode conter barra.
+ */
+export function idDaTurma(anoLetivo: number, codigo: string): string {
+  return `${anoLetivo}-${codigo.replace(/[^A-Za-z0-9]/g, "")}`;
+}
+
 export const turmaSchema = z.object({
   codigo: z.string().trim().min(1, "Informe o código da turma"),
   anoLetivo: z.number().int(),

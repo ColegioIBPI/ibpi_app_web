@@ -20,6 +20,7 @@ import {
 // Os tipos e rótulos vivem no modelo de dados: a migração usa o mesmo
 // vocabulário do resto do sistema, não um paralelo.
 export type { Segmento, Turno } from "@/core/modelo/comum";
+export { idDaTurma } from "@/core/modelo/escola";
 export { ROTULOS_DE_SEGMENTO, ROTULOS_DE_TURNO } from "@/core/modelo/comum";
 
 export interface TurmaDerivada {
@@ -81,9 +82,4 @@ export function derivarTurma(entrada: {
  */
 function ehSerieCombinada(serie: string): boolean {
   return serie.includes("/") || /^\d{2,}$/.test(serie);
-}
-
-/** Identificador do documento: a turma é sempre de um ano letivo. */
-export function idDaTurma(anoLetivo: number, codigo: string): string {
-  return `${anoLetivo}-${codigo.replace(/[^A-Za-z0-9]/g, "")}`;
 }

@@ -42,7 +42,18 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "cadastros",
     minimo: "gerenciar",
-    disponivel: false,
+    disponivel: true,
+  },
+  {
+    href: "/gestao/disciplinas",
+    rotulo: "Disciplinas",
+    area: "gestao",
+    recurso: "cadastros",
+    // Cadastro estrutural, como Turmas: é da secretaria e da coordenação.
+    // O professor chega à lista de disciplinas pelo diário de classe, não
+    // por um item de menu que ele não administra.
+    minimo: "gerenciar",
+    disponivel: true,
   },
   {
     href: "/gestao/frequencia",

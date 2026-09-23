@@ -91,15 +91,14 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar a listagem de alunos com busca por nome, matrícula e turma
 - [x] Implementar a ficha do aluno, nos blocos do cadastro de origem
 - [x] Aplicar o escopo de acesso na leitura pelo servidor (Admin SDK ignora as rules)
-- [ ] Implementar a edição do cadastro (Server Action + auditoria)
-- [ ] Implementar o formulário de cadastro — bloco Identificação
-- [ ] Implementar o formulário — bloco Documentos (CPF, identidade, certidão)
-- [ ] Implementar o formulário — bloco Contato (endereço, telefones, e-mails)
-- [ ] Implementar o formulário — bloco Filiação e responsáveis
-- [ ] Implementar o formulário — bloco Matrícula (curso, etapa, turno, plano)
+- [x] Implementar a edição do cadastro (Server Action + auditoria)
+- [x] Implementar o formulário — blocos Identificação, Matrícula, Contato, Filiação, Documentos e Observações
+- [x] Resolver o vínculo de turma pelo código, recusando turma inexistente
+- [x] Implementar a inativação de aluno (sem exclusão, preservando o histórico)
 - [ ] Implementar o formulário — bloco Acadêmico (dependências e reclassificações)
-- [ ] Implementar upload de foto do aluno no Firebase Storage
-- [ ] Implementar a inativação de aluno (sem exclusão, preservando o histórico)
+- [ ] Implementar o vínculo de responsáveis pela tela do aluno
+- [ ] Implementar upload de foto do aluno _(depende do Cloud Storage — plano Blaze)_
+- [ ] Atualizar a coleção `matriculas` quando o aluno troca de turma pelo cadastro
 - [ ] Implementar a tela de detalhe do aluno com as abas de frequência, notas e financeiro
 
 ### 3.3 Responsáveis e vínculos
@@ -111,9 +110,10 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.4 Turmas, disciplinas e alocações
 
-- [ ] Modelar as coleções `turmas`, `disciplinas`, `salas` e `alocacoes`
-- [ ] Implementar o CRUD de turmas com segmento, ano letivo e turno
-- [ ] Implementar o CRUD de disciplinas
+- [x] Modelar as coleções `turmas`, `disciplinas`, `salas` e `alocacoes`
+- [x] Implementar o CRUD de turmas com segmento, ano letivo e turno
+- [x] Implementar a tela da turma com os alunos matriculados
+- [x] Implementar o CRUD de disciplinas, com id que impede grafia duplicada
 - [ ] Implementar o CRUD de professores
 - [ ] Implementar a alocação professor × turma × disciplina
 - [ ] Implementar a matrícula de aluno em turma, com histórico por ano letivo
@@ -179,7 +179,9 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.10 Auditoria
 
-- [ ] Modelar a coleção `auditoria`
+- [x] Modelar a coleção `auditoria`
+- [x] Implementar a gravação com auditoria atômica (`gravarComAuditoria`)
+- [x] Registrar as alterações de cadastro, turma e disciplina
 - [ ] Implementar o registro automático em alterações de nota
 - [ ] Implementar o registro automático em alterações de frequência
 - [ ] Implementar o registro automático em alterações financeiras

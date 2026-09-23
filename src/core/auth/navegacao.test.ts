@@ -17,14 +17,17 @@ describe("navegacaoPara", () => {
     expect(itens).toContain("Notas");
     expect(itens).toContain("Ocorrências");
     expect(itens).not.toContain("Financeiro");
-    // Turmas exige gerenciar cadastro, que o professor não tem.
+    // Turmas e Disciplinas exigem gerenciar cadastro, que o professor não
+    // tem — ele chega às disciplinas pelo diário de classe.
     expect(itens).not.toContain("Turmas");
+    expect(itens).not.toContain("Disciplinas");
   });
 
   it("secretaria vê todos os itens de gestão", () => {
     expect(rotulos("secretaria")).toEqual([
       "Alunos",
       "Turmas",
+      "Disciplinas",
       "Frequência",
       "Ocorrências",
       "Notas",
