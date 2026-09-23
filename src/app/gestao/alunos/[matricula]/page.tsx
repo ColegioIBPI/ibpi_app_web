@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
+import { Card } from "@/core/ui/card";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import { listarResponsaveisDoAluno } from "@/features/responsaveis/services/responsaveis.server";
 
 export async function generateMetadata({
   params,
@@ -60,6 +62,58 @@ export default async function AlunoPage({
       </div>
 
       <FichaDoAluno aluno={aluno} />
+
+      {/*
+        A visão inversa do vínculo. Secretaria e coordenação gerenciam a
+        família; professor e financeiro não têm por que ver o cadastro dos
+        responsáveis a partir daqui.
+      */}
+      {pode(sessao.role, "cadastros", "gerenciar") && (
+        <ResponsaveisDoAluno matricula={aluno.matricula} />
+      )}
     </div>
+  );
+}
+
+async function ResponsaveisDoAluno({ matricula }: { matricula: string }) {
+  const responsaveis = await listarResponsaveisDoAluno(matricula);
+
+  return (
+    <Card
+      title="Responsáveis"
+      description="Quem acompanha este aluno pelo Portal."
+    >
+      {responsaveis.length === 0 ? (
+        <p className="text-ink-muted text-sm">
+          Nenhum responsável vinculado. O vínculo é feito na ficha do
+          responsável.
+        </p>
+      ) : (
+        <ul className="divide-line divide-y text-sm">
+          {responsaveis.map((responsavel) => (
+            <li
+              key={responsavel.id}
+              className="flex items-center justify-between gap-4 py-2.5"
+            >
+              <div>
+                <Link
+                  href={`/gestao/responsaveis/${responsavel.id}`}
+                  className="text-brand-600 font-medium hover:underline"
+                >
+                  {responsavel.nome}
+                </Link>
+                <span className="text-ink-muted ml-2 text-xs">
+                  {responsavel.parentesco ?? "Responsável"}
+                  {responsavel.email ? ` · ${responsavel.email}` : ""}
+                </span>
+              </div>
+              <span className="text-ink-muted text-xs">
+                {responsavel.uid ? "com acesso" : "sem acesso"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

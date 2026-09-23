@@ -157,10 +157,30 @@ Navegador                    Servidor                    Firebase
 e-mail de definição de senha do próprio Firebase. A pessoa escolhe a senha
 dela; ninguém da escola chega a conhecê-la.
 
-### Criar uma conta hoje
+### Criar a conta de um responsável
 
-Enquanto a tela da secretaria não existe (FASE 3.2), as contas são criadas
-por script:
+Pela tela: **Gestão → Responsáveis → (abrir a ficha) → Criar acesso**.
+
+O botão só habilita quando o responsável tem **e-mail** (é o login) e **ao
+menos um aluno vinculado** — sem vínculo a pessoa entraria num portal vazio,
+e as Security Rules recusariam qualquer consulta que ela tentasse. Quando
+falta algo, a tela diz o quê, em vez de só desabilitar o botão.
+
+Ao criar, o sistema dispara o e-mail de definição de senha. O Admin SDK gera
+o link mas **não envia**; quem envia é o SDK cliente, pelo serviço do próprio
+Firebase — enviar do servidor exigiria um serviço de e-mail que o projeto não
+tem.
+
+> ⚠️ O vínculo aluno↔responsável vive em **dois lugares**: no cadastro em
+> `responsaveis` e em `users/{uid}`, que é o que as Security Rules consultam.
+> Toda alteração de vínculo atualiza os dois (`sincronizarVinculosDaConta`).
+> Mexer só no cadastro deixaria a família vendo a tela e recebendo "sem
+> permissão" do banco.
+
+### Criar qualquer conta por linha de comando
+
+Para os outros perfis, e para o primeiro acesso — quando ainda não há
+ninguém para usar a tela:
 
 ```bash
 npm run criar:usuario -- --email alguem@ibpi.com.br --nome "Fulano de Tal" --perfil secretaria
@@ -189,8 +209,12 @@ para conta descartável de teste; não use em conta de pessoa real.
 > Rodar o script de novo com o mesmo e-mail **atualiza** a conta em vez de
 > duplicar: serve para corrigir perfil ou vínculo.
 
-A lógica deste script é a base da Server Action de criação de conta na
-FASE 3.2.
+Script e tela chamam **o mesmo código** (`src/core/auth/contas.ts`): fazer
+diferente seria a forma mais provável de uma conta nascer pela metade.
+
+> O script roda com `--conditions=react-server` porque importa o Admin SDK,
+> que é marcado como `server-only` — e esse pacote falha de propósito fora do
+> runtime de React Server Components.
 
 Primeiro acesso e recuperação usam **a mesma tela** (`/definir-senha`), porque
 são o mesmo mecanismo: um link com código (`oobCode`) enviado por e-mail.

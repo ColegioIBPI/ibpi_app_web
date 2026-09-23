@@ -54,7 +54,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar o logout com revogação dos tokens
 - [x] Documentar o modelo de permissões em `docs/permissoes.md`
 - [x] Aplicar as _custom claims_ de perfil na criação de conta (`npm run criar:usuario`)
-- [ ] Levar a criação de conta para a tela da secretaria _(FASE 3.2 — o script vira Server Action)_
+- [x] Levar a criação de conta para a tela da secretaria (responsáveis; demais perfis seguem por script)
 - [x] Publicar as Security Rules no projeto `colegioibpi` (`npm run deploy:rules`)
 - [x] Dar à conta Google do desenvolvedor permissão no projeto Firebase, para o `firebase deploy` funcionar pelo CLI
 - [ ] Criar as contas de teste dos seis perfis para os testes E2E autenticados
@@ -103,10 +103,16 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.3 Responsáveis e vínculos
 
-- [ ] Modelar a coleção `responsaveis` com relação N:N para alunos
-- [ ] Implementar o cadastro de responsável
-- [ ] Implementar a vinculação e desvinculação de responsável ↔ aluno
-- [ ] Implementar a criação da conta de acesso do responsável a partir do cadastro
+- [x] Modelar a coleção `responsaveis` com relação N:N para alunos
+- [x] Implementar a listagem com busca por nome e e-mail e filtro por acesso
+- [x] Implementar o cadastro de responsável, recusando e-mail já usado
+- [x] Implementar a vinculação e desvinculação de responsável ↔ aluno
+- [x] Implementar a criação da conta de acesso a partir da ficha
+- [x] Propagar o vínculo para `users/{uid}`, que é o que as rules consultam
+- [x] Mostrar os responsáveis na ficha do aluno (visão inversa)
+- [x] Unificar a criação de conta entre a tela e o script (`core/auth/contas.ts`)
+- [ ] Permitir editar o vínculo pela ficha do aluno, não só pela do responsável
+- [ ] Desativar o acesso de um responsável sem apagar o cadastro
 
 ### 3.4 Turmas, disciplinas e alocações
 

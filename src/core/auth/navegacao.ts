@@ -37,6 +37,15 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/responsaveis",
+    rotulo: "Responsáveis",
+    area: "gestao",
+    recurso: "cadastros",
+    // Cadastro de família e criação de acesso: secretaria e coordenação.
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/turmas",
     rotulo: "Turmas",
     area: "gestao",

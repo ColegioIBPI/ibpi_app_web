@@ -21,11 +21,13 @@ describe("navegacaoPara", () => {
     // tem — ele chega às disciplinas pelo diário de classe.
     expect(itens).not.toContain("Turmas");
     expect(itens).not.toContain("Disciplinas");
+    expect(itens).not.toContain("Responsáveis");
   });
 
   it("secretaria vê todos os itens de gestão", () => {
     expect(rotulos("secretaria")).toEqual([
       "Alunos",
+      "Responsáveis",
       "Turmas",
       "Disciplinas",
       "Frequência",
