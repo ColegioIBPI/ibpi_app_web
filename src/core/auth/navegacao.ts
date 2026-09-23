@@ -81,6 +81,14 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/diario",
+    rotulo: "Diário de classe",
+    area: "gestao",
+    recurso: "frequencia",
+    minimo: "lancar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/ocorrencias",
     rotulo: "Ocorrências",
     area: "gestao",

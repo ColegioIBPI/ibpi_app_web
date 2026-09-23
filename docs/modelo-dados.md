@@ -166,10 +166,18 @@ Espelha a `PAUTA DE CONTEÚDO` do professor, por alocação e trimestre:
 `anoLetivo` · `trimestre` · `alocacaoId` · `professorId` · `turmaId` ·
 `disciplinaId` · `aulas[]` · `avaliacoesDeTrabalho[]`
 
+O id do documento é `{alocacaoId}-t{trimestre}` — um diário por alocação por
+trimestre, como a pauta impressa. Assim a gravação é sempre no mesmo
+documento, sem consulta prévia para descobrir o id.
+
 Cada **aula** tem `numero`, `data`, `conteudo`, `presencas{matrícula: bool}` e
 `semAula` (`ferias` · `recesso` · `ponte` · `feriado`). Dia sem aula não entra
 no cálculo de frequência — na pauta impressa aparece escrito "férias" ou
 "recesso" no lugar do p/f.
+
+Em `presencas` **só entra quem faltou** (`{"26029": false}`). Quem não está no
+mapa esteve presente. Gravar `true` para os presentes encheria o documento com
+a turma inteira a cada aula, e o significado seria o mesmo.
 
 ### `ocorrencias/{id}`
 

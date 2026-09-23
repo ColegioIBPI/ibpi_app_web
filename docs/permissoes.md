@@ -55,6 +55,20 @@ Atualizar só um dos dois produz o pior tipo de bug: a tela diz uma coisa e o
 banco faz outra. Remover a alocação tira o acesso junto — senão o professor
 continuaria enxergando a turma depois de deixar de dar aula nela.
 
+### Escopo no diário de classe
+
+O diário é mais estreito que a turma: o professor abre a alocação dele, não
+todas as disciplinas daquela turma. A verificação compara
+`alocacao.professorId` com o cadastro de professor ligado ao `uid` da sessão
+(`idDoProfessor`), e vale tanto na leitura (`diario.server.ts`) quanto na
+escrita (`actions/diario.ts`) — o Admin SDK ignora as Security Rules, então
+cada caminho verifica por conta própria.
+
+Diário de outro professor responde **404**, e não 403: dizer "existe, mas não
+é seu" já entregaria que aquela turma tem aquela disciplina. Sem cadastro de
+professor correspondente ao `uid`, o filtro usa um id sentinela que não casa
+com nada — o resultado correto é "nenhuma alocação", não "todas".
+
 ## 2. Onde cada decisão acontece
 
 São **três camadas**, e só as duas últimas são segurança de verdade:

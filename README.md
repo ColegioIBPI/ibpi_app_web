@@ -246,13 +246,23 @@ Cada registro aceita **ocorrência** e **observação**. Tipos de ocorrência em
 Contadores por aluno, como na planilha: percentual de faltas, total de atrasos, total de faltas, total de ocorrências.
 
 **b) Diário de classe — professor**
-Reproduz a `PAUTA DE CONTEÚDO` / `diciplina.pdf`. Por professor, disciplina, turma e trimestre:
+Reproduz a `PAUTA DE CONTEÚDO` / `diciplina.pdf`. Um diário por **alocação × trimestre** (`professor × turma × disciplina × ano`), em `/gestao/diario`:
 
-- Grade de aulas com data (ex.: Aula 1 = 11/05, Aula 2 = 15/05...), marcando `p`/`f` por aluno.
-- **Percentual de frequência** calculado por aluno na disciplina.
-- **Descrição do conteúdo** ministrado em cada aula.
-- Marcação de dias sem aula: férias, recesso, ponte, feriado — que **não entram no cálculo** de frequência.
-- Grade paralela de **avaliações de trabalho (PL)** por data.
+- Grade de aulas com data (ex.: Aula 1 = 11/05, Aula 2 = 15/05...), numeradas em sequência e exibidas em ordem de data.
+- **Descrição do conteúdo** ministrado em cada aula. As aulas letivas sem conteúdo ficam destacadas no topo — é o que a coordenação confere.
+- Chamada por aula: o professor marca **quem faltou**. Aluno sem marcação conta como presente; exigir uma marcação por aluno por aula tornaria o diário digital mais lento que o papel. No banco só se gravam as faltas.
+- Marcação de dias sem aula: férias, recesso, ponte, feriado — que **não entram no cálculo** de frequência, nem exigem conteúdo, nem têm chamada. Contá-los transformaria o recesso escolar em falta de todo mundo.
+- **Percentual de frequência** por aluno na disciplina, sobre as aulas letivas do trimestre, destacado abaixo de 75%.
+- Data repetida é recusada com explicação (aula dupla: registrar o conteúdo das duas na mesma aula).
+
+O escopo é verificado no servidor: o professor só abre a alocação dele, e o
+diário de outro professor responde **404**. Secretaria e coordenação abrem
+todos, porque conferem o diário. Toda escrita passa pela trilha de auditoria.
+
+**Pendente:** a grade paralela de **avaliações de trabalho (PL)** por data. O
+campo `avaliacoesDeTrabalho` já existe no modelo e é preservado nas gravações,
+mas a tela entra junto com o lançamento de notas (seção 5.6), onde a PL é
+usada.
 
 **Limite:** mais de **25% de faltas** reprova o aluno. O sistema alerta quando o aluno se aproxima do limite.
 

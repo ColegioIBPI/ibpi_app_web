@@ -159,13 +159,23 @@ Referência de requisitos: [README.md](README.md).
 > Desbloqueado: professores e alocações já existem (3.4).
 
 - [x] Modelar a coleção `diarioClasse` (alocação × trimestre × aulas)
-- [ ] Implementar a criação da grade de aulas do trimestre, com datas
-- [ ] Implementar a marcação de dias sem aula (férias, recesso, ponte, feriado) fora do cálculo
-- [ ] Implementar a chamada por aula (`p` / `f`) para a turma
-- [ ] Implementar o registro do conteúdo ministrado por aula
-- [ ] Implementar a grade paralela de avaliações de trabalho (PL)
-- [ ] Implementar o cálculo do percentual de frequência por aluno na disciplina
+- [x] Implementar a criação da grade de aulas do trimestre, com datas
+- [x] Implementar a marcação de dias sem aula (férias, recesso, ponte, feriado) fora do cálculo
+- [x] Implementar a chamada por aula para a turma
+- [x] Implementar o registro do conteúdo ministrado por aula
+- [x] Implementar o cálculo do percentual de frequência por aluno na disciplina
+- [x] Implementar o escopo: o professor só abre a alocação dele; outro diário responde 404
+- [x] Implementar o destaque das aulas letivas sem conteúdo registrado
+- [ ] Implementar a grade paralela de avaliações de trabalho (PL) _(entra com 3.8, onde a PL é usada)_
 - [ ] Implementar o alerta de aluno se aproximando do limite de 25% de faltas
+
+> O percentual abaixo de 75% já aparece destacado — o que falta é o alerta de
+> _aproximação_, que precisa saber quantas aulas ainda restam no trimestre e
+> depende do calendário letivo (3.5).
+
+> O trimestre inicial do seletor é **sugerido pelo mês** (`core/lib/ano-letivo`),
+> porque o calendário letivo ainda não está cadastrado. É só o valor inicial de
+> um campo que a pessoa vê e troca.
 
 ### 3.7 Ocorrências
 

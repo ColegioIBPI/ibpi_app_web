@@ -14,6 +14,7 @@ describe("navegacaoPara", () => {
   it("professor não vê financeiro nem gestão de turmas", () => {
     const itens = rotulos("professor");
     expect(itens).toContain("Frequência");
+    expect(itens).toContain("Diário de classe");
     expect(itens).toContain("Notas");
     expect(itens).toContain("Ocorrências");
     expect(itens).not.toContain("Financeiro");
@@ -33,6 +34,7 @@ describe("navegacaoPara", () => {
       "Turmas",
       "Disciplinas",
       "Frequência",
+      "Diário de classe",
       "Ocorrências",
       "Notas",
       "Avisos",

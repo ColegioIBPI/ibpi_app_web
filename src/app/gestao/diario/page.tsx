@@ -1,0 +1,71 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { exigirPermissao } from "@/core/auth/guards";
+import { trimestreDaQuery } from "@/core/lib/ano-letivo";
+import { Card } from "@/core/ui/card";
+import { EmptyState } from "@/core/ui/states";
+import { SeletorDeTrimestre } from "@/features/diario/components/seletor-de-trimestre";
+import { alocacoesVisiveis } from "@/features/diario/services/diario.server";
+
+export const metadata: Metadata = { title: "Diário de classe" };
+
+export default async function DiarioPage({
+  searchParams,
+}: PageProps<"/gestao/diario">) {
+  const sessao = await exigirPermissao("frequencia", "lancar");
+  const filtros = await searchParams;
+  const trimestre = trimestreDaQuery(filtros.trimestre);
+
+  // O professor só enxerga as alocações dele; secretaria e coordenação veem
+  // todas, porque conferem o diário.
+  const alocacoes = await alocacoesVisiveis(sessao);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-ink text-xl font-semibold">Diário de classe</h1>
+        <p className="text-ink-muted mt-1 text-sm">
+          Conteúdo ministrado e chamada por aula, como na pauta de conteúdo.
+        </p>
+      </div>
+
+      <SeletorDeTrimestre atual={trimestre} />
+
+      <Card>
+        {alocacoes.length === 0 ? (
+          <EmptyState
+            title="Nenhuma disciplina alocada"
+            description={
+              sessao.role === "professor"
+                ? "A secretaria ainda não alocou você em nenhuma turma e disciplina."
+                : "Cadastre alocações de professor × turma × disciplina para abrir o diário."
+            }
+          />
+        ) : (
+          <ul className="divide-line divide-y">
+            {alocacoes.map((alocacao) => (
+              <li key={alocacao.id}>
+                <Link
+                  href={`/gestao/diario/${alocacao.id}?trimestre=${trimestre}`}
+                  className="hover:bg-surface-subtle -mx-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded px-2 py-3"
+                >
+                  <span className="text-brand-600 font-medium">
+                    {alocacao.disciplinaNome ?? alocacao.disciplinaId}
+                  </span>
+                  <span className="text-ink text-sm">
+                    Turma {alocacao.turmaCodigo ?? alocacao.turmaId}
+                  </span>
+                  <span className="text-ink-muted text-sm">
+                    {alocacao.professorNome ?? "Professor não informado"} ·{" "}
+                    {alocacao.anoLetivo}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </div>
+  );
+}
