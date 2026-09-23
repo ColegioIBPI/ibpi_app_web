@@ -115,6 +115,24 @@ export async function sincronizarVinculosDaConta(
     );
 }
 
+/**
+ * Mantém em `users` as turmas que as Security Rules leem.
+ *
+ * O escopo do professor vem das alocações, mas a regra do Firestore consulta
+ * `users/{uid}.turmas`. Atualizar só a alocação deixaria o professor sem
+ * acesso à turma que acabou de receber — ou, pior, com acesso à turma de
+ * onde acabou de sair.
+ */
+export async function sincronizarTurmasDaConta(
+  uid: string,
+  turmas: string[],
+): Promise<void> {
+  await getAdminDb()
+    .collection(COLECOES.users)
+    .doc(uid)
+    .set({ turmas, atualizadoEm: new Date().toISOString() }, { merge: true });
+}
+
 /** Link para a pessoa definir a própria senha no primeiro acesso. */
 export async function gerarLinkDeSenha(email: string): Promise<string> {
   return getAdminAuth().generatePasswordResetLink(email);

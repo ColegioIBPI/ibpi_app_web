@@ -46,6 +46,14 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/professores",
+    rotulo: "Professores",
+    area: "gestao",
+    recurso: "cadastros",
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/turmas",
     rotulo: "Turmas",
     area: "gestao",

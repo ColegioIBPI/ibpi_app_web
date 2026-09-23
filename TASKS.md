@@ -121,11 +121,14 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar o CRUD de turmas com segmento, ano letivo e turno
 - [x] Implementar a tela da turma com os alunos matriculados
 - [x] Implementar o CRUD de disciplinas, com id que impede grafia duplicada
-- [ ] Implementar o CRUD de professores
-- [ ] Implementar a alocação professor × turma × disciplina
+- [x] Implementar o CRUD de professores
+- [x] Implementar a alocação professor × turma × disciplina
+- [x] Implementar a criação da conta de acesso do professor
+- [x] Implementar a regra de escopo: professor só enxerga suas alocações
+- [x] Propagar as turmas para `users/{uid}`, que é o que as rules consultam
 - [ ] Implementar a matrícula de aluno em turma, com histórico por ano letivo
 - [ ] Implementar o cadastro de dias e horários de aula por turma
-- [ ] Implementar a regra de escopo: professor só enxerga suas alocações
+- [ ] Mostrar os professores na tela da turma (visão inversa)
 
 ### 3.4b Avisos direcionados
 
@@ -153,8 +156,7 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.6 Frequência — diário de classe (professor)
 
-> ⚠️ **Depende de 3.4**: o diário é por alocação (professor × turma ×
-> disciplina), e nem professores nem alocações estão cadastrados ainda.
+> Desbloqueado: professores e alocações já existem (3.4).
 
 - [x] Modelar a coleção `diarioClasse` (alocação × trimestre × aulas)
 - [ ] Implementar a criação da grade de aulas do trimestre, com datas

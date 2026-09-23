@@ -22,12 +22,14 @@ describe("navegacaoPara", () => {
     expect(itens).not.toContain("Turmas");
     expect(itens).not.toContain("Disciplinas");
     expect(itens).not.toContain("Responsáveis");
+    expect(itens).not.toContain("Professores");
   });
 
   it("secretaria vê todos os itens de gestão", () => {
     expect(rotulos("secretaria")).toEqual([
       "Alunos",
       "Responsáveis",
+      "Professores",
       "Turmas",
       "Disciplinas",
       "Frequência",

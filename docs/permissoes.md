@@ -41,6 +41,20 @@ Permissão diz **o quê**; escopo diz **de quem**:
 
 Sem o escopo, "professor lê frequência" viraria acesso à escola inteira.
 
+### De onde vem o escopo do professor
+
+Das **alocações** (professor × turma × disciplina × ano letivo). A cada
+mudança, o sistema recalcula as turmas distintas e grava em dois lugares:
+
+| Onde                      | Para quê                          |
+| ------------------------- | --------------------------------- |
+| `professores/{id}.turmas` | O que a tela mostra               |
+| `users/{uid}.turmas`      | O que as Security Rules consultam |
+
+Atualizar só um dos dois produz o pior tipo de bug: a tela diz uma coisa e o
+banco faz outra. Remover a alocação tira o acesso junto — senão o professor
+continuaria enxergando a turma depois de deixar de dar aula nela.
+
 ## 2. Onde cada decisão acontece
 
 São **três camadas**, e só as duas últimas são segurança de verdade:
