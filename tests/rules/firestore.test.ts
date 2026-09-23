@@ -117,6 +117,16 @@ beforeEach(async () => {
       valor: 1603,
     });
     await setDoc(doc(db, "auditoria/a1"), { acao: "nota.alterada" });
+    await setDoc(doc(db, "avisos/geral"), {
+      titulo: "Reunião de pais",
+      chave: "todos",
+      ativo: true,
+    });
+    await setDoc(doc(db, "avisos/individual"), {
+      titulo: "Assunto da família",
+      chave: `aluno:${FILHO}`,
+      ativo: true,
+    });
     await setDoc(doc(db, "turmas/EM1A"), { nome: "EM1A" });
     await setDoc(doc(db, "coisa-nova/x1"), { qualquer: true });
   });
@@ -274,6 +284,40 @@ describe("escrita pelo cliente", () => {
     const { aluno } = contextos();
     await assertFails(
       setDoc(doc(aluno.firestore(), "users/u-aluno"), { role: "secretaria" }),
+    );
+  });
+});
+
+describe("avisos", () => {
+  it("a equipe escolar lê qualquer aviso", async () => {
+    const { secretaria, coordenacao, professor, financeiro } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, professor, financeiro]) {
+      await assertSucceeds(ler(contexto, "avisos/geral"));
+      await assertSucceeds(ler(contexto, "avisos/individual"));
+    }
+  });
+
+  it("a família lê o aviso geral", async () => {
+    const { aluno, responsavel } = contextos();
+    await assertSucceeds(ler(aluno, "avisos/geral"));
+    await assertSucceeds(ler(responsavel, "avisos/geral"));
+  });
+
+  it("a família não lê aviso individual direto do banco", async () => {
+    // O alcance do aviso individual depende de cruzar a chave com os
+    // vínculos da pessoa, o que a regra não faz hoje. O Portal lê pelo
+    // servidor, que aplica o alcance; o acesso direto fica fechado para não
+    // entregar o assunto de outra família.
+    const { aluno, responsavel } = contextos();
+    await assertFails(ler(aluno, "avisos/individual"));
+    await assertFails(ler(responsavel, "avisos/individual"));
+  });
+
+  it("ninguém publica aviso pelo cliente", async () => {
+    const { secretaria } = contextos();
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "avisos/novo"), { titulo: "x" }),
     );
   });
 });

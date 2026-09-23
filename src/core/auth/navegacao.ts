@@ -89,6 +89,14 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: false,
   },
   {
+    href: "/gestao/avisos",
+    rotulo: "Avisos",
+    area: "gestao",
+    recurso: "avisos",
+    minimo: "lancar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/financeiro",
     rotulo: "Financeiro",
     area: "gestao",
@@ -98,6 +106,14 @@ const ITENS: ItemDeNavegacao[] = [
   },
 
   // Consulta — aluno e responsável
+  {
+    href: "/portal/avisos",
+    rotulo: "Avisos",
+    area: "consulta",
+    recurso: "avisos",
+    minimo: "ler",
+    disponivel: true,
+  },
   {
     href: "/portal/boletim",
     rotulo: "Boletim",

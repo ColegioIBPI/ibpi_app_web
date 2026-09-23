@@ -8,7 +8,7 @@ const rotulos = (role: Parameters<typeof navegacaoPara>[0]) =>
 
 describe("navegacaoPara", () => {
   it("financeiro vê só o financeiro e o cadastro", () => {
-    expect(rotulos("financeiro")).toEqual(["Alunos", "Financeiro"]);
+    expect(rotulos("financeiro")).toEqual(["Alunos", "Avisos", "Financeiro"]);
   });
 
   it("professor não vê financeiro nem gestão de turmas", () => {
@@ -33,16 +33,18 @@ describe("navegacaoPara", () => {
       "Frequência",
       "Ocorrências",
       "Notas",
+      "Avisos",
       "Financeiro",
     ]);
   });
 
   it("aluno não vê ocorrências nem financeiro", () => {
-    expect(rotulos("aluno")).toEqual(["Boletim", "Frequência"]);
+    expect(rotulos("aluno")).toEqual(["Avisos", "Boletim", "Frequência"]);
   });
 
   it("responsável vê tudo da área de consulta", () => {
     expect(rotulos("responsavel")).toEqual([
+      "Avisos",
       "Boletim",
       "Frequência",
       "Ocorrências",

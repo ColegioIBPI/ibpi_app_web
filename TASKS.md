@@ -127,6 +127,18 @@ Referência de requisitos: [README.md](README.md).
 - [ ] Implementar o cadastro de dias e horários de aula por turma
 - [ ] Implementar a regra de escopo: professor só enxerga suas alocações
 
+### 3.4b Avisos direcionados
+
+- [x] Modelar a coleção `avisos` com destino por aluno, responsável, turma, segmento ou todos
+- [x] Acrescentar o recurso `avisos` à matriz de permissões
+- [x] Implementar a publicação, com escopo por perfil (professor só nas turmas dele)
+- [x] Implementar anexo em PDF e imagem, servido por rota autenticada
+- [x] Implementar a listagem da equipe e a leitura no Portal da família
+- [x] Implementar despublicar sem apagar
+- [x] Escrever e publicar as Security Rules de `avisos`
+- [ ] Reescrever a regra de leitura de `avisos` quando o app MyIBPI for ler direto do Firestore (exige desnormalizar turma e segmento em `users`)
+- [ ] Disparar notificação push ao publicar _(canal do app)_
+
 ### 3.5 Frequência — registro diário (secretaria)
 
 - [ ] Modelar a coleção `frequenciaDiaria`

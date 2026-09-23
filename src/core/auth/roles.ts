@@ -22,7 +22,12 @@ export type Role = (typeof ROLES)[number];
 
 /** Recursos protegidos do sistema. */
 export type Recurso =
-  "cadastros" | "frequencia" | "ocorrencias" | "notas" | "financeiro";
+  | "cadastros"
+  | "frequencia"
+  | "ocorrencias"
+  | "notas"
+  | "financeiro"
+  | "avisos";
 
 /**
  * Níveis de acesso, cumulativos: quem gerencia também lança, quem lança
@@ -45,6 +50,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "lancar",
     notas: "gerenciar",
     financeiro: "ler",
+    avisos: "gerenciar",
   },
   coordenacao: {
     cadastros: "gerenciar",
@@ -52,6 +58,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "lancar",
     notas: "gerenciar",
     financeiro: "ler",
+    avisos: "gerenciar",
   },
   // Quem cuida de mensalidade não precisa ver nota, falta nem ocorrência
   // disciplinar. Lê o cadastro apenas para contato e cobrança.
@@ -61,6 +68,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "nenhum",
     notas: "nenhum",
     financeiro: "lancar",
+    // Publica aviso de cobrança e prazo, mas não apaga o de outra pessoa.
+    avisos: "lancar",
   },
   professor: {
     cadastros: "ler",
@@ -68,6 +77,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "lancar",
     notas: "lancar",
     financeiro: "nenhum",
+    // Publica para as turmas que leciona — o escopo vale aqui também.
+    avisos: "lancar",
   },
   aluno: {
     cadastros: "ler",
@@ -75,6 +86,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "nenhum",
     notas: "ler",
     financeiro: "nenhum",
+    avisos: "ler",
   },
   responsavel: {
     cadastros: "ler",
@@ -82,6 +94,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     ocorrencias: "ler",
     notas: "ler",
     financeiro: "ler",
+    avisos: "ler",
   },
 };
 

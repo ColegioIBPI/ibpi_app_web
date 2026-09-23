@@ -69,14 +69,14 @@ Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso just
 definido em 3.2 — "lê" para o professor significa "lê dos alunos que ele
 leciona", não da escola inteira.
 
-| Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      |
-| --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- |
-| **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              |
-| **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              |
-| **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  |
-| **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   |
-| **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | ❌ Sem acesso   | Lê (próprio)     | ❌ Sem acesso   |
-| **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) |
+| Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      | Avisos                    |
+| --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
+| **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
+| **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
+| **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |
+| **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   | **Publica** (suas turmas) |
+| **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | ❌ Sem acesso   | Lê (próprio)     | ❌ Sem acesso   | Lê (os dele)              |
+| **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) | Lê (dele e dos filhos)    |
 
 A separação do **Financeiro** é intencional: quem cuida de mensalidade não
 precisa ver nota, falta nem ocorrência disciplinar de aluno. É o mesmo
@@ -312,7 +312,49 @@ Migra a tabela `Tabela_pagamento` (847 registros), com os campos `Matricula`, `V
 - Relatório de inadimplência.
 - Exportação de listas em **Excel** para a secretaria.
 
-### 5.9 Modelo de dados (Firestore)
+### 5.9 Avisos
+
+Comunicados direcionados, com a mesma segmentação que o app MyIBPI prevê —
+modelar igual é o que permite o aviso publicado aqui aparecer no app quando
+ele chegar, sem retrabalho.
+
+| Destino           | Alcança                                            |
+| ----------------- | -------------------------------------------------- |
+| Toda a comunidade | Todos os usuários                                  |
+| Segmento          | Alunos e responsáveis do Fundamental, Médio ou EJA |
+| Turma             | Alunos da turma **e** os responsáveis deles        |
+| Aluno             | O aluno e os responsáveis dele                     |
+| Responsável       | Só aquele responsável                              |
+
+O aviso de turma alcançar também os responsáveis é deliberado: é assim que o
+colégio pensa "avisar a turma", e separar criaria o trabalho de publicar duas
+vezes.
+
+**Quem publica, e para quem:**
+
+| Perfil                  | Pode publicar para                 |
+| ----------------------- | ---------------------------------- |
+| Secretaria, coordenação | qualquer destino                   |
+| Professor               | as turmas que leciona, ou um aluno |
+| Financeiro              | um responsável ou um aluno         |
+
+Permissão e escopo são coisas diferentes: o perfil diz **se** pode publicar,
+o escopo diz **para quem**. O professor tem permissão de aviso, mas não
+alcança a escola inteira; o financeiro fala com a família sobre cobrança, e
+não com todo mundo.
+
+**Anexos:** PDF ou imagem, até 5 por aviso, com a mesma proteção da foto do
+aluno — sem URL pública, servidos por rota que confere se o aviso é mesmo
+para quem está pedindo. Uma circular pode ser endereçada a uma única família.
+
+**Despublicar, não apagar.** O que foi comunicado fica registrado: apagar
+esconderia que a mensagem chegou a existir, e é justamente isso que o colégio
+precisa poder mostrar depois.
+
+> Notificação push é canal do app e entra com ele. O campo `notificadoEm` já
+> existe para o app saber o que não repetir quando entrar no ar.
+
+### 5.10 Modelo de dados (Firestore)
 
 Modelagem inicial, compartilhada com o app MyIBPI:
 

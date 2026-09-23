@@ -190,6 +190,27 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --------------------------------------------------------------- avisos
+
+    match /avisos/{id} {
+      // A equipe escolar lê tudo: publica, confere e precisa saber o que já
+      // foi comunicado, inclusive o que saiu do ar.
+      //
+      // Para a família, a regra libera só o aviso geral. O aviso de turma,
+      // de segmento e o individual dependem de cruzar a chave do aviso com
+      // a turma e os vínculos da pessoa — e regra do Firestore não faz isso
+      // sem desnormalizar turma e segmento dentro de `users`. Enquanto isso
+      // não for necessário, o Portal lê pelo servidor, que já aplica o
+      // alcance (`features/avisos/domain/destinatarios.ts`).
+      //
+      // ⚠️ Quando o app MyIBPI for ler avisos direto do Firestore, esta
+      // regra precisa ser reescrita junto com a desnormalização — senão a
+      // família só enxergará o aviso geral.
+      allow read: if temPerfil(['secretaria', 'coordenacao', 'professor', 'financeiro'])
+                  || (autenticado() && resource.data.chave == 'todos' && resource.data.ativo == true);
+      allow write: if false;
+    }
+
     // ------------------------------------------------------------ auditoria
 
     match /auditoria/{id} {
