@@ -143,7 +143,18 @@ export const dependenciaSchema = z.object({
 
 export type Dependencia = z.infer<typeof dependenciaSchema>;
 
-/** Boletim consolidado do aluno no ano letivo. */
+/**
+ * Boletim consolidado do aluno no ano letivo.
+ *
+ * O documento guarda o que **não dá para calcular** a partir das notas:
+ * recuperação final, eletivas, dependências, Projeto Bilíngue e
+ * observações. As linhas das disciplinas são recalculadas a cada leitura, a
+ * partir de `notas` — assim uma correção de nota aparece no boletim na hora,
+ * em vez de deixar um consolidado velho no banco.
+ *
+ * `disciplinas[]` só é preenchido no **fechamento** do ano, como retrato do
+ * que foi entregue à família.
+ */
 export const boletimSchema = z.object({
   anoLetivo: z.number().int(),
   matricula: z.string().min(1),
@@ -151,6 +162,8 @@ export const boletimSchema = z.object({
   turmaId: z.string().min(1),
   turmaCodigo: z.string().optional(),
   segmentoRotulo: z.string().optional(),
+  /** Nota da recuperação final por disciplina (`{ fisica: 6.5 }`). */
+  recuperacoes: z.record(z.string(), valorDeNotaSchema).default({}),
   disciplinas: z.array(linhaDoBoletimSchema).default([]),
   projetoBilingue: projetoBilingueSchema.nullish(),
   eletivas: z.array(eletivaSchema).default([]),

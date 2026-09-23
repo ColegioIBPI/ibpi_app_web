@@ -102,7 +102,17 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "notas",
     minimo: "lancar",
-    disponivel: false,
+    disponivel: true,
+  },
+  {
+    href: "/gestao/boletins",
+    rotulo: "Boletins",
+    area: "gestao",
+    recurso: "notas",
+    // O professor lança nota, mas o boletim consolidado é conferido e
+    // fechado pela secretaria e pela coordenação.
+    minimo: "gerenciar",
+    disponivel: true,
   },
   {
     href: "/gestao/avisos",
@@ -136,7 +146,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "consulta",
     recurso: "notas",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/portal/frequencia",

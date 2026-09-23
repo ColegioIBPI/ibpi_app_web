@@ -12,7 +12,7 @@ import {
   proximoNumero,
   resumirAulas,
   verificarDataRepetida,
-} from "@/features/diario/domain/aulas";
+} from "@/core/escola/aulas";
 
 const aula = (
   numero: number,

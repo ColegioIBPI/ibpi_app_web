@@ -60,3 +60,38 @@ body {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
 }
+
+/*
+ * Impressão — usada pelo boletim.
+ *
+ * O navegador já sabe salvar como PDF; o que falta é tirar da página o que
+ * não é documento. Gerar o PDF no servidor exigiria manter uma segunda
+ * descrição do boletim em sincronia com a tela, e é assim que as duas
+ * versões acabam divergindo.
+ *
+ * O que sai da página é marcado com `data-impressao="ocultar"`, e não pelo
+ * nome da tag: o cabeçalho do boletim também é um `<header>`, e esse
+ * precisa imprimir.
+ */
+@media print {
+  [data-impressao="ocultar"] {
+    display: none !important;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  /* Cartão impresso é papel: sem borda, sem fundo, sem margem interna. */
+  [data-cartao] {
+    border: 0;
+    padding: 0;
+  }
+
+  /* Uma disciplina não deve começar numa página e terminar na outra. */
+  tr,
+  section {
+    break-inside: avoid;
+  }
+}

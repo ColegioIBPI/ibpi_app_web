@@ -2,31 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { alocacoesVisiveis } from "@/core/escola/alocacoes.server";
 import { trimestreDaQuery } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
-import { EmptyState } from "@/core/ui/states";
 import { SeletorDeTrimestre } from "@/core/ui/seletor-de-trimestre";
-import { alocacoesVisiveis } from "@/core/escola/alocacoes.server";
+import { EmptyState } from "@/core/ui/states";
 
-export const metadata: Metadata = { title: "Diário de classe" };
+export const metadata: Metadata = { title: "Notas" };
 
-export default async function DiarioPage({
+export default async function NotasPage({
   searchParams,
-}: PageProps<"/gestao/diario">) {
-  const sessao = await exigirPermissao("frequencia", "lancar");
+}: PageProps<"/gestao/notas">) {
+  const sessao = await exigirPermissao("notas", "lancar");
   const filtros = await searchParams;
   const trimestre = trimestreDaQuery(filtros.trimestre);
 
-  // O professor só enxerga as alocações dele; secretaria e coordenação veem
-  // todas, porque conferem o diário.
   const alocacoes = await alocacoesVisiveis(sessao);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-ink text-xl font-semibold">Diário de classe</h1>
+        <h1 className="text-ink text-xl font-semibold">Notas</h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Conteúdo ministrado e chamada por aula, como na pauta de conteúdo.
+          Projeto, Tarefas e AV por aluno. A média do trimestre é
+          {" "}(Projeto + Tarefas + AV) ÷ 3.
         </p>
       </div>
 
@@ -39,7 +38,7 @@ export default async function DiarioPage({
             description={
               sessao.role === "professor"
                 ? "A secretaria ainda não alocou você em nenhuma turma e disciplina."
-                : "Cadastre alocações de professor × turma × disciplina para abrir o diário."
+                : "Cadastre alocações de professor × turma × disciplina para lançar notas."
             }
           />
         ) : (
@@ -47,7 +46,7 @@ export default async function DiarioPage({
             {alocacoes.map((alocacao) => (
               <li key={alocacao.id}>
                 <Link
-                  href={`/gestao/diario/${alocacao.id}?trimestre=${trimestre}`}
+                  href={`/gestao/notas/${alocacao.id}?trimestre=${trimestre}`}
                   className="hover:bg-surface-subtle -mx-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded px-2 py-3"
                 >
                   <span className="text-brand-600 font-medium">

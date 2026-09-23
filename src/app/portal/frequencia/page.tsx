@@ -23,7 +23,7 @@ import {
   percentualDePresenca,
   ROTULOS_DE_FREQUENCIA,
   situacaoPorFrequencia,
-} from "@/features/frequencia/domain/calculos";
+} from "@/core/escola/frequencia";
 import { frequenciaDoAluno } from "@/features/frequencia/services/frequencia.server";
 
 export const metadata: Metadata = { title: "Frequência" };

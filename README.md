@@ -179,6 +179,9 @@ src/
     firebase/               # client e admin
     ui/                     # design system (cores IBPI, botões, tabela, campos)
     auth/                   # sessão, guarda de rota, permissões
+    escola/                 # regras da escola usadas por mais de uma feature
+    modelo/                 # schemas Zod de todas as coleções
+    auditoria/              # trilha de alteração
     lib/                    # formatação de data, moeda, utilidades
   types/
 scripts/
@@ -187,6 +190,8 @@ docs/                       # documentação por módulo
 ```
 
 Regra que sustenta a organização: **cálculo de média, situação e frequência ficam em `domain/`, como funções puras testáveis** — nunca dentro de componente React. É a regra do boletim que mais vai mudar, e ela precisa estar num lugar só.
+
+`core/escola/` existe para a regra que **duas features precisam**: o diário conta as faltas por disciplina e o boletim lê essa mesma contagem; o diário e o lançamento de notas usam o mesmo escopo de alocação. Duplicar a regra em cada feature é como as duas versões acabam divergindo — e aqui a divergência é um aluno reprovado por engano.
 
 ---
 
@@ -299,6 +304,18 @@ Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descri�
 - **Faltas por trimestre** e campo de **observações**.
 
 **Funções:** lançamento pelo professor (só nas suas disciplinas), correção pelo administrador, cálculo automático de média e situação, visualização pelo aluno e responsável, e **exportação do boletim em PDF** no formato que o colégio já usa.
+
+**Como está implementado** (detalhes e justificativas em [`docs/avaliacao.md`](docs/avaliacao.md)):
+
+- `/gestao/notas` — o professor escolhe a alocação e o trimestre e digita Projeto, Tarefas e AV por aluno. A média aparece enquanto se digita, aceita vírgula decimal, e as faltas vêm pré-preenchidas do diário de classe.
+- Só o que mudou é gravado: salvar sem alterar nada não vira registro, para a auditoria não encher de "7,0 → 7,0".
+- Nota ausente **não é zero** — a média fica em branco até as três avaliações existirem.
+- As médias são arredondadas para uma casa **antes** da comparação com a média mínima: um boletim que estampa "5,0" e diz "reprovado" é indefensável.
+- A frequência que reprova é a **geral do ano** (registro diário da secretaria), não a da disciplina, porque o limite de 25% é da carga horária total.
+- `/gestao/boletins` e `/portal/boletim` — o boletim é **calculado a partir das notas** a cada leitura; o documento guarda só o que não é derivável (recuperação, eletivas, dependências, Projeto Bilíngue, observações).
+- O PDF sai pela impressão do navegador, com `@media print` — assim o que a família imprime é exatamente o que ela vê.
+
+**Pendente:** fechamento do ano (retrato do boletim entregue) e a migração das notas do Access, que dependem respectivamente de decisão de prazo e da regra de conversão bimestre → trimestre.
 
 ### 5.7 Financeiro
 

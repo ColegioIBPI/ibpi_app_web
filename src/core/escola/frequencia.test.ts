@@ -6,7 +6,7 @@ import {
   faltasQueAindaCabem,
   percentualDePresenca,
   situacaoPorFrequencia,
-} from "@/features/frequencia/domain/calculos";
+} from "@/core/escola/frequencia";
 
 const serie = (...situacoes: SituacaoDePresenca[]) => contar(situacoes);
 

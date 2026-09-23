@@ -17,6 +17,7 @@ export function Card({
 }: CardProps) {
   return (
     <section
+      data-cartao
       className={cn(
         "rounded-card border-line bg-surface border p-4 sm:p-6",
         className,

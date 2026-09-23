@@ -23,8 +23,8 @@ import {
   ordenarAulas,
   proximoNumero,
   verificarDataRepetida,
-} from "@/features/diario/domain/aulas";
-import { idDoProfessor } from "@/features/diario/services/diario.server";
+} from "@/core/escola/aulas";
+import { obterAlocacao } from "@/core/escola/alocacoes.server";
 
 /**
  * Escrita do diário de classe.
@@ -225,22 +225,13 @@ async function abrir(alocacaoId: string, trimestre: Trimestre) {
   const sessao = await exigirPermissao("frequencia", "lancar");
   const db = getAdminDb();
 
-  const alocacaoDoc = await db
-    .collection(COLECOES.alocacoes)
-    .doc(alocacaoId)
-    .get();
+  const alocacao = await obterAlocacao(sessao, alocacaoId);
 
-  if (!alocacaoDoc.exists) {
+  // `obterAlocacao` devolve null tanto para alocação inexistente quanto para
+  // a de outro professor, e a mensagem aqui é a mesma nos dois casos: dizer
+  // "existe, mas não é sua" já entregaria que a turma tem aquela disciplina.
+  if (!alocacao) {
     return { erro: "Alocação não encontrada." as const };
-  }
-
-  const alocacao = alocacaoDoc.data() as Alocacao;
-
-  if (sessao.role === "professor") {
-    const meuId = await idDoProfessor(sessao.uid);
-    if (alocacao.professorId !== meuId) {
-      return { erro: "Este diário é de outro professor." as const };
-    }
   }
 
   const referencia = db

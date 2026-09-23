@@ -37,6 +37,7 @@ describe("navegacaoPara", () => {
       "Diário de classe",
       "Ocorrências",
       "Notas",
+      "Boletins",
       "Avisos",
       "Financeiro",
     ]);

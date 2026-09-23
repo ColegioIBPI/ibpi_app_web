@@ -188,20 +188,27 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.8 Notas e boletim
 
-- [ ] Modelar as coleções `notas` e `boletins`
-- [ ] Implementar as funções puras de domínio: média do trimestre `(Projeto + Tarefas + AV) ÷ 3`
-- [ ] Implementar a função pura de média anual (média dos três trimestres)
-- [ ] Implementar a função pura de situação: aprovado com média ≥ 5,0 e frequência ≥ 75%
-- [ ] Implementar a função pura de recuperação final: `(média anual + recuperação) ÷ 2`
-- [ ] Implementar a tela de lançamento de notas pelo professor, por turma e disciplina
-- [ ] Implementar a correção de nota pelo administrador, com auditoria
-- [ ] Implementar o bloco Projeto Bilíngue (IBEU): STEAM, ENGLISH, PROJECT, com nível e recuperação
-- [ ] Implementar o bloco Eletivas, com período e situação
-- [ ] Implementar o bloco Dependência/Reclassificação (`P1`, `P2`, `TOTAL`, `REC`, `MÉDIA`, `SITUAÇÃO`)
-- [ ] Implementar o campo de observações do boletim
-- [ ] Implementar a visualização do boletim pelo aluno e pelo responsável
-- [ ] Implementar a exportação do boletim em PDF no formato usado pelo colégio
-- [ ] Documentar as regras de avaliação em `docs/avaliacao.md`
+- [x] Modelar as coleções `notas` e `boletins`
+- [x] Implementar as funções puras de domínio: média do trimestre `(Projeto + Tarefas + AV) ÷ 3`
+- [x] Implementar a função pura de média anual (média dos três trimestres)
+- [x] Implementar a função pura de situação: aprovado com média ≥ 5,0 e frequência ≥ 75%
+- [x] Implementar a função pura de recuperação final: `(média anual + recuperação) ÷ 2`
+- [x] Implementar a tela de lançamento de notas pelo professor, por turma e disciplina
+- [x] Implementar a correção de nota pelo administrador, com auditoria
+- [x] Implementar o bloco Projeto Bilíngue (IBEU): STEAM, ENGLISH, PROJECT, com nível e recuperação
+- [x] Implementar o bloco Eletivas, com período e situação
+- [x] Implementar o bloco Dependência/Reclassificação (`P1`, `P2`, `TOTAL`, `REC`, `MÉDIA`, `SITUAÇÃO`)
+- [x] Implementar o campo de observações do boletim
+- [x] Implementar a visualização do boletim pelo aluno e pelo responsável
+- [x] Implementar a exportação do boletim em PDF no formato usado pelo colégio
+- [x] Documentar as regras de avaliação em `docs/avaliacao.md`
+- [ ] Implementar o fechamento do ano: gravar o retrato em `boletins.disciplinas[]` e travar o lançamento
+- [ ] Confirmar com a coordenação a regra de arredondamento (ver `docs/avaliacao.md`, seção 3)
+- [ ] Migrar as notas do Access — **bloqueado**: o sistema antigo é bimestral e o boletim é trimestral
+
+> O PDF sai pela impressão do navegador, com `@media print`. Gerar o PDF no
+> servidor exigiria manter uma segunda descrição do boletim em sincronia com
+> a tela — e é assim que as duas versões acabam divergindo.
 
 ### 3.9 Financeiro
 
@@ -219,7 +226,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Modelar a coleção `auditoria`
 - [x] Implementar a gravação com auditoria atômica (`gravarComAuditoria`)
 - [x] Registrar as alterações de cadastro, turma e disciplina
-- [ ] Implementar o registro automático em alterações de nota
+- [x] Implementar o registro automático em alterações de nota
 - [ ] Implementar o registro automático em alterações de frequência
 - [ ] Implementar o registro automático em alterações financeiras
 - [ ] Implementar a consulta de auditoria para o administrador

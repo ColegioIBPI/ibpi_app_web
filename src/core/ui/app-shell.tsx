@@ -17,7 +17,10 @@ export function AppShell({ sessao, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="border-line bg-surface border-b">
+      <header
+        data-impressao="ocultar"
+        className="border-line bg-surface border-b"
+      >
         <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3">
           <Link href={rotaInicial(sessao.role)} className="shrink-0">
             <Image

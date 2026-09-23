@@ -23,8 +23,8 @@ import {
   percentualNaDisciplina,
   ROTULOS_SEM_AULA,
   type MotivoSemAula,
-} from "@/features/diario/domain/aulas";
-import type { AlunoDaTurma } from "@/features/diario/services/diario.server";
+} from "@/core/escola/aulas";
+import type { AlunoDaTurma } from "@/core/escola/alocacoes.server";
 
 interface GradeProps {
   alocacaoId: string;

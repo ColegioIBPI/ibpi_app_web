@@ -194,6 +194,11 @@ Espelham o `MODELO DE BOLETIM.xlsx`, com os quatro blocos que ele tem.
 `anoLetivo` · `trimestre` · `matricula` · `turmaId` · `disciplinaId` ·
 `avaliacoes{ projeto, tarefas, av }` · `faltas` · `lancadoPor`
 
+O id é `{ano}-t{trimestre}-{matrícula}-{disciplina}`, determinístico: relançar
+o mesmo trimestre corrige o registro em vez de criar um segundo. Avaliação não
+lançada é `null`, e **não** zero — a diferença entre "ainda não fez" e "tirou
+zero" precisa sobreviver até o boletim.
+
 **Boletim** — consolidado do ano:
 
 | Bloco             | Campos                                                                                                              |
@@ -204,7 +209,15 @@ Espelham o `MODELO DE BOLETIM.xlsx`, com os quatro blocos que ele tem.
 | `dependencias[]`  | cálculo próprio: `p1`, `p2`, `total`, `recuperacao`, `media`, `situacao`                                            |
 | Fechamento        | `faltasPorTrimestre`, `percentualDeFrequencia`, `situacao`, `observacoes`                                           |
 
-As regras de cálculo estão no README, seção 5.6. Elas viram funções puras em
+O id do boletim é `{ano}-{matrícula}`. Ele guarda apenas o que **não dá para
+calcular**: `recuperacoes{disciplina: nota}`, `eletivas[]`, `dependencias[]`,
+`projetoBilingue` e `observacoes`. As linhas de disciplina são recalculadas
+das notas a cada leitura — guardar o consolidado significaria que corrigir uma
+nota deixa o boletim velho no banco até alguém recalcular, e o boletim errado
+é justamente o que chega à família. `disciplinas[]` só é preenchido no
+fechamento do ano, como retrato do que foi entregue.
+
+As regras de cálculo estão em [`avaliacao.md`](avaliacao.md). Elas viram funções puras em
 `src/features/notas/domain/` quando a tela for construída.
 
 > ⚠️ Nenhuma nota foi migrada: depende da conversão bimestre → trimestre.

@@ -9,7 +9,7 @@ import {
 import { escopoDeAlunos } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
-import { contar, type Contadores } from "@/features/frequencia/domain/calculos";
+import { contar, type Contadores } from "@/core/escola/frequencia";
 
 /**
  * Leitura de frequência e ocorrências.

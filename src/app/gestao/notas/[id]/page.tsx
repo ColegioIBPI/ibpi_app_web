@@ -6,40 +6,47 @@ import { notFound } from "next/navigation";
 import { exigirPermissao } from "@/core/auth/guards";
 import { trimestreDaQuery } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
-import { EmptyState } from "@/core/ui/states";
-import { GradeDeAulas } from "@/features/diario/components/grade-de-aulas";
 import { SeletorDeTrimestre } from "@/core/ui/seletor-de-trimestre";
-import { alunosDaTurma } from "@/core/escola/alocacoes.server";
-import { obterDiario } from "@/features/diario/services/diario.server";
+import { EmptyState } from "@/core/ui/states";
+import { GradeDeNotas } from "@/features/notas/components/grade-de-notas";
+import { montarLancamento } from "@/features/notas/domain/lancamento";
+import { contextoDeLancamento } from "@/features/notas/services/notas.server";
 
-export const metadata: Metadata = { title: "Diário de classe" };
+export const metadata: Metadata = { title: "Lançamento de notas" };
 
-export default async function DiarioDaAlocacaoPage({
+export default async function LancamentoDeNotasPage({
   params,
   searchParams,
-}: PageProps<"/gestao/diario/[id]">) {
-  const sessao = await exigirPermissao("frequencia", "lancar");
+}: PageProps<"/gestao/notas/[id]">) {
+  const sessao = await exigirPermissao("notas", "lancar");
   const { id } = await params;
   const filtros = await searchParams;
   const trimestre = trimestreDaQuery(filtros.trimestre);
 
-  // Diário de outro professor responde 404, e não 403: dizer "existe, mas
-  // não é seu" já entregaria que aquela turma tem aquela disciplina.
-  const contexto = await obterDiario(sessao, id, trimestre);
+  // Disciplina de outro professor responde 404, e não 403 — dizer "existe,
+  // mas não é sua" já entregaria que a turma tem aquela disciplina.
+  const contexto = await contextoDeLancamento(sessao, id, trimestre);
   if (!contexto) notFound();
 
-  const { alocacao, diario } = contexto;
-  const alunos = await alunosDaTurma(alocacao.turmaId);
+  const { alocacao, alunos, notas, faltasDoDiario } = contexto;
+
+  // Quem ainda não tem lançamento começa com as faltas contadas no diário —
+  // o professor confere em vez de recontar.
+  const linhas = montarLancamento(alunos, notas).map((linha) =>
+    linha.jaLancado
+      ? linha
+      : { ...linha, faltas: faltasDoDiario[linha.matricula] ?? 0 },
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <Link
-          href="/gestao/diario"
+          href="/gestao/notas"
           className="text-ink-muted hover:text-ink inline-flex items-center gap-1 text-sm"
         >
           <ArrowLeft className="size-4" aria-hidden />
-          Diários
+          Notas
         </Link>
 
         <h1 className="text-ink mt-2 text-xl font-semibold">
@@ -58,14 +65,14 @@ export default async function DiarioDaAlocacaoPage({
         {alunos.length === 0 ? (
           <EmptyState
             title="Nenhum aluno nesta turma"
-            description="Matricule alunos na turma para registrar chamada."
+            description="Matricule alunos na turma para lançar notas."
           />
         ) : (
-          <GradeDeAulas
+          <GradeDeNotas
             alocacaoId={id}
             trimestre={trimestre}
-            aulas={diario?.aulas ?? []}
-            alunos={alunos}
+            linhas={linhas}
+            faltasDoDiario={faltasDoDiario}
           />
         )}
       </Card>
