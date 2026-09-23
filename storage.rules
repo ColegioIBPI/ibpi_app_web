@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// Regras do Cloud Storage do Portal IBPI.
+//
+// **Nenhum acesso pelo cliente, nem leitura.** Diferente do Firestore, onde
+// a consulta do aluno e do responsável passa pelo navegador, aqui tudo é
+// intermediado pelo servidor:
+//
+// - o upload vai por Server Action, que valida perfil, reencoda a imagem e
+//   remove os metadados antes de gravar;
+// - a leitura vai por `/api/alunos/{matricula}/foto`, que verifica a sessão
+//   e aplica o mesmo escopo do cadastro.
+//
+// O que está guardado aqui é foto de menor de idade. Uma regra de leitura
+// baseada só em "estar autenticado" deixaria qualquer aluno baixar a foto de
+// qualquer colega sabendo a matrícula — e as matrículas são sequenciais.
+//
+// O Admin SDK, usado pelo servidor, não passa por estas regras. É por isso
+// que negar tudo aqui não quebra o sistema: fecha o caminho direto e deixa
+// só o caminho verificado.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

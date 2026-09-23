@@ -86,8 +86,16 @@ export const alunoSchema = z.object({
   filiacao: filiacaoSchema,
   documentos: documentosSchema,
 
-  /** Caminho no Storage. Depende do plano Blaze — ver TASKS, FASE 1. */
-  fotoUrl: z.string().nullish(),
+  /**
+   * Caminho do arquivo no Cloud Storage (`alunos/{matricula}/foto.webp`).
+   *
+   * Não é URL: a foto de um menor de idade não tem endereço público. A
+   * imagem é servida por `/api/alunos/{matricula}/foto`, que verifica a
+   * sessão e o escopo de quem pede.
+   */
+  fotoPath: z.string().nullish(),
+  /** Quando a foto foi trocada — usado para furar o cache do navegador. */
+  fotoAtualizadaEm: z.string().nullish(),
   observacoes: textoOpcional,
   dataMatricula: dataSchema.nullish(),
 

@@ -21,7 +21,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Criar o app Web no Firebase e habilitar Authentication (e-mail/senha)
 - [x] Criar o banco Firestore em `southamerica-east1`, em modo de produção
 - [x] Adicionar `npm run check:firebase` para diagnosticar a configuração
-- [ ] Ativar o Cloud Storage — exige upgrade para o plano Blaze, com limite de orçamento _(só é necessário na FASE 3.2)_
+- [x] Ativar o Cloud Storage (plano Blaze)
 - [ ] Conectar o repositório à Vercel e validar o primeiro deploy
 - [ ] Configurar as variáveis de ambiente no painel da Vercel
 
@@ -97,7 +97,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar a inativação de aluno (sem exclusão, preservando o histórico)
 - [ ] Implementar o formulário — bloco Acadêmico (dependências e reclassificações)
 - [ ] Implementar o vínculo de responsáveis pela tela do aluno
-- [ ] Implementar upload de foto do aluno _(depende do Cloud Storage — plano Blaze)_
+- [x] Implementar upload de foto do aluno, com remoção de EXIF e entrega por rota autenticada
+- [x] Escrever e publicar as regras do Storage (nenhum acesso pelo cliente)
 - [ ] Atualizar a coleção `matriculas` quando o aluno troca de turma pelo cadastro
 - [ ] Implementar a tela de detalhe do aluno com as abas de frequência, notas e financeiro
 

@@ -53,7 +53,7 @@ do documento — é a chave do histórico escolar inteiro e não muda.
 | `contato`     | `emails[]` · `telefones[]` (E.164) · `endereco{ logradouro, complemento, bairro, cidade, uf, cep }`                                                                                                                |
 | `filiacao`    | `mae` · `pai`                                                                                                                                                                                                      |
 | `documentos`  | `identidade` · `orgaoEmissor` · `ufEmissor` · `dataEmissao` · `certidaoTermo` · `certidaoFolha` · `certidaoLivro` · `cartorio` · `ufCartorio` · `codigoINEP` · `nacionalidade` · `naturalidade` · `ufNaturalidade` |
-| Outros        | `fotoUrl` · `observacoes` · `origem` · `migradoEm`                                                                                                                                                                 |
+| Outros        | `fotoPath` · `fotoAtualizadaEm` · `observacoes` · `origem` · `migradoEm`                                                                                                                                           |
 
 `nomeParaBusca` guarda o nome sem acento e em maiúsculas. O Firestore não tem
 busca textual, e é esse campo que permite achar "Cauã" digitando "caua".
@@ -210,6 +210,24 @@ Guarda só os campos que mudaram, com valor antes e depois. Obrigatória em
 nota, frequência e financeiro.
 
 ---
+
+### Foto do aluno
+
+Fica no Cloud Storage em `alunos/{matricula}/foto.webp`, e o cadastro guarda
+o **caminho**, não uma URL — foto de menor de idade não tem endereço público.
+
+| Camada                         | O que faz                                                       |
+| ------------------------------ | --------------------------------------------------------------- |
+| `storage.rules`                | Nega **todo** acesso pelo cliente, inclusive leitura            |
+| Server Action                  | Valida perfil e formato, reduz para 600px e **descarta o EXIF** |
+| `/api/alunos/{matricula}/foto` | Serve a imagem aplicando o mesmo escopo do cadastro             |
+
+O descarte do EXIF não é detalhe: foto de celular costuma trazer a
+coordenada de GPS de onde foi tirada. Guardar a localização junto do nome de
+uma criança é pior do que guardar a foto.
+
+`fotoAtualizadaEm` entra na URL como parâmetro. Sem ele, o navegador
+continuaria mostrando a imagem antiga depois de a secretaria trocá-la.
 
 ## Convenções
 

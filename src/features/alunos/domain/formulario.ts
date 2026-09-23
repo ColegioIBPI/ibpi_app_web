@@ -90,13 +90,18 @@ const vazioParaNulo = (valor: string) => (valor.trim() ? valor.trim() : null);
  * Converte o formulário na forma que vai para o Firestore.
  *
  * Devolve **só os campos que o formulário edita**. `turmaId`, `segmento` e
- * `turno` são derivados da turma e resolvidos no servidor; `fotoUrl` depende
- * do Storage. Incluí-los aqui como `null` apagaria dado bom na gravação com
+ * `turno` são derivados da turma e resolvidos no servidor; a foto tem ação
+ * própria. Incluí-los aqui como `null` apagaria dado bom na gravação com
  * `merge` — foi exatamente o que aconteceu na primeira versão.
  */
 export type AlunoDoFormulario = Omit<
   AlunoEditavel,
-  "turmaId" | "segmento" | "turno" | "statusOriginal" | "fotoUrl"
+  | "turmaId"
+  | "segmento"
+  | "turno"
+  | "statusOriginal"
+  | "fotoPath"
+  | "fotoAtualizadaEm"
 > & { nomeParaBusca: string };
 
 export function paraAluno(formulario: FormularioDoAluno): AlunoDoFormulario {

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/core/ui/table";
 import { formatDate } from "@/core/lib/format";
+import { FotoDoAluno } from "@/features/alunos/components/foto-do-aluno";
 import type { AlunoComId } from "@/features/alunos/services/alunos.server";
 
 interface TabelaDeAlunosProps {
@@ -49,15 +50,28 @@ export function TabelaDeAlunos({ alunos, filtrada }: TabelaDeAlunosProps) {
         {alunos.map((aluno) => (
           <TableRow key={aluno.id}>
             <TableCell>
-              <Link
-                href={`/gestao/alunos/${aluno.matricula}`}
-                className="text-brand-600 font-medium hover:underline"
-              >
-                {aluno.nome}
-              </Link>
-              {!aluno.ativo && (
-                <span className="text-ink-muted ml-2 text-xs">ex-aluno</span>
-              )}
+              <div className="flex items-center gap-3">
+                <FotoDoAluno
+                  matricula={aluno.matricula}
+                  nome={aluno.nome}
+                  fotoPath={aluno.fotoPath}
+                  fotoAtualizadaEm={aluno.fotoAtualizadaEm}
+                  tamanho={32}
+                />
+                <div>
+                  <Link
+                    href={`/gestao/alunos/${aluno.matricula}`}
+                    className="text-brand-600 font-medium hover:underline"
+                  >
+                    {aluno.nome}
+                  </Link>
+                  {!aluno.ativo && (
+                    <span className="text-ink-muted ml-2 text-xs">
+                      ex-aluno
+                    </span>
+                  )}
+                </div>
+              </div>
             </TableCell>
             <TableCell className="tabular-nums">{aluno.matricula}</TableCell>
             <TableCell>{aluno.turmaCodigo ?? "—"}</TableCell>

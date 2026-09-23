@@ -83,8 +83,8 @@ describe("paraAluno", () => {
     expect(aluno).not.toHaveProperty("segmento");
     expect(aluno).not.toHaveProperty("turno");
     expect(aluno).not.toHaveProperty("statusOriginal");
-    // A foto depende do Storage, que ainda não está ativo.
-    expect(aluno).not.toHaveProperty("fotoUrl");
+    // A foto tem ação própria, com upload e processamento.
+    expect(aluno).not.toHaveProperty("fotoPath");
   });
 });
 

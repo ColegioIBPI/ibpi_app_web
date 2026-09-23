@@ -7,6 +7,7 @@ import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
 import { Card } from "@/core/ui/card";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
+import { FotoDoAluno } from "@/features/alunos/components/foto-do-aluno";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 import { listarResponsaveisDoAluno } from "@/features/responsaveis/services/responsaveis.server";
 
@@ -41,12 +42,23 @@ export default async function AlunoPage({
             Alunos
           </Link>
 
-          <h1 className="text-ink mt-2 text-xl font-semibold">{aluno.nome}</h1>
-          <p className="text-ink-muted mt-1 text-sm">
-            Matrícula {aluno.matricula}
-            {aluno.turmaCodigo ? ` · ${aluno.turmaCodigo}` : ""}
-            {aluno.ativo ? "" : " · ex-aluno"}
-          </p>
+          <div className="mt-2 flex items-center gap-4">
+            <FotoDoAluno
+              matricula={aluno.matricula}
+              nome={aluno.nome}
+              fotoPath={aluno.fotoPath}
+              fotoAtualizadaEm={aluno.fotoAtualizadaEm}
+              tamanho={72}
+            />
+            <div>
+              <h1 className="text-ink text-xl font-semibold">{aluno.nome}</h1>
+              <p className="text-ink-muted mt-1 text-sm">
+                Matrícula {aluno.matricula}
+                {aluno.turmaCodigo ? ` · ${aluno.turmaCodigo}` : ""}
+                {aluno.ativo ? "" : " · ex-aluno"}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Professor e financeiro leem o cadastro, mas não editam. */}
