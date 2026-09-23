@@ -141,17 +141,22 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.5 Frequência — registro diário (secretaria)
 
-- [ ] Modelar a coleção `frequenciaDiaria`
-- [ ] Implementar a tela de chamada diária por turma, otimizada para teclado
-- [ ] Implementar a marcação `P` / `F` / `A` por aluno
-- [ ] Implementar o registro de ocorrência e observação junto à marcação
-- [ ] Implementar a edição de um lançamento já feito, com registro em auditoria
-- [ ] Implementar os contadores por aluno: percentual de faltas, atrasos, faltas, ocorrências
-- [ ] Implementar a consulta de frequência pelo aluno e pelo responsável
+- [x] Modelar a coleção `frequenciaDiaria`
+- [x] Implementar a tela de chamada diária por turma, otimizada para teclado
+- [x] Implementar a marcação `P` / `F` / `A` por aluno
+- [x] Implementar o registro de ocorrência e observação junto à marcação
+- [x] Implementar a edição de um lançamento já feito, com registro em auditoria
+- [x] Implementar os contadores e o percentual de presença (limite de 25% de faltas)
+- [x] Implementar a consulta de frequência pelo aluno e pelo responsável
+- [ ] Implementar o calendário letivo, para calcular quantas faltas ainda cabem
+- [ ] Implementar a exportação da frequência por turma e período
 
 ### 3.6 Frequência — diário de classe (professor)
 
-- [ ] Modelar a coleção `diarioClasse` (alocação × trimestre × aulas)
+> ⚠️ **Depende de 3.4**: o diário é por alocação (professor × turma ×
+> disciplina), e nem professores nem alocações estão cadastrados ainda.
+
+- [x] Modelar a coleção `diarioClasse` (alocação × trimestre × aulas)
 - [ ] Implementar a criação da grade de aulas do trimestre, com datas
 - [ ] Implementar a marcação de dias sem aula (férias, recesso, ponte, feriado) fora do cálculo
 - [ ] Implementar a chamada por aula (`p` / `f`) para a turma
@@ -162,11 +167,12 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.7 Ocorrências
 
-- [ ] Modelar a coleção `ocorrencias`
-- [ ] Implementar o lançamento de ocorrência disciplinar e acadêmica
-- [ ] Implementar os tipos em uso: uniforme, comportamento inadequado, saída antecipada, porte indevido de celular, entrada atrasada, atestado médico, justificada, outros
-- [ ] Implementar a listagem com filtro por tipo e período
-- [ ] Implementar a regra de visibilidade: oculta para o perfil aluno
+- [x] Modelar a coleção `ocorrencias`
+- [x] Implementar o lançamento junto da chamada, com os tipos em uso na planilha
+- [x] Implementar a listagem para a equipe e para o responsável
+- [x] Implementar a regra de visibilidade: oculta para o perfil aluno
+- [ ] Implementar o lançamento avulso, fora da chamada (ocorrência acadêmica)
+- [ ] Implementar filtro por tipo e período na listagem
 
 ### 3.8 Notas e boletim
 

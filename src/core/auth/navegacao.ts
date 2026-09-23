@@ -70,7 +70,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "frequencia",
     minimo: "lancar",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/gestao/ocorrencias",
@@ -78,7 +78,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "ocorrencias",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/gestao/notas",
@@ -128,7 +128,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "consulta",
     recurso: "frequencia",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/portal/ocorrencias",
@@ -136,7 +136,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "consulta",
     recurso: "ocorrencias",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
   {
     href: "/portal/financeiro",
