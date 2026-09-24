@@ -69,6 +69,9 @@ export default async function LancamentoDeNotasPage({
           />
         ) : (
           <GradeDeNotas
+            // Sem a `key`, trocar de trimestre mantinha na tela as notas do
+            // anterior — e salvar gravaria aquelas notas no trimestre novo.
+            key={`${id}-${trimestre}`}
             alocacaoId={id}
             trimestre={trimestre}
             linhas={linhas}

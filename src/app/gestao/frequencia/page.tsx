@@ -102,6 +102,10 @@ export default async function FrequenciaPage({
           />
         ) : (
           <Chamada
+            // A chamada guarda o que está sendo digitado em estado próprio.
+            // Sem a `key`, trocar de turma ou de data reaproveita a mesma
+            // instância e a tela continua mostrando a turma anterior.
+            key={`${turma.id}-${data}`}
             turmaId={turma.id}
             turmaCodigo={turma.codigo}
             data={data}

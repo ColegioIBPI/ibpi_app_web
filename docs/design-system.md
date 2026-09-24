@@ -113,6 +113,27 @@ a padrão não atende, e não é o caso aqui. Na prática o sistema usa:
 
 Raio de borda de cartão e modal: `rounded-card` (`0.75rem`).
 
+## Formulário que depende de um seletor
+
+Toda tela em que um seletor troca o contexto — turma e data na chamada,
+trimestre nas notas e no diário, ano letivo no boletim — monta o formulário
+com uma **`key`** que inclui esse contexto:
+
+```tsx
+<Chamada key={`${turma.id}-${data}`} … />
+```
+
+Sem ela o React reaproveita a mesma instância do componente. O servidor
+manda as props novas, mas o `useState` inicializado a partir delas **mantém
+o valor antigo**: o cabeçalho passa a dizer EM3A enquanto a lista continua
+mostrando a turma anterior.
+
+Nas notas isso era pior que um incômodo visual — trocar de trimestre deixava
+as notas do anterior na tela, e salvar as gravaria no trimestre novo.
+
+A `key` também é o comportamento certo para o que está sendo digitado:
+edição não salva de um trimestre não deve seguir para outro.
+
 ## Diretrizes
 
 - **Mobile-first** nas telas de aluno e responsável; **densidade de dados** nas

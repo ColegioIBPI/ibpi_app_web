@@ -62,6 +62,9 @@ export default async function DiarioDaAlocacaoPage({
           />
         ) : (
           <GradeDeAulas
+            // Trocar de trimestre é trocar de diário: o que estava aberto e
+            // o que estava sendo digitado não valem para o outro.
+            key={`${id}-${trimestre}`}
             alocacaoId={id}
             trimestre={trimestre}
             aulas={diario?.aulas ?? []}
