@@ -178,6 +178,18 @@ Decisões de layout que têm razão de ser:
 - **A grade mostra a turma inteira**, inclusive a disciplina sem nota
   nenhuma — ela vem das **alocações** da turma, não das notas. Educação
   Física aparece no boletim do colégio com as células em branco.
+- **A ordem é a pedagógica do colégio**, não a alfabética: Português,
+  Oficina de Textos, Geografia, História, Filosofia/Sociologia, Matemática,
+  Física, Química, Biologia, Projeto de Vida, Projeto Bilíngue, Educação
+  Física. Ela vive no **cadastro** (`disciplinas.ordem`), não numa lista
+  fixa no código: é decisão do colégio e muda sem depender de um deploy.
+  Disciplina sem ordem definida cai no fim, em ordem de nome — assim uma
+  disciplina nova aparece no boletim em vez de sumir, e fica visível que
+  falta ordená-la.
+
+  ```bash
+  npm run disciplinas:ordenar
+  ```
 - **Célula sem nota fica vazia**, sem travessão: um travessão na grade
   inteira de um aluno do 1º trimestre polui o documento.
 - **O Projeto Bilíngue aparece duas vezes**: como bloco próprio, com STEAM,
@@ -219,8 +231,10 @@ segmento ou por disciplina.
 - **Confirmar com a coordenação** o arredondamento *antes* da comparação
   (seção 3). O número de casas já está confirmado pelo documento real; o
   momento do arredondamento, não.
-- **Ordem das disciplinas no boletim.** O documento do colégio usa uma ordem
-  pedagógica (Português, Oficina de Textos, Geografia, História…); o sistema
-  ordena por nome, porque não há nada nos dados que diga a ordem certa.
-  Resolver isso pede um campo de ordenação em `disciplinas`.
+- **Tela para a secretaria ordenar as disciplinas.** Hoje a ordem é gravada
+  pelo `npm run disciplinas:ordenar`; a tela de disciplinas ainda é só
+  listagem.
+- **Oficina de Textos, Projeto de Vida e Educação Física** foram cadastradas
+  a partir do boletim — elas não existiam no Access. Confirmar com a
+  secretaria os nomes e as siglas.
 - **Confirmar o valor da META** e se ele varia por segmento.

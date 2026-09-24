@@ -55,6 +55,18 @@ export const disciplinaSchema = z.object({
    * rastrear de onde o registro veio.
    */
   grafiasOriginais: z.array(z.string()).default([]),
+  /**
+   * Posição da disciplina no boletim.
+   *
+   * O boletim do colégio segue uma **ordem pedagógica** — Português,
+   * Oficina de Textos, Geografia, História… —, não a alfabética. A ordem é
+   * do colégio, então mora aqui, como dado, e não numa lista fixa no
+   * código. Disciplina sem ordem vai para o fim, em ordem de nome.
+   *
+   * Os valores são espaçados de 10 em 10 para caber uma disciplina nova
+   * entre duas existentes sem renumerar todas.
+   */
+  ordem: z.number().int().nullish(),
   ativa: z.boolean().default(true),
   origem: origemSchema,
 });

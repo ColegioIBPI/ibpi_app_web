@@ -20,7 +20,7 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `responsaveis`       | 118       | Colunas de responsável do aluno    |
 | `turmas`             | 10        | Derivada do cadastro + planilha    |
 | `matriculas`         | 73        | Derivada do cadastro               |
-| `disciplinas`        | 43        | `Disciplina`                       |
+| `disciplinas`        | 46        | `Disciplina` + 3 do boletim        |
 | `salas`              | 10        | `Salas`                            |
 | `cobrancas`          | 847       | `Tabela_pagamento`                 |
 | `contratos`          | 274       | `Fatos`                            |
@@ -91,9 +91,13 @@ turma todo ano e o histórico precisa sobreviver.
 
 ### `disciplinas/{slug}` · `salas/{slug}`
 
-`nome` · `sigla` · `ativa`. As disciplinas guardam ainda
+`nome` · `sigla` · `ordem` · `ativa`. As disciplinas guardam ainda
 `grafiasOriginais[]`, com as formas que existiam antes da consolidação
 (`PORTUGUES/LITERATURA` × `PORTUGUÊS/LITERATURA`).
+
+`ordem` é a posição no boletim — a sequência pedagógica do colégio, não a
+alfabética. Os valores vão de 10 em 10 para caber uma disciplina nova entre
+duas existentes sem renumerar todas; quem não tem ordem cai no fim.
 
 ### `cobrancas/{id}` e `contratos/{id}`
 

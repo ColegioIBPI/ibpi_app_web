@@ -85,6 +85,8 @@ export const ROTULOS_DE_SITUACAO: Record<SituacaoFinal, string> = {
 export const linhaDoBoletimSchema = z.object({
   disciplinaId: z.string(),
   disciplinaNome: z.string(),
+  /** Posição no boletim; sem ela, a linha vai para o fim. */
+  ordem: z.number().int().nullish(),
   trimestres: z.record(z.string(), avaliacoesDoTrimestreSchema).default({}),
   mediasPorTrimestre: z.record(z.string(), z.number().nullable()).default({}),
   mediaAnual: z.number().nullable().default(null),

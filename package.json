@@ -14,6 +14,7 @@
     "deploy:rules": "node --env-file=.env.local scripts/deploy-rules.mjs",
     "criar:usuario": "tsx --conditions=react-server --env-file=.env.local scripts/criar-usuario.mts",
     "conta:teste": "tsx --conditions=react-server --env-file=.env.local scripts/conta-de-teste.mts",
+    "disciplinas:ordenar": "tsx --conditions=react-server --env-file=.env.local scripts/ordenar-disciplinas.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

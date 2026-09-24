@@ -7,6 +7,7 @@ import {
   mediaDoBilingue,
   montarBoletim,
   montarLinhas,
+  ordenarDisciplinas,
   somarFaltasPorTrimestre,
   trimestresLancados,
 } from "@/features/notas/domain/boletim";
@@ -44,7 +45,7 @@ describe("montarLinhas", () => {
     );
 
     expect(linhas).toHaveLength(2);
-    // Em ordem alfabética, como no boletim impresso.
+    // Sem ordem cadastrada, o desempate é pelo nome.
     expect(linhas.map((l) => l.disciplinaNome)).toEqual(["Artes", "Física"]);
   });
 
@@ -275,5 +276,77 @@ describe("mediaDoBilingue", () => {
     expect(linha.mediaParcial).toBe(9.08);
     // O ano não fechou: a média anual continua em branco.
     expect(linha.mediaAnual).toBeNull();
+  });
+});
+
+describe("ordenarDisciplinas", () => {
+  it("segue a ordem do boletim do colégio, não a alfabética", () => {
+    const linhas = ordenarDisciplinas([
+      { disciplinaNome: "Biologia", ordem: 90 },
+      { disciplinaNome: "Português/Literatura", ordem: 10 },
+      { disciplinaNome: "Geografia", ordem: 30 },
+    ]);
+
+    expect(linhas.map((l) => l.disciplinaNome)).toEqual([
+      "Português/Literatura",
+      "Geografia",
+      "Biologia",
+    ]);
+  });
+
+  it("disciplina sem ordem vai para o fim, e não some", () => {
+    // Somindo, uma disciplina nova ficaria fora do boletim sem ninguém
+    // perceber; no fim da lista, fica visível que falta ordená-la.
+    const linhas = ordenarDisciplinas([
+      { disciplinaNome: "Robótica", ordem: null },
+      { disciplinaNome: "Física", ordem: 70 },
+      { disciplinaNome: "Espanhol" },
+    ]);
+
+    expect(linhas.map((l) => l.disciplinaNome)).toEqual([
+      "Física",
+      "Espanhol",
+      "Robótica",
+    ]);
+  });
+
+  it("não altera a lista recebida", () => {
+    const original = [
+      { disciplinaNome: "Biologia", ordem: 90 },
+      { disciplinaNome: "Física", ordem: 70 },
+    ];
+
+    ordenarDisciplinas(original);
+
+    expect(original[0].disciplinaNome).toBe("Biologia");
+  });
+});
+
+describe("montarLinhas com a ordem do cadastro", () => {
+  it("monta a grade na ordem do boletim", () => {
+    const linhas = montarLinhas(
+      [...anoCompleto("biologia", 7), ...anoCompleto("portugues", 8)],
+      {},
+      1,
+      [
+        { disciplinaId: "biologia", disciplinaNome: "Biologia", ordem: 90 },
+        {
+          disciplinaId: "portugues",
+          disciplinaNome: "Português/Literatura",
+          ordem: 10,
+        },
+        {
+          disciplinaId: "educacao-fisica",
+          disciplinaNome: "Educação Física",
+          ordem: 120,
+        },
+      ],
+    );
+
+    expect(linhas.map((l) => l.disciplinaNome)).toEqual([
+      "Português/Literatura",
+      "Biologia",
+      "Educação Física",
+    ]);
   });
 });

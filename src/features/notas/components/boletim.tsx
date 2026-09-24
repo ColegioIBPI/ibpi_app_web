@@ -10,7 +10,10 @@ import {
   type SituacaoFinal,
 } from "@/core/modelo";
 import { GraficoDeMedias } from "@/features/notas/components/grafico-de-medias";
-import { linhaDoBilingue } from "@/features/notas/domain/boletim";
+import {
+  linhaDoBilingue,
+  ordenarDisciplinas,
+} from "@/features/notas/domain/boletim";
 
 /**
  * Boletim escolar, no formato que o colégio emite.
@@ -47,6 +50,15 @@ export interface BoletimProps {
 const TRIMESTRES = ["1", "2", "3"] as const;
 const AVALIACOES = ["projeto", "tarefas", "av"] as const;
 
+/**
+ * Posição do Projeto Bilíngue na grade.
+ *
+ * Ele não é uma disciplina da coleção `disciplinas` — é um bloco próprio —,
+ * então a posição dele não vem do cadastro. No boletim do colégio ele fica
+ * em 11º, entre Projeto de Vida e Educação Física.
+ */
+const ORDEM_DO_BILINGUE = 110;
+
 /** Linhas em branco que o formulário impresso sempre tem, para preencher à mão. */
 const LINHAS_DE_ELETIVA = 6;
 const LINHAS_DE_DEPENDENCIA = 8;
@@ -70,13 +82,15 @@ export function Boletim({
   const bilingue = linhaDoBilingue(projetoBilingue);
 
   // O Projeto Bilíngue é uma linha da grade cuja nota vem do bloco próprio.
-  const grade: LinhaDoBoletim[] = [
+  // No boletim do colégio ele fica entre Projeto de Vida e Educação Física.
+  const grade: LinhaDoBoletim[] = ordenarDisciplinas([
     ...disciplinas,
     ...(projetoBilingue?.componentes?.length
       ? [
           {
             disciplinaId: "__bilingue",
             disciplinaNome: "Projeto Bilíngue",
+            ordem: ORDEM_DO_BILINGUE,
             trimestres: {},
             mediasPorTrimestre: bilingue.mediasPorTrimestre,
             mediaAnual: bilingue.mediaAnual,
@@ -88,7 +102,7 @@ export function Boletim({
           },
         ]
       : []),
-  ];
+  ]);
 
   return (
     <article className="boletim text-[10px] leading-tight text-black">

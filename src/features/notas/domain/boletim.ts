@@ -38,6 +38,28 @@ export interface BoletimMontado {
 export interface DisciplinaDaGrade {
   disciplinaId: string;
   disciplinaNome: string;
+  /** Posição no boletim; sem ela, a disciplina vai para o fim. */
+  ordem?: number | null;
+}
+
+/**
+ * Ordem do boletim: a do colégio, não a alfabética.
+ *
+ * A posição vem do cadastro da disciplina (`disciplinas.ordem`). Quem não
+ * tem posição definida vai para o fim, em ordem de nome — assim uma
+ * disciplina nova aparece no boletim em vez de sumir, e fica visível que
+ * falta ordená-la.
+ */
+export function ordenarDisciplinas<
+  T extends { ordem?: number | null; disciplinaNome: string },
+>(linhas: readonly T[]): T[] {
+  const FIM = Number.MAX_SAFE_INTEGER;
+
+  return [...linhas].sort(
+    (a, b) =>
+      (a.ordem ?? FIM) - (b.ordem ?? FIM) ||
+      a.disciplinaNome.localeCompare(b.disciplinaNome, "pt-BR"),
+  );
 }
 
 export interface EntradaDoBoletim {
@@ -94,7 +116,12 @@ export function montarLinhas(
 ): LinhaDoBoletim[] {
   const porDisciplina = new Map<
     string,
-    { nome: string; trimestres: Record<string, AvaliacoesDoTrimestre>; faltas: number }
+    {
+      nome: string;
+      ordem: number | null;
+      trimestres: Record<string, AvaliacoesDoTrimestre>;
+      faltas: number;
+    }
   >();
 
   // A grade entra primeiro, para a disciplina sem nota nenhuma continuar
@@ -102,6 +129,7 @@ export function montarLinhas(
   for (const disciplina of grade) {
     porDisciplina.set(disciplina.disciplinaId, {
       nome: disciplina.disciplinaNome,
+      ordem: disciplina.ordem ?? null,
       trimestres: {},
       faltas: 0,
     });
@@ -110,6 +138,7 @@ export function montarLinhas(
   for (const nota of notas) {
     const atual = porDisciplina.get(nota.disciplinaId) ?? {
       nome: nota.disciplinaNome ?? nota.disciplinaId,
+      ordem: null,
       trimestres: {},
       faltas: 0,
     };
@@ -120,8 +149,8 @@ export function montarLinhas(
     porDisciplina.set(nota.disciplinaId, atual);
   }
 
-  return [...porDisciplina.entries()]
-    .map(([disciplinaId, dados]) => {
+  return ordenarDisciplinas(
+    [...porDisciplina.entries()].map(([disciplinaId, dados]) => {
       const recuperacao = recuperacoes[disciplinaId] ?? null;
       const calculada = calcularLinha(
         dados.trimestres,
@@ -132,13 +161,14 @@ export function montarLinhas(
       return {
         disciplinaId,
         disciplinaNome: dados.nome,
+        ordem: dados.ordem,
         trimestres: dados.trimestres,
         faltas: dados.faltas,
         recuperacao,
         ...calculada,
       };
-    })
-    .sort((a, b) => a.disciplinaNome.localeCompare(b.disciplinaNome, "pt-BR"));
+    }),
+  );
 }
 
 /**

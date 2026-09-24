@@ -6,6 +6,7 @@ import {
   type Alocacao,
   type Boletim,
   type DiarioDeClasse,
+  type Disciplina,
   type FrequenciaDiaria,
   type Nota,
   type SituacaoDePresenca,
@@ -172,6 +173,16 @@ async function gradeDaTurma(
     .where("anoLetivo", "==", anoLetivo)
     .get();
 
+  // A alocação não guarda a posição no boletim: ela é do cadastro da
+  // disciplina, e muda sem que as alocações precisem ser reescritas.
+  const cadastro = await getAdminDb().collection(COLECOES.disciplinas).get();
+  const ordens = new Map(
+    cadastro.docs.map((doc) => [
+      doc.id,
+      (doc.data() as Disciplina).ordem ?? null,
+    ]),
+  );
+
   const porDisciplina = new Map<string, DisciplinaDaGrade>();
 
   for (const doc of docs.docs) {
@@ -181,6 +192,7 @@ async function gradeDaTurma(
     porDisciplina.set(alocacao.disciplinaId, {
       disciplinaId: alocacao.disciplinaId,
       disciplinaNome: alocacao.disciplinaNome ?? alocacao.disciplinaId,
+      ordem: ordens.get(alocacao.disciplinaId) ?? null,
     });
   }
 

@@ -13,7 +13,9 @@ export interface BarraDoGrafico {
 
 const LARGURA = 620;
 const ALTURA = 225;
-const MARGEM = { topo: 6, direita: 8, base: 78, esquerda: 30 };
+// A esquerda é larga por causa do rótulo inclinado: "Português/Literatura"
+// desce para fora da área do gráfico e seria cortado pelo viewBox.
+const MARGEM = { topo: 6, direita: 8, base: 78, esquerda: 52 };
 
 export function GraficoDeMedias({ linhas }: { linhas: BarraDoGrafico[] }) {
   const area = {
