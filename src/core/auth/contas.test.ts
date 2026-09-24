@@ -2,18 +2,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getUser = vi.fn();
 const updateUser = vi.fn();
+const getUserByEmail = vi.fn();
+const createUser = vi.fn();
+const setCustomUserClaims = vi.fn();
+const set = vi.fn();
 
 vi.mock("@/core/firebase/admin", () => ({
-  getAdminAuth: () => ({ getUser, updateUser }),
-  getAdminDb: () => ({}),
+  getAdminAuth: () => ({
+    getUser,
+    updateUser,
+    getUserByEmail,
+    createUser,
+    setCustomUserClaims,
+  }),
+  getAdminDb: () => ({
+    collection: () => ({ doc: () => ({ set }) }),
+  }),
 }));
 
-const { sincronizarEmailDaConta } = await import("@/core/auth/contas");
+const { criarOuAtualizarConta, sincronizarEmailDaConta } = await import(
+  "@/core/auth/contas"
+);
 
 beforeEach(() => {
   vi.clearAllMocks();
   getUser.mockResolvedValue({ email: "antigo@ibpi.com.br" });
   updateUser.mockResolvedValue({});
+  setCustomUserClaims.mockResolvedValue(undefined);
+  set.mockResolvedValue(undefined);
 });
 
 describe("sincronizarEmailDaConta", () => {
@@ -88,5 +104,68 @@ describe("sincronizarEmailDaConta", () => {
 
     expect(resultado.ok).toBe(false);
     expect(resultado.erro).toBeTruthy();
+  });
+});
+
+describe("criarOuAtualizarConta", () => {
+  it("troca a senha de uma conta que já existe, quando ela é informada", async () => {
+    // Sem isto a senha era ignorada em silêncio no caminho de atualização, e
+    // quem a informou ficava com uma senha que nunca foi gravada.
+    getUserByEmail.mockResolvedValue({ uid: "uid-1" });
+
+    await criarOuAtualizarConta({
+      email: "Pessoa@IBPI.com.br",
+      nome: "Pessoa",
+      role: "professor",
+      senha: "SenhaNova123",
+    });
+
+    expect(createUser).not.toHaveBeenCalled();
+    expect(updateUser).toHaveBeenCalledWith("uid-1", {
+      displayName: "Pessoa",
+      password: "SenhaNova123",
+    });
+  });
+
+  it("não mexe na senha quando ela não é informada", async () => {
+    // É o caso da secretaria criando o acesso de uma família: ninguém da
+    // escola chega a conhecer a senha.
+    getUserByEmail.mockResolvedValue({ uid: "uid-1" });
+
+    await criarOuAtualizarConta({
+      email: "pessoa@ibpi.com.br",
+      nome: "Pessoa",
+      role: "responsavel",
+    });
+
+    expect(updateUser).toHaveBeenCalledWith("uid-1", { displayName: "Pessoa" });
+  });
+
+  it("conta nova nasce com a senha sorteada quando nenhuma é passada", async () => {
+    getUserByEmail.mockRejectedValue(
+      Object.assign(new Error("nao existe"), { code: "auth/user-not-found" }),
+    );
+    createUser.mockResolvedValue({ uid: "uid-2" });
+
+    const conta = await criarOuAtualizarConta({
+      email: "novo@ibpi.com.br",
+      nome: "Novo",
+      role: "aluno",
+    });
+
+    expect(conta.nova).toBe(true);
+    expect(createUser.mock.calls[0][0].password).toBeTruthy();
+  });
+
+  it("guarda o e-mail em minúsculas: ele é a identidade da conta", async () => {
+    getUserByEmail.mockResolvedValue({ uid: "uid-1" });
+
+    const conta = await criarOuAtualizarConta({
+      email: "  Pessoa@IBPI.com.br  ",
+      nome: "Pessoa",
+      role: "professor",
+    });
+
+    expect(conta.email).toBe("pessoa@ibpi.com.br");
   });
 });

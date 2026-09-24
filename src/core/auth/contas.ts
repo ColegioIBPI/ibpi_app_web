@@ -54,7 +54,14 @@ export async function criarOuAtualizarConta(
   try {
     const existente = await auth.getUserByEmail(email);
     uid = existente.uid;
-    await auth.updateUser(uid, { displayName: nome });
+
+    // A senha só é trocada quando quem chama pediu explicitamente. Sem esta
+    // linha, `senha` era ignorada em silêncio para conta que já existe — e
+    // quem a informou ficava com uma senha que nunca foi gravada.
+    await auth.updateUser(uid, {
+      displayName: nome,
+      ...(dados.senha ? { password: dados.senha } : {}),
+    });
   } catch (causa) {
     if ((causa as { code?: string }).code !== "auth/user-not-found")
       throw causa;
