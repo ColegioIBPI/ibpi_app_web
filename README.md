@@ -481,6 +481,7 @@ O site institucional [ibpi.com.br](https://www.ibpi.com.br/) é a referência de
 ### 7.4 Diretrizes de interface
 
 - **Mobile-first** nas telas de aluno e responsável; **densidade de dados** nas telas de secretaria e professor.
+- **Menu lateral** com ícone à frente de cada item, fixo do `lg` para cima e em gaveta no celular (ver [`docs/design-system.md`](docs/design-system.md)).
 - Componentes pequenos e sem regra de negócio, com estados de carregamento, vazio e erro explícitos.
 - Tabelas com busca, ordenação e paginação — a secretaria trabalha com listas.
 - Lançamento de frequência e nota otimizado para **repetição rápida** (teclado, sem mouse): é a tela mais usada do sistema.

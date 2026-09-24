@@ -56,6 +56,41 @@ WCAG, não estimados.
 | `Modal`                                                      | `core/ui/modal.tsx`  | `<dialog>` nativo: foco preso e Escape vêm do navegador                                                          |
 | `ToastProvider` / `useToast`                                 | `core/ui/toast.tsx`  | Aviso passageiro, com `aria-live`                                                                                |
 | `LoadingState`, `EmptyState`, `ErrorState`, `ForbiddenState` | `core/ui/states.tsx` | Os quatro estados que toda tela precisa tratar                                                                   |
+| `AppShell`                                                   | `core/ui/app-shell.tsx` | Moldura das áreas autenticadas: menu lateral e conteúdo                                                       |
+| `MenuLateral`                                                | `core/ui/menu-lateral.tsx` | Menu por perfil, com ícone e marcação da página atual                                                       |
+
+## Menu lateral
+
+O menu fica na **lateral esquerda**, com um ícone à frente de cada item.
+
+Na barra de cima ele não cabia mais: são onze entradas para a secretaria, e
+elas quebravam em duas linhas em telas médias, competindo com o nome da
+pessoa e o botão de sair. Na lateral cada item ganha uma linha inteira, o
+ícone dá um ponto de reconhecimento mais rápido que a leitura do rótulo, e
+sobra espaço para as seções que ainda vão entrar (financeiro, relatórios).
+
+| Tela              | Comportamento                                                     |
+| ----------------- | ----------------------------------------------------------------- |
+| `lg` para cima    | Coluna fixa de `16rem`, acompanhando a rolagem (`sticky`)          |
+| Abaixo de `lg`    | Gaveta sobreposta, aberta por um botão na barra de cima            |
+
+A lateral fixa comeria metade de um celular — e é no celular que a família
+abre o boletim. Escolher um item fecha a gaveta: sem isso o menu ficaria por
+cima do conteúdo que a pessoa acabou de pedir.
+
+O item da página atual recebe `aria-current="page"` e fica destacado,
+**inclusive nas telas de dentro dele** — quem está em
+`/gestao/alunos/26007/editar` continua em "Alunos". Perder a marcação ao
+abrir a ficha faria o menu parecer que a pessoa saiu da seção.
+
+Os ícones são decorativos (`aria-hidden`): quem usa leitor de tela ouve o
+rótulo, que já é o nome da seção. O mapa de rota → ícone fica em
+`core/ui/icones-do-menu.tsx`, separado da matriz de permissões para que ela
+não dependa de uma biblioteca de ícones. Um teste garante que todo item do
+menu tem ícone próprio, e que não sobra ícone de rota que saiu do menu.
+
+O menu inteiro é marcado com `data-impressao="ocultar"` e some na impressão —
+o boletim impresso é documento, não tela.
 
 ## Tipografia e espaçamento
 
