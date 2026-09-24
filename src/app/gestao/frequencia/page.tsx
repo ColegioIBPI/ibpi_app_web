@@ -1,4 +1,6 @@
+import { FileText } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { paraDataISO } from "@/core/lib/datas";
@@ -65,12 +67,22 @@ export default async function FrequenciaPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-ink text-xl font-semibold">Frequência</h1>
-        <p className="text-ink-muted mt-1 text-sm">
-          Chamada de {formatDate(data)}
-          {turma ? ` · turma ${turma.codigo}` : ""}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-ink text-xl font-semibold">Frequência</h1>
+          <p className="text-ink-muted mt-1 text-sm">
+            Chamada de {formatDate(data)}
+            {turma ? ` · turma ${turma.codigo}` : ""}
+          </p>
+        </div>
+
+        <Link
+          href={`/gestao/frequencia/relatorio${turmaId ? `?turma=${turmaId}` : ""}`}
+          className="border-line bg-surface text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+        >
+          <FileText className="size-4" aria-hidden />
+          Relatório por período
+        </Link>
       </div>
 
       <Card>

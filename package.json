@@ -25,6 +25,7 @@
     "@hookform/resolvers": "^5.2.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
     "firebase": "^12.19.0",
     "firebase-admin": "^13.6.0",
     "framer-motion": "^12.23.28",

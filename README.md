@@ -348,6 +348,13 @@ Migra a tabela `Tabela_pagamento` (847 registros), com os campos `Matricula`, `V
 - Relatório de inadimplência.
 - Exportação de listas em **Excel** para a secretaria.
 
+**Como está implementado** (detalhes em [`docs/exportacoes.md`](docs/exportacoes.md)):
+
+- Planilha é `.xlsx` **de verdade**, não CSV: no CSV o Excel apaga o zero à esquerda da matrícula, muda o número do recibo e transforma `3/12` em data. Aqui cada coluna declara o tipo, dinheiro vai como número e data como data.
+- O PDF sai pela **impressão do navegador**, com `@media print` — o que a secretaria imprime é o que ela vê.
+- A planilha sai com **os mesmos filtros da tela**, e nunca contém mais do que a tela conteria para a mesma pessoa: as rotas exigem sessão, verificam permissão, aplicam o escopo do perfil e respondem `no-store`.
+- `/gestao/frequencia/relatorio` consolida a turma num período, com a turma inteira (inclusive quem não tem lançamento) e quantos estão abaixo dos 75%.
+
 ### 5.9 Avisos
 
 Comunicados direcionados, com a mesma segmentação que o app MyIBPI prevê —

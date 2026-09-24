@@ -5,7 +5,7 @@ import { anoLetivoAtual } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { Boletim } from "@/features/notas/components/boletim";
-import { BotaoDeImpressao } from "@/features/notas/components/botao-de-impressao";
+import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };

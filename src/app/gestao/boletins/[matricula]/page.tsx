@@ -9,7 +9,7 @@ import { anoLetivoAtual } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
 import { Boletim } from "@/features/notas/components/boletim";
 import { BlocosDoBoletim } from "@/features/notas/components/blocos-do-boletim";
-import { BotaoDeImpressao } from "@/features/notas/components/botao-de-impressao";
+import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };

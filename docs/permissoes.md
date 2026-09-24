@@ -69,6 +69,17 @@ Diário de outro professor responde **404**, e não 403: dizer "existe, mas não
 professor correspondente ao `uid`, o filtro usa um id sentinela que não casa
 com nada — o resultado correto é "nenhuma alocação", não "todas".
 
+### Escopo nas exportações
+
+Uma planilha exportada é **dado pessoal saindo do sistema**: nome, data de
+nascimento, CPF, telefone e filiação de menores de idade. As rotas em
+`app/api/exportacoes/` exigem sessão (401), verificam a permissão do recurso
+(404 para quem não tem) e aplicam o mesmo escopo de aluno da tela — o
+professor leva só as turmas que leciona. Filtrar por turma na consulta **não
+basta**: é o escopo que garante o recorte.
+
+Ver [`exportacoes.md`](exportacoes.md), seção 3.
+
 ## 2. Onde cada decisão acontece
 
 São **três camadas**, e só as duas últimas são segurança de verdade:

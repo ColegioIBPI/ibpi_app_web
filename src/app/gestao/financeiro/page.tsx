@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -5,6 +6,7 @@ import { Suspense } from "react";
 import { exigirPermissao } from "@/core/auth/guards";
 import { cn } from "@/core/lib/cn";
 import { formatCurrency, formatDate } from "@/core/lib/format";
+import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { FiltrosDoFinanceiro } from "@/features/financeiro/components/filtros-do-financeiro";
@@ -38,13 +40,35 @@ export default async function FinanceiroPage({
     ...new Set(linhas.map((l) => l.turmaCodigo).filter((t): t is string => !!t)),
   ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
+  // O relatório e a planilha saem com o mesmo recorte que está na tela.
+  const exportacao = new URLSearchParams({ situacao: recorte });
+  if (typeof filtros.turma === "string" && filtros.turma) {
+    exportacao.set("turma", filtros.turma);
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-ink text-xl font-semibold">Financeiro</h1>
-        <p className="text-ink-muted mt-1 text-sm">
-          Controle interno — nenhum pagamento é processado pelo sistema.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-ink text-xl font-semibold">Financeiro</h1>
+          <p className="text-ink-muted mt-1 text-sm">
+            Controle interno — nenhum pagamento é processado pelo sistema.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/gestao/financeiro/relatorio?${exportacao.toString()}`}
+            className="border-line bg-surface text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <FileText className="size-4" aria-hidden />
+            Relatório para PDF
+          </Link>
+
+          <BotaoDeExportacao
+            href={`/api/exportacoes/inadimplencia?${exportacao.toString()}`}
+          />
+        </div>
       </div>
 
       <Card>

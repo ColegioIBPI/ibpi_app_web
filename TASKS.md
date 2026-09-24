@@ -152,7 +152,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar os contadores e o percentual de presença (limite de 25% de faltas)
 - [x] Implementar a consulta de frequência pelo aluno e pelo responsável
 - [ ] Implementar o calendário letivo, para calcular quantas faltas ainda cabem
-- [ ] Implementar a exportação da frequência por turma e período
+- [x] Implementar a exportação da frequência por turma e período
 
 ### 3.6 Frequência — diário de classe (professor)
 
@@ -221,7 +221,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar a visão somente leitura do responsável
 - [x] Implementar o relatório de inadimplência por turma e período
 - [x] Corrigir os valores migrados que perdiam o ponto decimal (56 parcelas)
-- [ ] Exportar o relatório de inadimplência em Excel/PDF
+- [x] Exportar o relatório de inadimplência em Excel/PDF
 - [ ] Ligar o carnê gerado ao item contratado que o originou
 
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
@@ -239,9 +239,16 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.11 Relatórios e exportações
 
-- [ ] Implementar a exportação de listas em Excel para a secretaria
-- [ ] Implementar a lista de frequência por turma e período
+- [x] Implementar a exportação de listas em Excel para a secretaria
+- [x] Implementar a lista de frequência por turma e período
+- [x] Publicar os índices compostos do Firestore (`firestore.indexes.json`)
 - [ ] Implementar o painel inicial do administrador com os indicadores do dia
+- [ ] Exportar responsáveis e notas por turma
+- [ ] Gerar o boletim de uma turma inteira num PDF só
+
+> Planilha é `.xlsx` de verdade, e não CSV: o Excel destrói matrícula com
+> zero à esquerda e número de recibo. PDF sai pela impressão do navegador.
+> Ver `docs/exportacoes.md`.
 
 ---
 
