@@ -7,6 +7,7 @@ import {
   ROTULOS_DE_OCORRENCIA,
   ROTULOS_DE_PRESENCA,
   type Aluno,
+  type DiarioDeClasse,
 } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
 import { Card } from "@/core/ui/card";
@@ -24,6 +25,7 @@ import {
   ROTULOS_DE_FREQUENCIA,
   situacaoPorFrequencia,
 } from "@/core/escola/frequencia";
+import { faltasPorDisciplina } from "@/features/frequencia/domain/periodo";
 import { frequenciaDoAluno } from "@/features/frequencia/services/frequencia.server";
 
 export const metadata: Metadata = { title: "Frequência" };
@@ -61,12 +63,25 @@ export default async function FrequenciaDoPortalPage() {
       const aluno = alunoDoc.data() as Aluno | undefined;
       const percentual = percentualDePresenca(frequencia.contadores);
 
+      // As faltas por disciplina vêm do diário do professor, que conta
+      // aulas. Elas são mostradas à parte da contagem por dia: um aluno
+      // pode faltar a uma aula e ter estado na escola o dia inteiro.
+      const diarios = aluno?.turmaId
+        ? (
+            await db
+              .collection(COLECOES.diarioClasse)
+              .where("turmaId", "==", aluno.turmaId)
+              .get()
+          ).docs.map((doc) => doc.data() as DiarioDeClasse)
+        : [];
+
       return {
         matricula,
         nome: aluno?.nome ?? matricula,
         turma: aluno?.turmaCodigo ?? null,
         percentual,
         situacao: situacaoPorFrequencia(percentual),
+        porDisciplina: faltasPorDisciplina(diarios, matricula),
         ...frequencia,
       };
     }),
@@ -118,6 +133,44 @@ export default async function FrequenciaDoPortalPage() {
               {ROTULOS_DE_FREQUENCIA[ficha.situacao]}. O mínimo exigido é 75% de
               presença.
             </p>
+          )}
+
+          {ficha.porDisciplina.length > 0 && (
+            <div className="border-line mb-4 border-t pt-4">
+              <p className="text-ink mb-2 text-sm font-medium">
+                Faltas por disciplina
+              </p>
+              <ul className="divide-line divide-y text-sm">
+                {ficha.porDisciplina.map((disciplina) => (
+                  <li
+                    key={disciplina.disciplinaId}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
+                    <span className="text-ink">{disciplina.disciplinaNome}</span>
+                    <span className="text-ink-muted shrink-0 tabular-nums">
+                      {disciplina.faltas}{" "}
+                      {disciplina.faltas === 1 ? "falta" : "faltas"} em{" "}
+                      {disciplina.aulas}{" "}
+                      {disciplina.aulas === 1 ? "aula" : "aulas"}
+                      {disciplina.percentual !== null && (
+                        <>
+                          {" · "}
+                          <strong
+                            className={
+                              disciplina.percentual < 0.75
+                                ? "text-danger"
+                                : "text-ink"
+                            }
+                          >
+                            {formatPercent(disciplina.percentual)}
+                          </strong>
+                        </>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {ficha.lancamentos.length === 0 ? (

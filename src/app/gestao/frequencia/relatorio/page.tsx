@@ -9,6 +9,7 @@ import { formatDate, formatPercent } from "@/core/lib/format";
 import {
   COLECOES,
   type Aluno,
+  type DiarioDeClasse,
   type FrequenciaDiaria,
 } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -19,6 +20,8 @@ import { EmptyState } from "@/core/ui/states";
 import { SeletorDoPeriodo } from "@/features/frequencia/components/seletor-do-periodo";
 import {
   consolidarPeriodo,
+  diariosNoPeriodo,
+  disciplinasDoPeriodo,
   periodoDaQuery,
   periodoInvertido,
   resumirPeriodo,
@@ -79,8 +82,25 @@ export default async function RelatorioDeFrequenciaPage({
         ).docs.map((doc) => doc.data() as FrequenciaDiaria)
       : [];
 
-  const linhas = consolidarPeriodo(alunos, lancamentos);
+  // As faltas do diário de classe contam **aulas**, não dias: elas entram
+  // no relatório como um quadro à parte, para a secretaria ver o que o
+  // professor marcou sem misturar com a contagem oficial.
+  const diarios =
+    turmaId && !invertido
+      ? diariosNoPeriodo(
+          (
+            await db
+              .collection(COLECOES.diarioClasse)
+              .where("turmaId", "==", turmaId)
+              .get()
+          ).docs.map((doc) => doc.data() as DiarioDeClasse),
+          periodo,
+        )
+      : [];
+
+  const linhas = consolidarPeriodo(alunos, lancamentos, diarios);
   const resumo = resumirPeriodo(linhas);
+  const disciplinas = disciplinasDoPeriodo(linhas);
 
   const exportacao = new URLSearchParams({
     turma: turmaId ?? "",
@@ -252,10 +272,79 @@ export default async function RelatorioDeFrequenciaPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
           </>
         )}
       </Card>
+
+      {disciplinas.length > 0 && (
+        <Card>
+          <header className="border-line mb-3 border-b pb-2">
+            <h2 className="text-ink text-base font-semibold">
+              Faltas por disciplina
+            </h2>
+            <p className="text-ink-muted mt-0.5 text-sm">
+              Do diário de classe do professor, que conta aulas. A contagem
+              acima é do registro diário da secretaria, que conta dias — as
+              duas não se somam.
+            </p>
+          </header>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <caption className="sr-only">
+                Faltas por aluno em cada disciplina, no período
+              </caption>
+              <thead>
+                <tr className="border-line border-b text-left">
+                  <th scope="col" className="text-ink-muted py-2 pr-3 font-medium">
+                    Aluno
+                  </th>
+                  {disciplinas.map((disciplina) => (
+                    <th
+                      key={disciplina.disciplinaId}
+                      scope="col"
+                      className="text-ink-muted py-2 pr-3 text-right font-medium"
+                    >
+                      {disciplina.disciplinaNome}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-line divide-y">
+                {linhas.map((linha) => (
+                  <tr key={linha.matricula}>
+                    <th scope="row" className="text-ink py-2 pr-3 text-left font-normal">
+                      {linha.nome}
+                    </th>
+                    {disciplinas.map((disciplina) => {
+                      const dado = linha.porDisciplina.find(
+                        (d) => d.disciplinaId === disciplina.disciplinaId,
+                      );
+
+                      return (
+                        <td
+                          key={disciplina.disciplinaId}
+                          className={cn(
+                            "py-2 pr-3 text-right tabular-nums",
+                            dado && dado.faltas > 0
+                              ? "text-danger font-medium"
+                              : "text-ink-muted",
+                          )}
+                        >
+                          {dado
+                            ? `${dado.faltas} de ${dado.aulas}`
+                            : "—"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

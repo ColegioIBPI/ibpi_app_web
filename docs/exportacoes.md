@@ -96,6 +96,19 @@ da turma e quantos estão abaixo dos 75%.
   que motivou o pedido.
 - Período de trás para frente é recusado com explicação.
 
+Abaixo do quadro por dia vem **Faltas por disciplina**, com o que os
+professores marcaram nos diários de classe do período — uma coluna por
+disciplina, no formato `faltas de aulas`.
+
+As duas contagens ficam **lado a lado, e não somadas**: a de cima conta
+**dias** e é a oficial, a que decide reprovação por falta; a de baixo conta
+**aulas** e é por matéria. Um aluno pode faltar a uma aula de Física e ter
+estado na escola o dia inteiro — somá-las inventaria uma falta que não
+houve.
+
+A mesma lista aparece no portal da família, em Frequência, abaixo dos
+contadores do aluno.
+
 ---
 
 ## 5. Índices do Firestore
