@@ -201,6 +201,10 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar o campo de observações do boletim
 - [x] Implementar a visualização do boletim pelo aluno e pelo responsável
 - [x] Implementar a exportação do boletim em PDF no formato usado pelo colégio
+- [x] Reproduzir o layout do `boletim_resultado.pdf` (A4 deitado, blocos e gráfico)
+- [x] Ajustar o cálculo para **duas** casas decimais, como o documento do colégio
+- [ ] Definir a ordem pedagógica das disciplinas no boletim (hoje é alfabética)
+- [ ] Confirmar o valor da META (6) e se ele varia por segmento
 - [x] Documentar as regras de avaliação em `docs/avaliacao.md`
 - [ ] Implementar o fechamento do ano: gravar o retrato em `boletins.disciplinas[]` e travar o lançamento
 - [ ] Confirmar com a coordenação a regra de arredondamento (ver `docs/avaliacao.md`, seção 3)

@@ -73,9 +73,38 @@ body {
  * nome da tag: o cabeçalho do boletim também é um `<header>`, e esse
  * precisa imprimir.
  */
+/*
+ * Impressão em A4 **deitado**.
+ *
+ * É o formato do boletim que o colégio emite hoje — três trimestres × quatro
+ * colunas mais o fechamento não cabem em retrato sem encolher o texto a um
+ * tamanho ilegível. E vale para todos os documentos do sistema, porque todos
+ * são tabelas largas: boletim, inadimplência e frequência por período.
+ *
+ * Precisa ser o `@page` **padrão**, e não um `@page` nomeado: o navegador
+ * dimensiona o layout pelo padrão, e uma página nomeada só gira o papel — o
+ * conteúdo continuaria montado na largura do retrato, sobrando margem.
+ */
+@page {
+  size: A4 landscape;
+  margin: 6mm;
+}
+
 @media print {
   [data-impressao="ocultar"] {
     display: none !important;
+  }
+
+  /* O documento não pode quebrar no meio: ele cabe em uma página. */
+  .boletim {
+    break-inside: avoid;
+  }
+
+  /* Fundo de célula é informação aqui, não enfeite — sem isto o navegador
+     imprime a grade toda em branco e o boletim perde a leitura por faixa. */
+  .boletim * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   main {

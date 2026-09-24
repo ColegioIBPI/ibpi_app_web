@@ -69,7 +69,7 @@ describe("GradeDeNotas", () => {
 
     await userEvent.type(screen.getByLabelText("AV de Bruno Lima"), "8");
 
-    expect(within(linhaDe("Bruno Lima")).getByText("7,0")).toBeInTheDocument();
+    expect(within(linhaDe("Bruno Lima")).getByText("7,00")).toBeInTheDocument();
   });
 
   it("aceita vírgula decimal", async () => {
@@ -79,7 +79,7 @@ describe("GradeDeNotas", () => {
     await userEvent.type(screen.getByLabelText("Tarefas de Bruno Lima"), "7,5");
     await userEvent.type(screen.getByLabelText("AV de Bruno Lima"), "7,5");
 
-    expect(within(linhaDe("Bruno Lima")).getByText("7,5")).toBeInTheDocument();
+    expect(within(linhaDe("Bruno Lima")).getByText("7,50")).toBeInTheDocument();
   });
 
   it("envia só quem mudou", async () => {

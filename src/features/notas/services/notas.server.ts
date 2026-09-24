@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   COLECOES,
+  ROTULOS_DE_SEGMENTO,
   type Alocacao,
   type Boletim,
   type DiarioDeClasse,
@@ -20,7 +21,11 @@ import { faltasNaDisciplina, idDoDiario } from "@/core/escola/aulas";
 import { contar, percentualDePresenca } from "@/core/escola/frequencia";
 import { getAdminDb } from "@/core/firebase/admin";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
-import { montarBoletim, type BoletimMontado } from "@/features/notas/domain/boletim";
+import {
+  montarBoletim,
+  type BoletimMontado,
+  type DisciplinaDaGrade,
+} from "@/features/notas/domain/boletim";
 
 /**
  * Leitura de notas e boletim.
@@ -90,6 +95,9 @@ export interface BoletimDoAluno extends BoletimMontado {
   matricula: string;
   nome: string;
   turmaCodigo: string | null;
+  segmentoRotulo: string | null;
+  serie: string | null;
+  dataMatricula: string | null;
   anoLetivo: number;
   percentualDeFrequencia: number | null;
   documento: Boletim | null;
@@ -111,7 +119,7 @@ export async function boletimDoAluno(
 
   const db = getAdminDb();
 
-  const [notasDocs, boletimDoc, percentual] = await Promise.all([
+  const [notasDocs, boletimDoc, percentual, grade] = await Promise.all([
     db
       .collection(COLECOES.notas)
       .where("matricula", "==", matricula)
@@ -119,6 +127,7 @@ export async function boletimDoAluno(
       .get(),
     db.collection(COLECOES.boletins).doc(idDoBoletim(anoLetivo, matricula)).get(),
     frequenciaGeral(matricula),
+    gradeDaTurma(aluno.turmaId ?? null, anoLetivo),
   ]);
 
   const documento = boletimDoc.exists ? (boletimDoc.data() as Boletim) : null;
@@ -127,6 +136,9 @@ export async function boletimDoAluno(
     matricula,
     nome: aluno.nome,
     turmaCodigo: aluno.turmaCodigo ?? null,
+    segmentoRotulo: aluno.segmento ? ROTULOS_DE_SEGMENTO[aluno.segmento] : null,
+    serie: aluno.serie ?? null,
+    dataMatricula: aluno.dataMatricula ?? null,
     anoLetivo,
     percentualDeFrequencia: percentual,
     documento,
@@ -135,8 +147,44 @@ export async function boletimDoAluno(
       recuperacoes: documento?.recuperacoes ?? {},
       dependencias: documento?.dependencias ?? [],
       percentualDeFrequencia: percentual,
+      grade,
     }),
   };
+}
+
+/**
+ * Disciplinas da grade da turma, vindas das alocações.
+ *
+ * O boletim impresso lista a grade inteira, com as células em branco para
+ * quem ainda não tem nota — Educação Física aparece lá assim. Montar só a
+ * partir das notas faria a disciplina sumir do boletim até alguém lançar a
+ * primeira.
+ */
+async function gradeDaTurma(
+  turmaId: string | null,
+  anoLetivo: number,
+): Promise<DisciplinaDaGrade[]> {
+  if (!turmaId) return [];
+
+  const docs = await getAdminDb()
+    .collection(COLECOES.alocacoes)
+    .where("turmaId", "==", turmaId)
+    .where("anoLetivo", "==", anoLetivo)
+    .get();
+
+  const porDisciplina = new Map<string, DisciplinaDaGrade>();
+
+  for (const doc of docs.docs) {
+    const alocacao = doc.data() as Alocacao;
+    if (alocacao.ativa === false) continue;
+
+    porDisciplina.set(alocacao.disciplinaId, {
+      disciplinaId: alocacao.disciplinaId,
+      disciplinaNome: alocacao.disciplinaNome ?? alocacao.disciplinaId,
+    });
+  }
+
+  return [...porDisciplina.values()];
 }
 
 /** Id do boletim: um por aluno por ano letivo. */

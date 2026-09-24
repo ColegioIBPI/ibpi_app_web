@@ -23,16 +23,21 @@ import type {
 /** Média mínima para aprovação. */
 export const MEDIA_MINIMA = 5;
 
-/** Casas decimais do boletim. */
-const CASAS = 1;
+/**
+ * Casas decimais do boletim.
+ *
+ * **Duas**, como no boletim que o colégio emite: lá, Projeto 7,83 + Tarefas
+ * 10,00 + AV 7,60 dão média 8,48 — e não 8,5.
+ */
+const CASAS = 2;
 
 /**
- * Arredonda para uma casa, como o boletim mostra.
+ * Arredonda para duas casas, como o boletim mostra.
  *
  * O arredondamento acontece **antes** da comparação com a média mínima. Um
- * boletim que estampa "5,0" e diz "reprovado" — porque internamente era
- * 4,96 — é indefensável diante da família. O número que decide precisa ser o
- * número que aparece.
+ * boletim que estampa "5,00" e diz "reprovado" — porque internamente era
+ * 4,996 — é indefensável diante da família. O número que decide precisa ser
+ * o número que aparece.
  */
 export function arredondar(valor: number): number {
   const fator = 10 ** CASAS;
@@ -77,6 +82,31 @@ export function mediaAnual(
   const soma = medias.reduce<number>((total, media) => total + (media ?? 0), 0);
 
   return arredondar(soma / medias.length);
+}
+
+/**
+ * Média **parcial**: dos trimestres já fechados.
+ *
+ * É o número que o boletim do colégio estampa na coluna TOTAL ao longo do
+ * ano — com só o 1º trimestre lançado, lá aparece a média dele. Serve para
+ * a família acompanhar; **não decide nada**.
+ *
+ * Quem decide aprovação é `mediaAnual`, que só existe com os três
+ * trimestres fechados. Separar as duas evita o pior engano possível aqui:
+ * marcar um aluno como reprovado em março.
+ */
+export function mediaParcial(
+  mediasPorTrimestre: Readonly<Record<string, number | null>>,
+): number | null {
+  const fechadas = [1, 2, 3]
+    .map((t) => mediasPorTrimestre[String(t)] ?? null)
+    .filter((media): media is number => media !== null);
+
+  if (fechadas.length === 0) return null;
+
+  const soma = fechadas.reduce((total, media) => total + media, 0);
+
+  return arredondar(soma / fechadas.length);
 }
 
 /** A média anual manda o aluno para a recuperação final? */
@@ -198,6 +228,8 @@ export function calcularDependencia(
 export interface LinhaCalculada {
   mediasPorTrimestre: Record<string, number | null>;
   mediaAnual: number | null;
+  /** Média dos trimestres já fechados — o TOTAL do boletim impresso. */
+  mediaParcial: number | null;
   mediaFinal: number | null;
   situacao: SituacaoFinal;
 }
@@ -221,6 +253,7 @@ export function calcularLinha(
   return {
     mediasPorTrimestre,
     mediaAnual: anual,
+    mediaParcial: mediaParcial(mediasPorTrimestre),
     mediaFinal: mediaFinal(anual, recuperacao),
     situacao: situacaoDaDisciplina({
       mediaAnual: anual,

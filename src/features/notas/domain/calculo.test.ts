@@ -7,6 +7,7 @@ import {
   mediaAnual,
   mediaDoTrimestre,
   mediaFinal,
+  mediaParcial,
   precisaDeRecuperacao,
   situacaoDaDisciplina,
   situacaoDoAno,
@@ -23,8 +24,10 @@ describe("mediaDoTrimestre", () => {
     expect(mediaDoTrimestre(avaliacoes(6, 7, 8))).toBe(7);
   });
 
-  it("arredonda para uma casa, como o boletim mostra", () => {
-    expect(mediaDoTrimestre(avaliacoes(7, 8, 8))).toBe(7.7);
+  it("arredonda para duas casas, como o boletim do colégio", () => {
+    // O boletim real: Projeto 7,83 + Tarefas 10,00 + AV 7,60 = 8,48.
+    expect(mediaDoTrimestre(avaliacoes(7.83, 10, 7.6))).toBe(8.48);
+    expect(mediaDoTrimestre(avaliacoes(7.83, 4, 7))).toBe(6.28);
   });
 
   it("fica em branco enquanto faltar avaliação", () => {
@@ -55,8 +58,36 @@ describe("mediaAnual", () => {
     expect(mediaAnual({ "1": 6, "2": 7 })).toBeNull();
   });
 
-  it("arredonda para uma casa", () => {
-    expect(mediaAnual({ "1": 5, "2": 6, "3": 8 })).toBe(6.3);
+  it("arredonda para duas casas", () => {
+    expect(mediaAnual({ "1": 5, "2": 6, "3": 8 })).toBe(6.33);
+  });
+});
+
+describe("mediaParcial", () => {
+  it("é a média dos trimestres já fechados", () => {
+    // É o TOTAL que o boletim do colégio estampa ao longo do ano: com só o
+    // 1º trimestre lançado, lá aparece a média dele.
+    expect(mediaParcial({ "1": 8.48 })).toBe(8.48);
+    expect(mediaParcial({ "1": 6, "2": 8 })).toBe(7);
+  });
+
+  it("fica em branco quando nenhum trimestre fechou", () => {
+    expect(mediaParcial({})).toBeNull();
+    expect(mediaParcial({ "1": null, "2": null, "3": null })).toBeNull();
+  });
+
+  it("não é a média anual: ela continua exigindo os três", () => {
+    // Confundir as duas marcaria um aluno como reprovado em março.
+    const parciais = { "1": 4 };
+
+    expect(mediaParcial(parciais)).toBe(4);
+    expect(mediaAnual(parciais)).toBeNull();
+  });
+
+  it("com os três fechados, as duas coincidem", () => {
+    const fechado = { "1": 6, "2": 7, "3": 8 };
+
+    expect(mediaParcial(fechado)).toBe(mediaAnual(fechado));
   });
 });
 
@@ -87,9 +118,10 @@ describe("mediaFinal", () => {
 });
 
 describe("arredondar", () => {
-  it("usa uma casa decimal", () => {
-    expect(arredondar(4.96)).toBe(5);
-    expect(arredondar(4.94)).toBe(4.9);
+  it("usa duas casas decimais", () => {
+    expect(arredondar(4.996)).toBe(5);
+    expect(arredondar(4.994)).toBe(4.99);
+    expect(arredondar(8.477777)).toBe(8.48);
   });
 });
 
@@ -157,10 +189,10 @@ describe("situacaoDaDisciplina", () => {
     ).toBe("aprovado");
   });
 
-  it("média que arredonda para 5,0 aprova", () => {
-    // O boletim estampa 5,0; dizer 'reprovado' seria indefensável.
+  it("média que arredonda para 5,00 aprova", () => {
+    // O boletim estampa 5,00; dizer 'reprovado' seria indefensável.
     expect(
-      situacaoDaDisciplina({ ...base, mediaAnual: arredondar(4.96) }),
+      situacaoDaDisciplina({ ...base, mediaAnual: arredondar(4.996) }),
     ).toBe("aprovado");
   });
 });

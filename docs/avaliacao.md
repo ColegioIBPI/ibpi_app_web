@@ -13,7 +13,7 @@ no banco, e tem teste para cada caso.
 | ------------------------ | ----------------------------------------------- |
 | Períodos                 | **3 trimestres**                                |
 | Avaliações por trimestre | **Projeto**, **Tarefas**, **AV**                |
-| Escala                   | 0 a 10, com uma casa decimal                    |
+| Escala                   | 0 a 10, com **duas** casas decimais             |
 | Média mínima             | **5,0**                                         |
 | Frequência mínima        | **75%** (mais de 25% de faltas reprova)         |
 | Recuperação              | apenas **final**, no fim do ano                 |
@@ -55,12 +55,16 @@ avaliação ausente é `null`.
 
 ### O arredondamento acontece antes da comparação
 
-Todas as médias são arredondadas para **uma casa decimal**, que é como o
-boletim imprime, e a comparação com a média mínima usa o número já
-arredondado.
+Todas as médias são arredondadas para **duas casas decimais**, que é como o
+boletim do colégio imprime, e a comparação com a média mínima usa o número
+já arredondado.
 
-Um boletim que estampa "5,0" e diz "reprovado" — porque internamente era
-4,96 — é indefensável diante da família. O número que decide precisa ser o
+Duas casas, e não uma: no `boletim_resultado.pdf`, Projeto 7,83 + Tarefas
+10,00 + AV 7,60 fecham em **8,48**. A regra estava implementada com uma casa
+até o documento real chegar.
+
+Um boletim que estampa "5,00" e diz "reprovado" — porque internamente era
+4,996 — é indefensável diante da família. O número que decide precisa ser o
 número que aparece.
 
 O arredondamento é aplicado **a cada etapa**, não só no fim: a média anual é
@@ -81,6 +85,20 @@ família e para o professor — não decide sozinha.
 
 Sem nenhum dia de frequência registrado, a nota decide sozinha: no começo do
 ano não há o que calcular, e reprovar por falta ali inventaria uma reprovação.
+
+### Média parcial e média anual são números diferentes
+
+A coluna **TOTAL** do boletim mostra a média dos trimestres **já fechados**:
+com só o 1º trimestre lançado, lá aparece a média dele. É o que a família
+acompanha durante o ano.
+
+A **média anual** — a que decide aprovação — só existe com os três
+trimestres fechados. São duas funções separadas (`mediaParcial` e
+`mediaAnual`) de propósito: confundi-las marcaria um aluno como reprovado em
+março.
+
+Por isso a coluna SITUAÇÃO fica **em branco** enquanto o ano corre, como no
+boletim do colégio.
 
 ### "Em recuperação" não é "reprovado"
 
@@ -144,15 +162,47 @@ dados que o colégio precisa saber quem mudou e quando (README, seção 6.3).
 
 ---
 
-## 6. Impressão
+## 6. O documento
 
-O boletim é impresso pelo **navegador** (`window.print()`), que já oferece
-"Salvar como PDF" em todos eles. As regras de `@media print` no
-`globals.css` tiram da página o que não é documento.
+O boletim reproduz o `boletim_resultado.pdf` que o colégio emite hoje:
+**A4 deitado**, cabeçalho oficial, faixa de identificação, a grade com os
+três trimestres, os blocos de Projeto Bilíngue, eletivas e
+dependência/reclassificação, o campo de observações e o gráfico de médias.
 
-Gerar o PDF no servidor exigiria uma biblioteca de layout e uma segunda
-descrição do boletim para manter em sincronia com a tela — e é assim que as
-duas versões acabam divergindo.
+Decisões de layout que têm razão de ser:
+
+- **A4 deitado é o `@page` padrão**, não uma página nomeada. O navegador
+  dimensiona o layout pelo padrão; uma página nomeada só gira o papel, e o
+  conteúdo continuaria montado na largura do retrato, sobrando margem. Vale
+  para todos os documentos do sistema, que são todos tabelas largas.
+- **A grade mostra a turma inteira**, inclusive a disciplina sem nota
+  nenhuma — ela vem das **alocações** da turma, não das notas. Educação
+  Física aparece no boletim do colégio com as células em branco.
+- **Célula sem nota fica vazia**, sem travessão: um travessão na grade
+  inteira de um aluno do 1º trimestre polui o documento.
+- **O Projeto Bilíngue aparece duas vezes**: como bloco próprio, com STEAM,
+  ENGLISH e PROJECT, e como uma linha da grade cuja nota é a média dos três
+  (8,25 + 9,50 + 9,50 dão os 9,08 do documento).
+- **Eletivas e dependências mantêm linhas em branco**, como o formulário
+  impresso, que é preenchido à mão quando preciso.
+- **O gráfico é SVG**, e não uma biblioteca: são onze barras numa escala
+  fixa de 0 a 10, e biblioteca que desenha em canvas costuma sair branca no
+  papel.
+- `print-color-adjust: exact` no boletim, porque o fundo das células é
+  informação: sem ele o navegador imprime a grade toda em branco.
+
+O PDF sai pela impressão do **navegador** (`window.print()`), que já oferece
+"Salvar como PDF". Gerar no servidor exigiria uma biblioteca de layout e uma
+segunda descrição do boletim para manter em sincronia com a tela — e é assim
+que as duas versões acabam divergindo.
+
+### META
+
+A coluna META mostra a meta de média da escola (**6**), que é diferente da
+média mínima de aprovação (**5,0**). São coisas distintas: a meta é o alvo
+pedagógico, o mínimo é o que reprova. Hoje o valor é uma constante do
+componente — **falta confirmar com a coordenação** se ele varia por
+segmento ou por disciplina.
 
 ---
 
@@ -166,6 +216,11 @@ duas versões acabam divergindo.
 - **Avaliações de trabalho (PL)** no diário de classe: o campo
   `diarioClasse.avaliacoesDeTrabalho` existe e é preservado, mas a tela ainda
   não foi feita.
-- **Confirmar com a coordenação** a regra de arredondamento descrita na
-  seção 3. Ela está implementada do jeito mais favorável ao aluno e mais
-  fácil de defender, mas não foi explicitamente confirmada.
+- **Confirmar com a coordenação** o arredondamento *antes* da comparação
+  (seção 3). O número de casas já está confirmado pelo documento real; o
+  momento do arredondamento, não.
+- **Ordem das disciplinas no boletim.** O documento do colégio usa uma ordem
+  pedagógica (Português, Oficina de Textos, Geografia, História…); o sistema
+  ordena por nome, porque não há nada nos dados que diga a ordem certa.
+  Resolver isso pede um campo de ordenação em `disciplinas`.
+- **Confirmar o valor da META** e se ele varia por segmento.

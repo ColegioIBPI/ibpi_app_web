@@ -44,7 +44,10 @@ export default async function BoletimDoPortalPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div
+        data-impressao="ocultar"
+        className="flex flex-wrap items-start justify-between gap-4"
+      >
         <div>
           <h1 className="text-ink text-xl font-semibold">Boletim</h1>
           <p className="text-ink-muted mt-1 text-sm">
@@ -70,6 +73,9 @@ export default async function BoletimDoPortalPage({
               nome={boletim.nome}
               matricula={boletim.matricula}
               turmaCodigo={boletim.turmaCodigo}
+              segmentoRotulo={boletim.segmentoRotulo}
+              serie={boletim.serie}
+              dataMatricula={boletim.dataMatricula}
               anoLetivo={boletim.anoLetivo}
               disciplinas={boletim.disciplinas}
               faltasPorTrimestre={boletim.faltasPorTrimestre}

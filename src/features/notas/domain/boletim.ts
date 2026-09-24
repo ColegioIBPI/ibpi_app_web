@@ -3,12 +3,16 @@ import type {
   Dependencia,
   LinhaDoBoletim,
   Nota,
+  ProjetoBilingue,
   SituacaoFinal,
   Trimestre,
 } from "@/core/modelo";
 import {
+  arredondar,
   calcularDependencia,
   calcularLinha,
+  mediaAnual,
+  mediaParcial,
   situacaoDoAno,
 } from "@/features/notas/domain/calculo";
 
@@ -31,12 +35,25 @@ export interface BoletimMontado {
   dependencias: Dependencia[];
 }
 
+export interface DisciplinaDaGrade {
+  disciplinaId: string;
+  disciplinaNome: string;
+}
+
 export interface EntradaDoBoletim {
   notas: readonly Nota[];
   recuperacoes: Readonly<Record<string, number | null>>;
   dependencias: readonly Dependencia[];
   /** Frequência geral do aluno no ano, de 0 a 1. */
   percentualDeFrequencia: number | null;
+  /**
+   * Disciplinas da grade da turma, mesmo as que ainda não têm nota.
+   *
+   * O boletim impresso lista a grade inteira: Educação Física aparece lá com
+   * as células em branco. Montar só a partir das notas faria a disciplina
+   * sumir do boletim até alguém lançar a primeira nota.
+   */
+  grade?: readonly DisciplinaDaGrade[];
 }
 
 export function montarBoletim({
@@ -44,11 +61,13 @@ export function montarBoletim({
   recuperacoes,
   dependencias,
   percentualDeFrequencia,
+  grade,
 }: EntradaDoBoletim): BoletimMontado {
   const disciplinas = montarLinhas(
     notas,
     recuperacoes,
     percentualDeFrequencia,
+    grade,
   );
 
   const calculadas = dependencias.map((dependencia) => ({
@@ -71,11 +90,22 @@ export function montarLinhas(
   notas: readonly Nota[],
   recuperacoes: Readonly<Record<string, number | null>>,
   percentualDeFrequencia: number | null,
+  grade: readonly DisciplinaDaGrade[] = [],
 ): LinhaDoBoletim[] {
   const porDisciplina = new Map<
     string,
     { nome: string; trimestres: Record<string, AvaliacoesDoTrimestre>; faltas: number }
   >();
+
+  // A grade entra primeiro, para a disciplina sem nota nenhuma continuar
+  // aparecendo no boletim, com as células em branco.
+  for (const disciplina of grade) {
+    porDisciplina.set(disciplina.disciplinaId, {
+      nome: disciplina.disciplinaNome,
+      trimestres: {},
+      faltas: 0,
+    });
+  }
 
   for (const nota of notas) {
     const atual = porDisciplina.get(nota.disciplinaId) ?? {
@@ -143,4 +173,46 @@ export function trimestresLancados(notas: readonly Nota[]): Trimestre[] {
   const presentes = new Set(notas.map((nota) => nota.trimestre));
 
   return ([1, 2, 3] as Trimestre[]).filter((t) => presentes.has(t));
+}
+
+/**
+ * Média do Projeto Bilíngue num trimestre, a partir dos três componentes.
+ *
+ * No boletim impresso o Projeto Bilíngue aparece **duas vezes**: como bloco
+ * próprio, com STEAM, ENGLISH e PROJECT, e como uma linha da tabela
+ * principal — e a nota dessa linha é a média dos três (8,25 + 9,50 + 9,50
+ * dão os 9,08 que o boletim mostra).
+ *
+ * `null` enquanto faltar componente: o mesmo critério das outras médias.
+ */
+export function mediaDoBilingue(
+  projeto: ProjetoBilingue | null | undefined,
+  trimestre: string,
+): number | null {
+  const componentes = projeto?.componentes ?? [];
+  if (componentes.length === 0) return null;
+
+  const notas = componentes.map((c) => c.trimestres?.[trimestre] ?? null);
+  if (notas.some((nota) => nota === null || nota === undefined)) return null;
+
+  const soma = notas.reduce<number>((total, nota) => total + (nota ?? 0), 0);
+
+  return arredondar(soma / notas.length);
+}
+
+/** As três médias trimestrais do Projeto Bilíngue, e a anual. */
+export function linhaDoBilingue(
+  projeto: ProjetoBilingue | null | undefined,
+): Pick<LinhaDoBoletim, "mediasPorTrimestre" | "mediaAnual" | "mediaParcial"> {
+  const mediasPorTrimestre: Record<string, number | null> = {};
+
+  for (const trimestre of ["1", "2", "3"]) {
+    mediasPorTrimestre[trimestre] = mediaDoBilingue(projeto, trimestre);
+  }
+
+  return {
+    mediasPorTrimestre,
+    mediaAnual: mediaAnual(mediasPorTrimestre),
+    mediaParcial: mediaParcial(mediasPorTrimestre),
+  };
 }

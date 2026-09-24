@@ -310,7 +310,9 @@ Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descri�
 - `/gestao/notas` — o professor escolhe a alocação e o trimestre e digita Projeto, Tarefas e AV por aluno. A média aparece enquanto se digita, aceita vírgula decimal, e as faltas vêm pré-preenchidas do diário de classe.
 - Só o que mudou é gravado: salvar sem alterar nada não vira registro, para a auditoria não encher de "7,0 → 7,0".
 - Nota ausente **não é zero** — a média fica em branco até as três avaliações existirem.
-- As médias são arredondadas para uma casa **antes** da comparação com a média mínima: um boletim que estampa "5,0" e diz "reprovado" é indefensável.
+- As médias são arredondadas para **duas casas** **antes** da comparação com a média mínima: um boletim que estampa "5,00" e diz "reprovado" é indefensável. Duas casas porque é o que o documento do colégio mostra (7,83 + 10,00 + 7,60 = 8,48).
+- O boletim reproduz o `boletim_resultado.pdf` do colégio: **A4 deitado**, cabeçalho oficial, grade com os três trimestres, Projeto Bilíngue, eletivas, dependências, observações e gráfico de médias.
+- A coluna **TOTAL** mostra a média dos trimestres já fechados; a **média anual**, que decide aprovação, só existe com os três. São números diferentes de propósito — confundi-los reprovaria um aluno em março.
 - A frequência que reprova é a **geral do ano** (registro diário da secretaria), não a da disciplina, porque o limite de 25% é da carga horária total.
 - `/gestao/boletins` e `/portal/boletim` — o boletim é **calculado a partir das notas** a cada leitura; o documento guarda só o que não é derivável (recuperação, eletivas, dependências, Projeto Bilíngue, observações).
 - O PDF sai pela impressão do navegador, com `@media print` — assim o que a família imprime é exatamente o que ela vê.

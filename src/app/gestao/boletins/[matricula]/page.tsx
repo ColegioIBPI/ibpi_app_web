@@ -58,6 +58,9 @@ export default async function BoletimDoAlunoPage({
           nome={boletim.nome}
           matricula={boletim.matricula}
           turmaCodigo={boletim.turmaCodigo}
+          segmentoRotulo={boletim.segmentoRotulo}
+          serie={boletim.serie}
+          dataMatricula={boletim.dataMatricula}
           anoLetivo={boletim.anoLetivo}
           disciplinas={boletim.disciplinas}
           faltasPorTrimestre={boletim.faltasPorTrimestre}

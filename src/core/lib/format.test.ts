@@ -40,12 +40,13 @@ describe("formatDate", () => {
 });
 
 describe("formatGrade", () => {
-  it("arredonda para uma casa com vírgula", () => {
-    expect(formatGrade(8.477777778)).toBe("8,5");
+  it("mostra duas casas com vírgula, como o boletim do colégio", () => {
+    expect(formatGrade(8.48)).toBe("8,48");
+    expect(formatGrade(8.477777778)).toBe("8,48");
   });
 
-  it("mantém a casa decimal em nota inteira", () => {
-    expect(formatGrade(10)).toBe("10,0");
+  it("mantém as casas decimais em nota inteira", () => {
+    expect(formatGrade(10)).toBe("10,00");
   });
 
   it("mostra travessão quando não há nota lançada", () => {
@@ -55,7 +56,7 @@ describe("formatGrade", () => {
   });
 
   it("não confunde nota zero com nota ausente", () => {
-    expect(formatGrade(0)).toBe("0,0");
+    expect(formatGrade(0)).toBe("0,00");
   });
 });
 

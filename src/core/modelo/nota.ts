@@ -88,6 +88,8 @@ export const linhaDoBoletimSchema = z.object({
   trimestres: z.record(z.string(), avaliacoesDoTrimestreSchema).default({}),
   mediasPorTrimestre: z.record(z.string(), z.number().nullable()).default({}),
   mediaAnual: z.number().nullable().default(null),
+  /** Média dos trimestres já fechados — o TOTAL do boletim impresso. */
+  mediaParcial: z.number().nullable().default(null),
   recuperacao: valorDeNotaSchema.default(null),
   mediaFinal: z.number().nullable().default(null),
   faltas: z.number().int().min(0).default(0),

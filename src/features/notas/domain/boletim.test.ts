@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { Dependencia, Nota } from "@/core/modelo";
 import {
   disciplinasEmRecuperacao,
+  linhaDoBilingue,
+  mediaDoBilingue,
   montarBoletim,
   montarLinhas,
   somarFaltasPorTrimestre,
@@ -200,5 +202,78 @@ describe("trimestresLancados", () => {
     expect(
       trimestresLancados([nota("fisica", 1, [7, 7, 7]), nota("fisica", 3, [7, 7, 7])]),
     ).toEqual([1, 3]);
+  });
+});
+
+describe("grade da turma", () => {
+  it("mostra a disciplina sem nota nenhuma", () => {
+    // Educação Física aparece no boletim impresso com as células em branco.
+    // Montar só a partir das notas faria a disciplina sumir até alguém
+    // lançar a primeira nota.
+    const linhas = montarLinhas(anoCompleto("fisica", 7), {}, 1, [
+      { disciplinaId: "fisica", disciplinaNome: "Física" },
+      { disciplinaId: "educacao-fisica", disciplinaNome: "Educação Física" },
+    ]);
+
+    expect(linhas.map((l) => l.disciplinaNome)).toEqual([
+      "Educação Física",
+      "Física",
+    ]);
+
+    const semNota = linhas.find((l) => l.disciplinaId === "educacao-fisica")!;
+    expect(semNota.mediaAnual).toBeNull();
+    expect(semNota.mediaParcial).toBeNull();
+    expect(semNota.situacao).toBe("cursando");
+  });
+
+  it("nota de disciplina fora da grade não é descartada", () => {
+    // A alocação pode ter sido removida depois do lançamento; a nota do
+    // aluno não pode sumir do boletim por causa disso.
+    const linhas = montarLinhas(anoCompleto("fisica", 7), {}, 1, [
+      { disciplinaId: "artes", disciplinaNome: "Artes" },
+    ]);
+
+    expect(linhas.map((l) => l.disciplinaId).sort()).toEqual([
+      "artes",
+      "fisica",
+    ]);
+  });
+
+  it("sem grade, continua montando a partir das notas", () => {
+    expect(montarLinhas(anoCompleto("fisica", 7), {}, 1)).toHaveLength(1);
+  });
+});
+
+describe("mediaDoBilingue", () => {
+  const projeto = {
+    nivel: "N2",
+    componentes: [
+      { nome: "STEAM" as const, trimestres: { "1": 8.25 }, recuperacao: null },
+      { nome: "ENGLISH" as const, trimestres: { "1": 9.5 }, recuperacao: null },
+      { nome: "PROJECT" as const, trimestres: { "1": 9.5 }, recuperacao: null },
+    ],
+  };
+
+  it("é a média dos três componentes", () => {
+    // O boletim real: 8,25 + 9,50 + 9,50 dão os 9,08 da linha da grade.
+    expect(mediaDoBilingue(projeto, "1")).toBe(9.08);
+  });
+
+  it("fica em branco no trimestre sem os três componentes", () => {
+    expect(mediaDoBilingue(projeto, "2")).toBeNull();
+  });
+
+  it("sem Projeto Bilíngue não há média", () => {
+    expect(mediaDoBilingue(null, "1")).toBeNull();
+    expect(mediaDoBilingue({ nivel: null, componentes: [] }, "1")).toBeNull();
+  });
+
+  it("linhaDoBilingue devolve os três trimestres e a parcial", () => {
+    const linha = linhaDoBilingue(projeto);
+
+    expect(linha.mediasPorTrimestre).toEqual({ "1": 9.08, "2": null, "3": null });
+    expect(linha.mediaParcial).toBe(9.08);
+    // O ano não fechou: a média anual continua em branco.
+    expect(linha.mediaAnual).toBeNull();
   });
 });

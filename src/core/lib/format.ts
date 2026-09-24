@@ -44,15 +44,16 @@ export function formatShortDate(value: Date | string): string {
 }
 
 /**
- * Nota sempre com uma casa decimal e vírgula: `8.477777` → `8,5`.
- * O arredondamento é só de exibição — o valor cheio continua no banco, porque
- * a média anual precisa ser calculada sobre os valores originais.
+ * Nota com **duas** casas e vírgula: `8.477777` → `8,48`.
+ *
+ * Duas, e não uma, porque é o que o boletim do colégio mostra: lá, Projeto
+ * 7,83 + Tarefas 10,00 + AV 7,60 fecham em 8,48.
  */
 export function formatGrade(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return value.toLocaleString(LOCALE, {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
