@@ -330,6 +330,15 @@ Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descri�
 
 Migra a tabela `Tabela_pagamento` (847 registros), com os campos `Matricula`, `Vencimento`, `QTDE de Parcelas`, `Valor`, `Data Pagamento`, `Valor Pago`, `No Banco`, `No IBPI`, `Observações`.
 
+**Como está implementado** (detalhes e justificativas em [`docs/financeiro.md`](docs/financeiro.md)):
+
+- `/gestao/financeiro` — lista com o total vencido da escola, filtro por turma e três recortes (com parcela vencida, com saldo em aberto, todos). O padrão é a inadimplência, que é a pergunta que traz alguém a esta tela.
+- `/gestao/financeiro/[matricula]` — extrato do aluno com as parcelas, os itens contratados vindos do Access, baixa manual (data, valor, banco, recibo) e geração de carnê.
+- `/portal/financeiro` — o responsável vê o extrato dos filhos, somente leitura. O aluno não vê financeiro.
+- **A situação da parcela não é gravada:** "vencida" é uma conclusão sobre hoje, e uma parcela salva como "em aberto" em abril continuaria assim em dezembro. O banco guarda vencimento e pagamento; a situação é concluída a cada leitura.
+- A divisão do plano é feita em centavos e a sobra vai na última parcela, para o carnê fechar com o valor contratado.
+- Parcela paga não pode ser apagada — só depois de desfeita a baixa.
+
 > O modelo de dados é desenhado para comportar uma integração futura de boleto/PIX (Asaas, Cora, Mercado Pago) sem migração — mas **nada disso está no escopo**.
 
 ### 5.8 Relatórios e exportações

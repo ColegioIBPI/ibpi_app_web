@@ -128,7 +128,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "gestao",
     recurso: "financeiro",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
 
   // Consulta — aluno e responsável
@@ -170,7 +170,7 @@ const ITENS: ItemDeNavegacao[] = [
     area: "consulta",
     recurso: "financeiro",
     minimo: "ler",
-    disponivel: false,
+    disponivel: true,
   },
 ];
 

@@ -27,7 +27,6 @@ import {
   parsearContrato,
   parsearParcela,
   parsearValor,
-  situacaoDaCobranca,
 } from "@/features/migracao/domain/financeiro";
 import {
   consolidarResponsaveis,
@@ -348,7 +347,6 @@ for (const bruto of salasBrutas) {
   });
 }
 
-const hoje = new Date();
 
 for (const bruto of pagamentosBrutos) {
   const matricula = limparTexto(bruto.Matricula);
@@ -376,7 +374,10 @@ for (const bruto of pagamentosBrutos) {
     valor: parsearValor(bruto.Valor),
     valorPago: parsearValor(bruto["Valor Pago"]),
     dataPagamento,
-    situacao: situacaoDaCobranca({ vencimento, dataPagamento, hoje }),
+    // A situação não é gravada: ver o comentário em
+    // `features/migracao/domain/financeiro.ts`.
+    emitidaPeloBanco: bruto["No Banco"] === true,
+    emitidaPeloColegio: bruto["No IBPI"] === true,
     observacoes: limparTexto(bruto["Observações"]),
     origem: "access",
   });

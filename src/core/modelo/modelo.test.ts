@@ -208,19 +208,41 @@ describe("cobrancaSchema", () => {
         valor: 1603,
         valorPago: 1603,
         dataPagamento: "2026-03-10",
-        situacao: "paga",
+        emitidaPeloBanco: true,
+        emitidaPeloColegio: false,
       }).success,
     ).toBe(true);
   });
 
-  it("aceita cobrança sem valor definido, mas exige situação", () => {
+  it("aceita parcela em aberto, sem pagamento", () => {
     expect(
       cobrancaSchema.safeParse({
         matricula: "26002",
         vencimento: "2026-03-10",
-        valor: null,
+        valor: 1603,
         valorPago: null,
+        dataPagamento: null,
       }).success,
+    ).toBe(true);
+  });
+
+  it("não guarda a situação da parcela", () => {
+    // "Vencida" é uma conclusão sobre hoje: gravada, ela envelhece. Ver
+    // `features/financeiro/domain/cobranca.ts`.
+    const parcela = cobrancaSchema.parse({
+      matricula: "26002",
+      vencimento: "2026-03-10",
+      valor: 1603,
+      valorPago: null,
+      situacao: "paga",
+    });
+
+    expect(parcela).not.toHaveProperty("situacao");
+  });
+
+  it("exige matrícula e vencimento", () => {
+    expect(
+      cobrancaSchema.safeParse({ valor: 100, valorPago: null }).success,
     ).toBe(false);
   });
 });

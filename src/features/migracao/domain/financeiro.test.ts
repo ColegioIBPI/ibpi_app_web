@@ -6,7 +6,6 @@ import {
   parsearContrato,
   parsearParcela,
   parsearValor,
-  situacaoDaCobranca,
   tipoDeContrato,
 } from "@/features/migracao/domain/financeiro";
 
@@ -31,67 +30,6 @@ describe("parsearParcela", () => {
   });
 });
 
-describe("situacaoDaCobranca", () => {
-  const hoje = new Date("2026-09-22T12:00:00");
-
-  it("com data de pagamento, está paga", () => {
-    expect(
-      situacaoDaCobranca({
-        vencimento: "2026-01-10",
-        dataPagamento: "2026-01-11",
-        hoje,
-      }),
-    ).toBe("paga");
-  });
-
-  it("paga conta mesmo quando quitada em atraso", () => {
-    // O valor pago pode divergir por juros; a baixa é o que define.
-    expect(
-      situacaoDaCobranca({
-        vencimento: "2026-01-10",
-        dataPagamento: "2026-03-01",
-        hoje,
-      }),
-    ).toBe("paga");
-  });
-
-  it("sem pagamento e com vencimento passado, está vencida", () => {
-    expect(
-      situacaoDaCobranca({
-        vencimento: "2026-08-10",
-        dataPagamento: null,
-        hoje,
-      }),
-    ).toBe("vencida");
-  });
-
-  it("sem pagamento e com vencimento futuro, está em aberto", () => {
-    expect(
-      situacaoDaCobranca({
-        vencimento: "2026-10-10",
-        dataPagamento: null,
-        hoje,
-      }),
-    ).toBe("aberta");
-  });
-
-  it("quem paga no próprio dia do vencimento não fica vencido", () => {
-    expect(
-      situacaoDaCobranca({
-        vencimento: "2026-09-22",
-        dataPagamento: null,
-        hoje,
-      }),
-    ).toBe("aberta");
-  });
-
-  it("sem vencimento, fica em aberto em vez de virar vencida", () => {
-    expect(
-      situacaoDaCobranca({ vencimento: null, dataPagamento: null, hoje }),
-    ).toBe("aberta");
-  });
-});
-
 describe("parsearValor", () => {
   it("lê o formato brasileiro", () => {
     expect(parsearValor("1.923,00")).toBe(1923);
@@ -101,6 +39,19 @@ describe("parsearValor", () => {
 
   it("lê valor sem separador", () => {
     expect(parsearValor("1200")).toBe(1200);
+  });
+
+  it("número já vem pronto, e o ponto dele é decimal", () => {
+    // O Access exporta `Valor` e `Valor Pago` como float. Tratá-los como
+    // texto brasileiro apagava o ponto: R$ 3.270,12 virava R$ 327.012,00.
+    expect(parsearValor(3270.12)).toBe(3270.12);
+    expect(parsearValor(3206)).toBe(3206);
+    expect(parsearValor(0)).toBe(0);
+  });
+
+  it("número inválido não vira valor", () => {
+    expect(parsearValor(Number.NaN)).toBeNull();
+    expect(parsearValor(Number.POSITIVE_INFINITY)).toBeNull();
   });
 
   it("devolve null para campo vazio", () => {

@@ -1,4 +1,4 @@
-import { fimDoDia, paraData, paraDataISO } from "@/core/lib/datas";
+import { paraDataISO } from "@/core/lib/datas";
 import {
   chaveDeComparacao,
   limparTexto,
@@ -17,8 +17,6 @@ import {
  * O nome "Fatos" sugere ocorrência disciplinar, e não é: a ocorrência de
  * comportamento vive na planilha de frequência, não no Access.
  */
-
-export type SituacaoDaCobranca = "paga" | "vencida" | "aberta";
 
 export interface Parcela {
   numero: number;
@@ -41,28 +39,15 @@ export function parsearParcela(valor: unknown): Parcela | null {
   return { numero, total };
 }
 
-/**
- * Situação da parcela.
+/*
+ * A situação da parcela **não é migrada**, e nem gravada.
  *
- * A data de pagamento é o que define "paga" — o valor pago pode divergir
- * (desconto, juros) sem mudar o fato de ter sido quitada.
+ * "Vencida" é uma conclusão sobre hoje: congelá-la na data da migração
+ * faria toda parcela nascer com a situação do dia em que a importação
+ * rodou, e envelhecer ali. Quem conclui é
+ * `features/financeiro/domain/cobranca.ts`, na leitura, a partir do
+ * vencimento e do pagamento — que são os fatos migrados.
  */
-export function situacaoDaCobranca(entrada: {
-  vencimento: Date | string | null;
-  dataPagamento: Date | string | null;
-  hoje?: Date;
-}): SituacaoDaCobranca {
-  if (entrada.dataPagamento) return "paga";
-  if (!entrada.vencimento) return "aberta";
-
-  const vencimento = paraData(entrada.vencimento);
-  if (Number.isNaN(vencimento.getTime())) return "aberta";
-
-  const hoje = entrada.hoje ?? new Date();
-
-  // Vence no fim do dia: quem paga no próprio dia do vencimento está em dia.
-  return hoje > fimDoDia(vencimento) ? "vencida" : "aberta";
-}
 
 export type TipoDeContrato =
   | "anuidade"
@@ -131,6 +116,13 @@ export function parsearContrato(
 
 /** `"1.923,00"` → `1923`. Formato brasileiro: ponto separa milhar. */
 export function parsearValor(valor: unknown): number | null {
+  // Número já é número. O Access exporta `Valor` e `Valor Pago` como float,
+  // e tratá-los como texto brasileiro apagava o ponto decimal: `3270.12`
+  // virava `327012` — a parcela de R$ 3.270,12 aparecia como R$ 327.012,00.
+  if (typeof valor === "number") {
+    return Number.isFinite(valor) ? valor : null;
+  }
+
   const texto = limparTexto(valor);
   if (!texto) return null;
 

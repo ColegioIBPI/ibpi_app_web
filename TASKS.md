@@ -212,14 +212,20 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.9 Financeiro
 
-- [ ] Modelar a coleção `cobrancas`
-- [ ] Implementar o cadastro do plano de pagamento por aluno (parcelas, valor, vencimentos)
-- [ ] Implementar a geração das parcelas a partir do plano
-- [ ] Implementar a função pura de situação da parcela: em aberto, paga, vencida
-- [ ] Implementar a baixa manual de pagamento (data, valor pago, banco, recibo)
-- [ ] Implementar o extrato financeiro por aluno
-- [ ] Implementar a visão somente leitura do responsável
-- [ ] Implementar o relatório de inadimplência por turma e período
+- [x] Modelar a coleção `cobrancas`
+- [x] Implementar o cadastro do plano de pagamento por aluno (parcelas, valor, vencimentos)
+- [x] Implementar a geração das parcelas a partir do plano
+- [x] Implementar a função pura de situação da parcela: em aberto, paga, vencida
+- [x] Implementar a baixa manual de pagamento (data, valor pago, banco, recibo)
+- [x] Implementar o extrato financeiro por aluno
+- [x] Implementar a visão somente leitura do responsável
+- [x] Implementar o relatório de inadimplência por turma e período
+- [x] Corrigir os valores migrados que perdiam o ponto decimal (56 parcelas)
+- [ ] Exportar o relatório de inadimplência em Excel/PDF
+- [ ] Ligar o carnê gerado ao item contratado que o originou
+
+> A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
+> Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
 ### 3.10 Auditoria
 
@@ -228,7 +234,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Registrar as alterações de cadastro, turma e disciplina
 - [x] Implementar o registro automático em alterações de nota
 - [ ] Implementar o registro automático em alterações de frequência
-- [ ] Implementar o registro automático em alterações financeiras
+- [x] Implementar o registro automático em alterações financeiras
 - [ ] Implementar a consulta de auditoria para o administrador
 
 ### 3.11 Relatórios e exportações

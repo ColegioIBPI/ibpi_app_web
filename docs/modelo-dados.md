@@ -101,8 +101,14 @@ Espelham `Tabela_pagamento` e `Fatos`. Ver [`docs/migracao.md`](migracao.md)
 para a composição do id, que precisou de um distintivo.
 
 **Cobrança** — a parcela: `matricula` · `vencimento` · `parcela` ·
-`totalDeParcelas` · `valor` · `valorPago` · `dataPagamento` · `situacao` ·
-`emitidaPeloBanco` · `emitidaPeloColegio` · `observacoes` · `baixadoPor`
+`totalDeParcelas` · `valor` · `valorPago` · `dataPagamento` ·
+`emitidaPeloBanco` · `emitidaPeloColegio` · `banco` · `recibo` ·
+`observacoes` · `baixadoPor`
+
+**Não há campo de situação.** "Vencida" é uma conclusão sobre hoje: gravada,
+ela envelhece — uma parcela salva como "em aberto" em abril continuaria assim
+em dezembro. O documento guarda os fatos, e `situacaoDaCobranca()` conclui na
+leitura (ver [`financeiro.md`](financeiro.md)).
 
 **Contrato** — o item contratado do ano: `matricula` · `data` · `tipo`
 (anuidade · matrícula · taxa-material · dependência · reclassificação) ·

@@ -29,6 +29,15 @@ export const ROTULOS_DE_COBRANCA: Record<SituacaoDaCobranca, string> = {
   vencida: "Vencida",
 };
 
+/**
+ * Uma parcela.
+ *
+ * **A situação não é gravada.** "Vencida" é uma conclusão sobre hoje, não um
+ * dado: uma parcela salva como "em aberto" em abril continuaria assim em
+ * dezembro, muito depois de vencer. O que se guarda são os fatos —
+ * vencimento e pagamento — e `situacaoDaCobranca()` conclui a partir deles
+ * a cada leitura (ver `features/financeiro/domain/cobranca.ts`).
+ */
 export const cobrancaSchema = z.object({
   matricula: z.string().min(1),
   vencimento: dataSchema,
@@ -38,10 +47,12 @@ export const cobrancaSchema = z.object({
   valor: z.number().nullable(),
   valorPago: z.number().nullable(),
   dataPagamento: dataSchema.nullish(),
-  situacao: situacaoDaCobrancaSchema,
   /** `No Banco` e `No IBPI` do Access: por onde a cobrança foi emitida. */
   emitidaPeloBanco: z.boolean().nullish(),
   emitidaPeloColegio: z.boolean().nullish(),
+  /** Banco e recibo da baixa manual (`ITAÚ`, `00042981`). */
+  banco: textoOpcional,
+  recibo: textoOpcional,
   observacoes: textoOpcional,
   /** `uid` de quem deu baixa — contestação de cobrança precisa de autor. */
   baixadoPor: z.string().nullish(),
