@@ -258,6 +258,48 @@ diferente seria a forma mais provável de uma conta nascer pela metade.
 Primeiro acesso e recuperação usam **a mesma tela** (`/definir-senha`), porque
 são o mesmo mecanismo: um link com código (`oobCode`) enviado por e-mail.
 
+### O e-mail do cadastro é o login
+
+Não há dois campos: o e-mail que a secretaria digita na ficha do responsável
+ou do professor **é** o endereço de entrada no Portal.
+
+Por isso, trocar o e-mail na ficha troca também o login
+(`sincronizarEmailDaConta`). Sem isso a pessoa ficaria com o endereço novo no
+cadastro e o antigo na tela de entrada — e o link para criar a senha iria
+para a caixa que ninguém mais abre.
+
+Se o endereço novo já for login de outra conta, a gravação é **recusada com
+explicação**, em vez de criar duas fichas apontando para a mesma entrada.
+
+### Um e-mail, uma conta, um perfil
+
+O Firebase identifica a conta pelo e-mail. Cadastrar o mesmo endereço em dois
+perfis não cria duas contas: **atualiza a mesma**, e o segundo perfil
+substitui o primeiro. Uma secretária cadastrada depois como responsável perde
+o acesso à gestão.
+
+Quem precisa dos dois papéis usa dois endereços. No Gmail, o sufixo resolve
+sem criar caixa nova: `pessoa+responsavel@gmail.com` chega na mesma caixa e é
+outra conta para o Firebase.
+
+> **Limitação conhecida.** Uma secretária que também seja mãe de aluno não
+> consegue, com uma conta só, ver o boletim do filho. Resolver isso pede ou
+> vínculos de responsável numa conta de equipe, ou troca de perfil na
+> sessão.
+
+### Quando o e-mail de senha não chega
+
+O Admin SDK **gera** o link; quem **envia** é o SDK cliente, pelo serviço do
+Firebase. O envio falha — cai no spam, o endereço estava errado, a família
+apagou.
+
+Por isso a ficha tem **Reenviar link de senha**, e quando o envio falha a
+tela mostra o link para a secretaria mandar por outro canal. Sem isso a conta
+ficava criada e inacessível, e a secretaria não tinha como ajudar.
+
+O link cria a senha e expira em algumas horas. Ele é credencial: vale para
+quem o tiver em mãos, então não se reaproveita entre pessoas.
+
 ### Duas decisões que parecem detalhe e não são
 
 **Login errado nunca diz o que errou.** Senha incorreta e e-mail inexistente

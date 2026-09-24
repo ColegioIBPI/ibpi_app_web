@@ -137,3 +137,50 @@ export async function sincronizarTurmasDaConta(
 export async function gerarLinkDeSenha(email: string): Promise<string> {
   return getAdminAuth().generatePasswordResetLink(email);
 }
+
+export interface ResultadoDaSincronizacao {
+  ok: boolean;
+  erro?: string;
+  /** `true` quando o e-mail de login de fato mudou. */
+  mudou?: boolean;
+}
+
+/**
+ * Mantém o e-mail de login igual ao do cadastro.
+ *
+ * O e-mail do cadastro **é** o login. Trocar um sem o outro deixa a família
+ * com o endereço novo na ficha e o antigo na tela de entrada — e o link
+ * para criar a senha vai para a caixa errada, que é exatamente onde ninguém
+ * vai procurar.
+ *
+ * Devolve erro em vez de lançar: quem chama está no meio de gravar um
+ * cadastro, e perder o cadastro inteiro por causa do e-mail seria pior.
+ */
+export async function sincronizarEmailDaConta(
+  uid: string | null | undefined,
+  email: string | null,
+): Promise<ResultadoDaSincronizacao> {
+  if (!uid || !email) return { ok: true, mudou: false };
+
+  const auth = getAdminAuth();
+  const conta = await auth.getUser(uid).catch(() => null);
+
+  if (!conta) return { ok: true, mudou: false };
+  if (conta.email === email) return { ok: true, mudou: false };
+
+  try {
+    await auth.updateUser(uid, { email, emailVerified: false });
+    return { ok: true, mudou: true };
+  } catch (causa) {
+    const codigo = (causa as { code?: string }).code;
+
+    if (codigo === "auth/email-already-exists") {
+      return {
+        ok: false,
+        erro: `O e-mail ${email} já é login de outra conta. Use outro endereço.`,
+      };
+    }
+
+    return { ok: false, erro: `Não foi possível trocar o e-mail de acesso.` };
+  }
+}

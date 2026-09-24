@@ -8,6 +8,7 @@ import { exigirPermissao } from "@/core/auth/guards";
 import {
   criarOuAtualizarConta,
   gerarLinkDeSenha,
+  sincronizarEmailDaConta,
   sincronizarVinculosDaConta,
 } from "@/core/auth/contas";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -31,6 +32,8 @@ export interface Resultado {
   id?: string;
   /** Link de definição de senha, quando uma conta é criada. */
   link?: string;
+  /** `true` quando a troca de e-mail no cadastro mudou também o login. */
+  emailDeAcessoMudou?: boolean;
 }
 
 const formularioSchema = z.object({
@@ -112,6 +115,12 @@ export async function salvarResponsavel(
     return { ok: false, erro: responsavel.error.issues[0]?.message };
   }
 
+  // O e-mail do cadastro é o login. Sincronizar antes de gravar: se a troca
+  // for recusada, o cadastro não pode ficar apontando para um endereço que
+  // a pessoa não usa para entrar.
+  const sincronia = await sincronizarEmailDaConta(anterior?.uid, emailLimpo);
+  if (!sincronia.ok) return { ok: false, erro: sincronia.erro };
+
   await gravarComAuditoria({
     colecao: COLECOES.responsaveis,
     documentoId: id,
@@ -123,7 +132,36 @@ export async function salvarResponsavel(
   revalidatePath("/gestao/responsaveis");
   revalidatePath(`/gestao/responsaveis/${id}`);
 
-  return { ok: true, id };
+  return { ok: true, id, emailDeAcessoMudou: sincronia.mudou };
+}
+
+/**
+ * Gera de novo o link para a família criar a senha.
+ *
+ * Existe porque o e-mail se perde: cai no spam, o endereço estava errado,
+ * ou a família apagou. Sem isso, a secretaria não tinha como ajudar — a
+ * conta ficava criada e inacessível.
+ */
+export async function reenviarAcessoDoResponsavel(
+  id: string,
+): Promise<Resultado & { email?: string }> {
+  await exigirPermissao("cadastros", "gerenciar");
+
+  const doc = await getAdminDb().collection(COLECOES.responsaveis).doc(id).get();
+
+  if (!doc.exists) return { ok: false, erro: "Responsável não encontrado." };
+
+  const dados = doc.data() as Responsavel;
+
+  if (!dados.uid) return { ok: false, erro: "Este responsável ainda não tem acesso." };
+  if (!dados.email) return { ok: false, erro: "Cadastre um e-mail primeiro." };
+
+  return {
+    ok: true,
+    id,
+    email: dados.email,
+    link: await gerarLinkDeSenha(dados.email),
+  };
 }
 
 /** Vincula ou desvincula um aluno do responsável. */

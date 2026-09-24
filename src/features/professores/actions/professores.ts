@@ -8,6 +8,7 @@ import { exigirPermissao } from "@/core/auth/guards";
 import {
   criarOuAtualizarConta,
   gerarLinkDeSenha,
+  sincronizarEmailDaConta,
   sincronizarTurmasDaConta,
 } from "@/core/auth/contas";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -124,6 +125,11 @@ export async function salvarProfessor(
   if (!professor.success) {
     return { ok: false, erro: professor.error.issues[0]?.message };
   }
+
+  // O e-mail do cadastro é o login. Trocar um sem o outro deixaria o
+  // professor com o endereço novo na ficha e o antigo na tela de entrada.
+  const sincronia = await sincronizarEmailDaConta(anterior?.uid, email);
+  if (!sincronia.ok) return { ok: false, erro: sincronia.erro };
 
   await gravarComAuditoria({
     colecao: COLECOES.professores,

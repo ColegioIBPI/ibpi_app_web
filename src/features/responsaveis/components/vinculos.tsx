@@ -20,6 +20,7 @@ import { enviarEmailDeSenha } from "@/features/auth/services/auth-client";
 import {
   alterarVinculo,
   criarAcessoDoResponsavel,
+  reenviarAcessoDoResponsavel,
 } from "@/features/responsaveis/actions/responsaveis";
 import { motivoParaNaoCriarConta } from "@/features/responsaveis/domain/busca";
 import type {
@@ -45,6 +46,9 @@ export function Vinculos({ responsavel, filhos, disponiveis }: VinculosProps) {
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  // Mostrado quando o e-mail não sai: sem ele a secretaria não tem como
+  // ajudar, e a conta fica criada e inacessível.
+  const [link, setLink] = useState<string | null>(null);
 
   const impedimento = motivoParaNaoCriarConta({
     ...responsavel,
@@ -109,13 +113,36 @@ export function Vinculos({ responsavel, filhos, disponiveis }: VinculosProps) {
         `Acesso criado. Enviamos para ${responsavel.email} o link para criar a senha.`,
       );
     } catch {
-      setAviso(
-        `Acesso criado, mas o e-mail não saiu. Peça ao responsável para usar "Esqueci minha senha" na tela de login.`,
-      );
+      setAviso(`Acesso criado, mas o e-mail não saiu.`);
+      setLink(resultado.link ?? null);
     }
 
     setOcupado(null);
     router.refresh();
+  }
+
+  async function reenviar() {
+    setErro(null);
+    setAviso(null);
+    setLink(null);
+    setOcupado("reenvio");
+
+    const resultado = await reenviarAcessoDoResponsavel(responsavel.id);
+
+    if (!resultado.ok) {
+      setOcupado(null);
+      return setErro(resultado.erro ?? "Não foi possível gerar o link.");
+    }
+
+    try {
+      await enviarEmailDeSenha(resultado.email!);
+      setAviso(`Link reenviado para ${resultado.email}.`);
+    } catch {
+      setAviso("O e-mail não saiu.");
+      setLink(resultado.link ?? null);
+    }
+
+    setOcupado(null);
   }
 
   return (
@@ -223,7 +250,16 @@ export function Vinculos({ responsavel, filhos, disponiveis }: VinculosProps) {
             </p>
           </div>
 
-          {!responsavel.uid && (
+          {responsavel.uid ? (
+            <Button
+              variant="secondary"
+              onClick={reenviar}
+              loading={ocupado === "reenvio"}
+            >
+              <KeyRound className="size-4" aria-hidden />
+              Reenviar link de senha
+            </Button>
+          ) : (
             <Button
               onClick={criarAcesso}
               disabled={Boolean(impedimento)}
@@ -234,6 +270,21 @@ export function Vinculos({ responsavel, filhos, disponiveis }: VinculosProps) {
             </Button>
           )}
         </div>
+
+        {link && (
+          <div className="border-line bg-surface-subtle rounded-md border p-3">
+            <p className="text-ink text-sm font-medium">
+              Mande este link para {responsavel.email}
+            </p>
+            <p className="text-ink-muted mt-0.5 text-xs">
+              Ele cria a senha e vale por algumas horas. Não reaproveite: para
+              outra pessoa, gere um novo.
+            </p>
+            <code className="text-ink mt-2 block text-xs break-all">
+              {link}
+            </code>
+          </div>
+        )}
       </div>
     </div>
   );
