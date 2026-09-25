@@ -10,7 +10,10 @@ import { ROTULOS_DE_CONTRATO } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
 import { Extrato } from "@/features/financeiro/components/extrato";
 import { NovoPlano } from "@/features/financeiro/components/novo-plano";
-import { PlanoAcordado } from "@/features/financeiro/components/plano-acordado";
+import {
+  AnotacaoInterna,
+  PlanoAcordado,
+} from "@/features/financeiro/components/texto-do-aluno";
 import { extratoDoAluno } from "@/features/financeiro/services/financeiro.server";
 
 export const metadata: Metadata = { title: "Extrato financeiro" };
@@ -81,16 +84,29 @@ export default async function ExtratoDoAlunoPage({
         </dl>
       </Card>
 
-      <Card
-        title="Plano de pagamento acordado"
-        description="O que foi combinado no ato da matrícula. O responsável lê este texto no Portal."
-      >
-        <PlanoAcordado
-          matricula={extrato.matricula}
-          plano={extrato.planoAcordado}
-          podeLancar={podeLancar}
-        />
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="Plano de pagamento acordado"
+          description="O que foi combinado no ato da matrícula. O responsável lê este texto no Portal."
+        >
+          <PlanoAcordado
+            matricula={extrato.matricula}
+            registro={extrato.planoAcordado}
+            podeLancar={podeLancar}
+          />
+        </Card>
+
+        <Card
+          title="Anotação interna"
+          description="Só a equipe do colégio lê. A família não vê."
+        >
+          <AnotacaoInterna
+            matricula={extrato.matricula}
+            registro={extrato.anotacaoInterna}
+            podeLancar={podeLancar}
+          />
+        </Card>
+      </div>
 
       <Card title="Pagamentos">
         <Extrato

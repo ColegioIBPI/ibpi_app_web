@@ -207,6 +207,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Anotação interna do financeiro sobre o aluno: "ligar dia 10", "pai
+    // pediu prazo até a folha".
+    //
+    // Coleção separada do plano acordado **por causa desta regra**: a
+    // Security Rule decide por documento, nunca por campo. No mesmo
+    // documento, seria preciso escolher entre o responsável ler o recado
+    // interno ou não ler o próprio plano.
+    //
+    // Nem a família nem o professor leem. A equipe escolar, sim — e o aluno
+    // não aparece em lugar nenhum desta regra.
+    match /anotacoesFinanceiras/{matricula} {
+      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow write: if false;
+    }
+
     // Itens contratados do ano: anuidade, matrícula, taxa de material,
     // dependência. Vieram da tabela `Fatos` do Access, cujo nome sugere
     // ocorrência disciplinar mas guarda financeiro.

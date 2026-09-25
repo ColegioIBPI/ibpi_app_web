@@ -7,12 +7,14 @@ import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
+  anotacaoFinanceiraSchema,
   cobrancaSchema,
   COLECOES,
   dataSchema,
   formaDePagamentoSchema,
   planoDePagamentoSchema,
   tipoDeCobrancaSchema,
+  type AnotacaoFinanceira,
   type Cobranca,
   type PlanoDePagamento,
 } from "@/core/modelo";
@@ -394,10 +396,12 @@ export async function removerCobranca(
   return { ok: true, parcelas: 1 };
 }
 
-const planoAcordadoSchema = z.object({
+const textoDoAlunoSchema = z.object({
   matricula: z.string().min(1),
-  texto: z.string().trim().min(1, "Escreva o plano acordado."),
+  texto: z.string().trim().min(1, "Escreva o texto."),
 });
+
+export type EntradaDeTexto = z.infer<typeof textoDoAlunoSchema>;
 
 /**
  * Grava o plano de pagamento acordado na matrícula.
@@ -405,11 +409,44 @@ const planoAcordadoSchema = z.object({
  * Um documento por aluno, com a matrícula como id: o plano é do aluno, não
  * um registro que se acumula. O histórico do que mudou fica na auditoria,
  * que é onde se procura "quem alterou a condição que a família tinha".
+ *
+ * **O responsável lê este texto.** O que a equipe precisa anotar e a família
+ * não pode ver vai em `salvarAnotacaoFinanceira`.
  */
 export async function salvarPlanoAcordado(
-  dados: z.infer<typeof planoAcordadoSchema>,
+  dados: EntradaDeTexto,
 ): Promise<ResultadoFinanceiro> {
-  const entrada = planoAcordadoSchema.safeParse(dados);
+  return salvarTextoDoAluno(
+    COLECOES.planosDePagamento,
+    planoDePagamentoSchema,
+    dados,
+  );
+}
+
+/**
+ * Grava a anotação interna do financeiro sobre um aluno.
+ *
+ * Coleção separada do plano acordado porque a Security Rule decide por
+ * documento, nunca por campo: juntos, seria preciso escolher entre o
+ * responsável ler o recado interno ou não ler o próprio plano.
+ */
+export async function salvarAnotacaoFinanceira(
+  dados: EntradaDeTexto,
+): Promise<ResultadoFinanceiro> {
+  return salvarTextoDoAluno(
+    COLECOES.anotacoesFinanceiras,
+    anotacaoFinanceiraSchema,
+    dados,
+  );
+}
+
+/** O que plano acordado e anotação interna têm em comum: um texto por aluno. */
+async function salvarTextoDoAluno(
+  colecao: string,
+  schema: typeof planoDePagamentoSchema | typeof anotacaoFinanceiraSchema,
+  dados: EntradaDeTexto,
+): Promise<ResultadoFinanceiro> {
+  const entrada = textoDoAlunoSchema.safeParse(dados);
   if (!entrada.success) {
     return { ok: false, erro: entrada.error.issues[0]?.message };
   }
@@ -420,27 +457,28 @@ export async function salvarPlanoAcordado(
   if (!aluno) return { ok: false, erro: "Aluno não encontrado." };
 
   const referencia = getAdminDb()
-    .collection(COLECOES.planosDePagamento)
+    .collection(colecao)
     .doc(entrada.data.matricula);
-
   const atual = await referencia.get();
 
-  const plano = planoDePagamentoSchema.safeParse({
+  const documento = schema.safeParse({
     matricula: entrada.data.matricula,
     texto: entrada.data.texto,
     atualizadoPorNome: sessao.nome,
     origem: "portal",
   });
 
-  if (!plano.success) {
-    return { ok: false, erro: plano.error.issues[0]?.message };
+  if (!documento.success) {
+    return { ok: false, erro: documento.error.issues[0]?.message };
   }
 
   await gravarComAuditoria({
-    colecao: COLECOES.planosDePagamento,
+    colecao,
     documentoId: referencia.id,
-    antes: atual.exists ? (atual.data() as PlanoDePagamento) : null,
-    depois: plano.data,
+    antes: atual.exists
+      ? (atual.data() as PlanoDePagamento | AnotacaoFinanceira)
+      : null,
+    depois: documento.data,
     autor: sessao,
   });
 

@@ -2,11 +2,13 @@ import "server-only";
 
 import {
   COLECOES,
+  type AnotacaoFinanceira,
   type Cobranca,
   type Contrato,
   type PlanoDePagamento,
   type SituacaoDaCobranca,
 } from "@/core/modelo";
+import { isEquipe } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
@@ -42,6 +44,8 @@ export interface ExtratoDoAluno {
   contratos: Contrato[];
   /** O acordado na matrícula. `null` enquanto ninguém escreveu. */
   planoAcordado: PlanoDePagamento | null;
+  /** Anotação interna da equipe. Sempre `null` para a família. */
+  anotacaoInterna: AnotacaoFinanceira | null;
   totais: Totais;
 }
 
@@ -67,13 +71,28 @@ export async function extratoDoAluno(
   // para o dia em que a matriz mudar.
   const vePlano = sessao.role !== "aluno";
 
-  const [cobrancasDocs, contratosDocs, planoDoc] = await Promise.all([
-    db.collection(COLECOES.cobrancas).where("matricula", "==", matricula).get(),
-    db.collection(COLECOES.contratos).where("matricula", "==", matricula).get(),
-    vePlano
-      ? db.collection(COLECOES.planosDePagamento).doc(matricula).get()
-      : null,
-  ]);
+  // A anotação interna nem sai do banco para a família: o extrato do Portal
+  // não pode conter o que a equipe escreveu sobre ela, e não depender de a
+  // tela lembrar de esconder é mais seguro do que depender.
+  const veAnotacao = isEquipe(sessao.role);
+
+  const [cobrancasDocs, contratosDocs, planoDoc, anotacaoDoc] =
+    await Promise.all([
+      db
+        .collection(COLECOES.cobrancas)
+        .where("matricula", "==", matricula)
+        .get(),
+      db
+        .collection(COLECOES.contratos)
+        .where("matricula", "==", matricula)
+        .get(),
+      vePlano
+        ? db.collection(COLECOES.planosDePagamento).doc(matricula).get()
+        : null,
+      veAnotacao
+        ? db.collection(COLECOES.anotacoesFinanceiras).doc(matricula).get()
+        : null,
+    ]);
 
   const cobrancas = ordenarPorVencimento(
     cobrancasDocs.docs.map((doc) => ({
@@ -95,6 +114,9 @@ export async function extratoDoAluno(
       .sort((a, b) => (a.data ?? "").localeCompare(b.data ?? "")),
     planoAcordado: planoDoc?.exists
       ? (planoDoc.data() as PlanoDePagamento)
+      : null,
+    anotacaoInterna: anotacaoDoc?.exists
+      ? (anotacaoDoc.data() as AnotacaoFinanceira)
       : null,
     totais: totalizar(cobrancas, hoje),
   };

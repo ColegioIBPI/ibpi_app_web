@@ -242,6 +242,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Corrigir os valores migrados que perdiam o ponto decimal (56 parcelas)
 - [x] Exportar o relatório de inadimplência em Excel/PDF
 - [x] Modelar a coleção `planosDePagamento` e a tela do plano acordado na matrícula
+- [x] Liberar o plano acordado para o responsável ler o do próprio filho
+- [x] Modelar `anotacoesFinanceiras` — anotação interna da equipe, que a família não lê
 - [x] Acrescentar a descrição do pagamento por parcela (matrícula, material, mensalidade, reclassificação, dependências, extras, outros)
 - [x] Acrescentar o tipo de pagamento na baixa (PIX, dinheiro, boleto, link, débito, crédito)
 - [x] Implementar o cadastro de parcela avulsa e a edição completa da parcela

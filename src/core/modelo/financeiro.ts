@@ -209,6 +209,31 @@ export const planoDePagamentoSchema = z.object({
 export type PlanoDePagamento = z.infer<typeof planoDePagamentoSchema>;
 
 /**
+ * Anotação interna do financeiro sobre um aluno.
+ *
+ * "Ligar dia 10", "pai pediu prazo até a folha", "mãe pede para falar só
+ * com ela". É o que a equipe precisa lembrar para atender bem, e o que a
+ * família **não** pode ler.
+ *
+ * Por isso é uma **coleção separada** de `planosDePagamento`, e não mais um
+ * campo dentro dele: Security Rule do Firestore decide por documento, nunca
+ * por campo. Guardar os dois juntos significaria escolher entre o
+ * responsável ler o recado interno ou não ler o próprio plano — e a
+ * separação é o único jeito de ter as duas coisas.
+ *
+ * Um documento por aluno: o id é a matrícula.
+ */
+export const anotacaoFinanceiraSchema = z.object({
+  matricula: z.string().min(1),
+  texto: z.string().trim().min(1, "Escreva a anotação"),
+  atualizadoPorNome: z.string().optional(),
+  origem: origemSchema,
+  ...auditoriaDoDocumentoSchema.shape,
+});
+
+export type AnotacaoFinanceira = z.infer<typeof anotacaoFinanceiraSchema>;
+
+/**
  * Trilha de auditoria.
  *
  * O Access tem uma tabela `log`, vazia — a intenção existia e nunca foi

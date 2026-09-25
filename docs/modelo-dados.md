@@ -32,6 +32,7 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `ocorrencias`        | —         | `CONTROLE DE FALTAS.xlsx`          |
 | `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
 | `planosDePagamento`  | —         | Não existia; criada no Portal      |
+| `anotacoesFinanceiras` | —       | Não existia; criada no Portal      |
 | `avisos`             | —         | Não existia; criada no Portal      |
 | `informacoes`        | —         | Não existia; criada no Portal      |
 | `auditoria`          | —         | `log` do Access (vazia)            |
@@ -149,6 +150,19 @@ se acumula; o histórico do que mudou fica na auditoria.
 regra usa o **id** do documento (`ehFilho(matricula)`), e não um campo dentro
 dele: assim o acesso não depende de `matricula` estar preenchido no
 documento. O **aluno não lê**, como no resto do financeiro.
+
+### `anotacoesFinanceiras/{matricula}`
+
+Mesmos campos do plano acordado. O que a equipe anota sobre o aluno para
+atender bem: "ligar dia 10", "pediu prazo até a folha sair".
+
+**Só a equipe escolar lê** — nem a família nem o professor.
+
+São **duas coleções, e não um campo a mais no plano**, porque a Security Rule
+do Firestore decide por documento e nunca por campo: juntos, seria preciso
+escolher entre o responsável ler o recado interno ou não ler o próprio plano.
+A separação é o que permite as duas coisas, e a garantia não depende de
+nenhuma tela lembrar de esconder um campo.
 
 ---
 

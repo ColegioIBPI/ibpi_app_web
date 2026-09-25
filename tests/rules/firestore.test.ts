@@ -191,6 +191,10 @@ beforeEach(async () => {
       matricula: FILHO,
       texto: "12x de R$ 1.923,00, vencendo todo dia 5.",
     });
+    await setDoc(doc(db, `anotacoesFinanceiras/${FILHO}`), {
+      matricula: FILHO,
+      texto: "Ligar dia 10 — o pai recebe no dia 5.",
+    });
     await setDoc(doc(db, "informacoes/calendario"), {
       titulo: "Calendário escolar",
       tipo: "calendario-escolar",
@@ -499,6 +503,48 @@ describe("plano de pagamento acordado", () => {
     const { financeiro } = contextos();
     await assertFails(
       setDoc(doc(financeiro.firestore(), `planosDePagamento/${FILHO}`), {
+        texto: "x",
+      }),
+    );
+  });
+});
+
+describe("anotação interna do financeiro", () => {
+  it("a equipe escolar lê", async () => {
+    const { financeiro, secretaria, coordenacao } = contextos();
+
+    for (const contexto of [financeiro, secretaria, coordenacao]) {
+      await assertSucceeds(ler(contexto, `anotacoesFinanceiras/${FILHO}`));
+    }
+  });
+
+  it("a família não lê o que a equipe anotou sobre ela", async () => {
+    // É o ponto da coleção existir separada do plano acordado: a regra
+    // decide por documento, nunca por campo.
+    const { responsavel, aluno, outroResponsavel } = contextos();
+
+    await assertFails(ler(responsavel, `anotacoesFinanceiras/${FILHO}`));
+    await assertFails(ler(aluno, `anotacoesFinanceiras/${FILHO}`));
+    await assertFails(ler(outroResponsavel, `anotacoesFinanceiras/${FILHO}`));
+  });
+
+  it("professor não lê anotação financeira", async () => {
+    const { professor } = contextos();
+    await assertFails(ler(professor, `anotacoesFinanceiras/${FILHO}`));
+  });
+
+  it("o responsável lê o plano e não a anotação, no mesmo aluno", async () => {
+    // A garantia que justifica as duas coleções, verificada junta.
+    const { responsavel } = contextos();
+
+    await assertSucceeds(ler(responsavel, `planosDePagamento/${FILHO}`));
+    await assertFails(ler(responsavel, `anotacoesFinanceiras/${FILHO}`));
+  });
+
+  it("ninguém escreve pelo cliente", async () => {
+    const { financeiro } = contextos();
+    await assertFails(
+      setDoc(doc(financeiro.firestore(), `anotacoesFinanceiras/${FILHO}`), {
         texto: "x",
       }),
     );

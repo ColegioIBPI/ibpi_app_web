@@ -13,6 +13,7 @@ colégio — é o mesmo papel que a `Tabela_pagamento` do Access tinha.
 | `cobrancas`          | as **parcelas**                    | `Tabela_pagamento` (847) |
 | `contratos`          | os **itens contratados** do ano    | `Fatos` (274)            |
 | `planosDePagamento`  | o **acordado na matrícula**, em texto | criada no Portal      |
+| `anotacoesFinanceiras` | a **anotação interna** sobre o aluno | criada no Portal    |
 
 `contratos` é histórico do Access, mostrado no extrato com o texto original
 preservado. Quem gera parcela hoje é o plano de pagamento.
@@ -125,13 +126,24 @@ fica o que a escola prometeu, para quem atender a família depois saber.
 condição que ele negociou, e não saber o que foi combinado é justamente o que
 gera a ligação para a secretaria.
 
-Duas consequências disso:
+O **aluno não lê**, pela mesma razão que não vê o resto do financeiro:
+mensalidade é assunto de quem paga.
 
-- **O aluno não lê**, pela mesma razão que não vê o resto do financeiro:
-  mensalidade é assunto de quem paga.
-- **Não é lugar de recado interno.** O campo é a condição acordada, não
-  anotação sobre a família. O formulário avisa isso a quem escreve, porque a
-  pessoa que digita precisa saber quem vai ler.
+### 3b-bis. A anotação interna
+
+O que a equipe precisa lembrar para atender bem — "ligar dia 10, o pai recebe
+no dia 5", "pediu prazo até a folha sair", "falar com a mãe" — vive em
+`anotacoesFinanceiras/{matricula}`, e a família **não lê**.
+
+**São duas coleções por causa da regra de segurança.** A Security Rule do
+Firestore decide por documento, nunca por campo. Um campo `anotacaoInterna`
+dentro do plano acordado obrigaria a escolher: ou o responsável lê o recado
+interno, ou não lê o próprio plano. Separar é o único jeito de ter as duas
+coisas — e a garantia não depende de a tela lembrar de esconder nada.
+
+O extrato do Portal da família **nem carrega** o documento: o serviço só o
+busca para a equipe. Duas barreiras para o mesmo vazamento, porque é o tipo
+de erro que não aparece em teste de tela.
 
 Um documento por aluno, com a matrícula como id: o plano é do aluno, não um
 registro que se acumula. O histórico de quem mudou a condição fica na
@@ -167,9 +179,10 @@ cima apagaria baixas já lançadas.
 | Ação                                                     | Perfil                              |
 | -------------------------------------------------------- | ----------------------------------- |
 | Ver a lista e o extrato                                  | Financeiro, secretaria, coordenação |
-| Ler o plano acordado                                     | Financeiro, secretaria, coordenação |
+| Ler o plano acordado                                     | Financeiro, secretaria, coordenação, **responsável** (do filho) |
+| Ler a anotação interna                                   | Financeiro, secretaria, coordenação |
 | Cadastrar parcela, gerar carnê, dar baixa, confirmar, editar, apagar | **Financeiro**          |
-| Escrever o plano acordado                                | **Financeiro**                      |
+| Escrever o plano acordado e a anotação interna           | **Financeiro**                      |
 | Ver o extrato dos filhos                                 | Responsável (somente leitura)       |
 | —                                                        | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
 

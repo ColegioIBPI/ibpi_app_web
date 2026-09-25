@@ -489,6 +489,11 @@ db.collection("planosDePagamento").document(matricula).get()
   trate a ausência como "nada registrado", não como erro.
 - **Respeite as quebras de linha**, como nas informações úteis.
 
+> Existe também `anotacoesFinanceiras/{matricula}`, com a anotação interna da
+> equipe sobre o aluno. **O app não lê** — a regra nega para a família. É uma
+> coleção à parte justamente para o responsável poder ler o plano sem ler o
+> recado interno.
+
 ---
 
 ## 9. Recuperação de senha
