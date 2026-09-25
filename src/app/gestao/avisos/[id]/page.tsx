@@ -6,9 +6,10 @@ import { notFound } from "next/navigation";
 import { exigirPermissao } from "@/core/auth/guards";
 import { descreverDestino } from "@/core/modelo";
 import { formatDate } from "@/core/lib/format";
+import { BotaoDePublicacao } from "@/core/ui/botao-de-publicacao";
 import { Card } from "@/core/ui/card";
+import { alterarPublicacao } from "@/features/avisos/actions/avisos";
 import { AnexosDoAviso } from "@/features/avisos/components/anexos-do-aviso";
-import { BotaoDePublicacao } from "@/features/avisos/components/botao-de-publicacao";
 import { obterAvisoVisivel } from "@/features/avisos/services/avisos.server";
 
 export async function generateMetadata({
@@ -54,7 +55,11 @@ export default async function AvisoPage({
         </div>
 
         {(gerencia || meu) && (
-          <BotaoDePublicacao id={aviso.id} ativo={aviso.ativo} />
+          <BotaoDePublicacao
+            id={aviso.id}
+            ativo={aviso.ativo}
+            acao={alterarPublicacao}
+          />
         )}
       </div>
 

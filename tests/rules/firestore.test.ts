@@ -91,7 +91,7 @@ beforeEach(async () => {
       role: "aluno",
       nome: "Alice",
       matricula: FILHO,
-      chavesDeAviso: [
+      chavesDeAlcance: [
         "todos",
         "segmento:medio",
         `turma:${TURMA_DO_PROFESSOR}`,
@@ -102,7 +102,7 @@ beforeEach(async () => {
       role: "responsavel",
       nome: "Mãe da Alice",
       alunosVinculados: [FILHO],
-      chavesDeAviso: [
+      chavesDeAlcance: [
         "todos",
         "segmento:medio",
         `turma:${TURMA_DO_PROFESSOR}`,
@@ -116,7 +116,7 @@ beforeEach(async () => {
       role: "responsavel",
       nome: "Pai do Outro",
       alunosVinculados: [OUTRO_ALUNO],
-      chavesDeAviso: [
+      chavesDeAlcance: [
         "todos",
         "segmento:fundamental",
         `turma:${OUTRA_TURMA}`,
@@ -184,6 +184,36 @@ beforeEach(async () => {
     });
     await setDoc(doc(db, "avisos/despublicado"), {
       titulo: "Saiu do ar",
+      chave: "todos",
+      ativo: false,
+    });
+    await setDoc(doc(db, "informacoes/calendario"), {
+      titulo: "Calendário escolar",
+      tipo: "calendario-escolar",
+      chave: "todos",
+      ativo: true,
+    });
+    await setDoc(doc(db, "informacoes/horario"), {
+      titulo: "Horário das aulas",
+      tipo: "horario-de-aulas",
+      chave: `turma:${TURMA_DO_PROFESSOR}`,
+      ativo: true,
+    });
+    await setDoc(doc(db, "informacoes/criterios"), {
+      titulo: "Critérios de avaliação",
+      tipo: "criterios-de-avaliacao",
+      chave: "segmento:medio",
+      ativo: true,
+    });
+    await setDoc(doc(db, "informacoes/tutoria"), {
+      titulo: "Tutoria",
+      tipo: "tutoria",
+      chave: `aluno:${FILHO}`,
+      ativo: true,
+    });
+    await setDoc(doc(db, "informacoes/fora-do-ar"), {
+      titulo: "Calendário do ano passado",
+      tipo: "calendario-escolar",
       chave: "todos",
       ativo: false,
     });
@@ -425,6 +455,60 @@ describe("avisos", () => {
     const { secretaria } = contextos();
     await assertFails(
       setDoc(doc(secretaria.firestore(), "avisos/novo"), { titulo: "x" }),
+    );
+  });
+});
+
+describe("informações úteis", () => {
+  it("a família lê o material que alcança ela", async () => {
+    // O app MyIBPI monta os cards lendo o Firestore direto: o alcance
+    // precisa valer na regra, não só no servidor do Portal.
+    const { aluno, responsavel } = contextos();
+
+    for (const contexto of [aluno, responsavel]) {
+      await assertSucceeds(ler(contexto, "informacoes/calendario"));
+      await assertSucceeds(ler(contexto, "informacoes/horario"));
+      await assertSucceeds(ler(contexto, "informacoes/criterios"));
+      await assertSucceeds(ler(contexto, "informacoes/tutoria"));
+    }
+  });
+
+  it("a tutoria de um aluno não vaza para outra família", async () => {
+    const { outroResponsavel } = contextos();
+
+    await assertSucceeds(ler(outroResponsavel, "informacoes/calendario"));
+    await assertFails(ler(outroResponsavel, "informacoes/tutoria"));
+    await assertFails(ler(outroResponsavel, "informacoes/horario"));
+    await assertFails(ler(outroResponsavel, "informacoes/criterios"));
+  });
+
+  it("material fora do ar some para a família e fica para a equipe", async () => {
+    const { aluno, responsavel, secretaria } = contextos();
+
+    await assertFails(ler(aluno, "informacoes/fora-do-ar"));
+    await assertFails(ler(responsavel, "informacoes/fora-do-ar"));
+    await assertSucceeds(ler(secretaria, "informacoes/fora-do-ar"));
+  });
+
+  it("a equipe escolar lê qualquer material", async () => {
+    const { secretaria, coordenacao, professor, financeiro } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, professor, financeiro]) {
+      await assertSucceeds(ler(contexto, "informacoes/tutoria"));
+      await assertSucceeds(ler(contexto, "informacoes/horario"));
+    }
+  });
+
+  it("visitante não lê nem o calendário escolar", async () => {
+    const { visitante, semPerfil } = contextos();
+    await assertFails(ler(visitante, "informacoes/calendario"));
+    await assertFails(ler(semPerfil, "informacoes/calendario"));
+  });
+
+  it("ninguém publica material pelo cliente", async () => {
+    const { secretaria } = contextos();
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "informacoes/nova"), { titulo: "x" }),
     );
   });
 });

@@ -123,6 +123,16 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/informacoes",
+    rotulo: "Informações úteis",
+    area: "gestao",
+    recurso: "avisos",
+    // Calendário, proposta pedagógica, critérios de avaliação: material
+    // institucional, publicado pela secretaria e pela coordenação.
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/financeiro",
     rotulo: "Financeiro",
     area: "gestao",
@@ -169,6 +179,14 @@ const ITENS: ItemDeNavegacao[] = [
     rotulo: "Financeiro",
     area: "consulta",
     recurso: "financeiro",
+    minimo: "ler",
+    disponivel: true,
+  },
+  {
+    href: "/portal/informacoes",
+    rotulo: "Informações úteis",
+    area: "consulta",
+    recurso: "avisos",
     minimo: "ler",
     disponivel: true,
   },

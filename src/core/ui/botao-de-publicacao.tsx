@@ -5,20 +5,33 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/core/ui/button";
-import { alterarPublicacao } from "@/features/avisos/actions/avisos";
 
 /**
  * Tira do ar ou republica.
  *
- * Não há exclusão: o que foi comunicado à comunidade fica registrado.
+ * Não há exclusão: o que foi comunicado à comunidade fica registrado. Avisos
+ * e informações úteis seguem a mesma regra, e o botão recebe a ação de quem
+ * o usa para não precisar conhecer as duas features.
  */
+
+export interface ResultadoDaPublicacao {
+  ok: boolean;
+  erro?: string;
+}
+
+interface BotaoDePublicacaoProps {
+  id: string;
+  ativo: boolean;
+  acao: (id: string, ativo: boolean) => Promise<ResultadoDaPublicacao>;
+  rotulos?: { tirar: string; publicar: string };
+}
+
 export function BotaoDePublicacao({
   id,
   ativo,
-}: {
-  id: string;
-  ativo: boolean;
-}) {
+  acao,
+  rotulos = { tirar: "Tirar do ar", publicar: "Publicar de novo" },
+}: BotaoDePublicacaoProps) {
   const router = useRouter();
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -28,7 +41,7 @@ export function BotaoDePublicacao({
     setOcupado(true);
 
     try {
-      const resultado = await alterarPublicacao(id, !ativo);
+      const resultado = await acao(id, !ativo);
       if (!resultado.ok) {
         setErro(resultado.erro ?? "Não foi possível alterar.");
         return;
@@ -45,12 +58,12 @@ export function BotaoDePublicacao({
         {ativo ? (
           <>
             <EyeOff className="size-4" aria-hidden />
-            Tirar do ar
+            {rotulos.tirar}
           </>
         ) : (
           <>
             <Eye className="size-4" aria-hidden />
-            Publicar de novo
+            {rotulos.publicar}
           </>
         )}
       </Button>

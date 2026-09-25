@@ -1,5 +1,5 @@
 /**
- * Preenche `users/{uid}.chavesDeAviso` nas contas que já existem.
+ * Preenche `users/{uid}.chavesDeAlcance` nas contas que já existem.
  *
  *   npm run avisos:chaves
  *

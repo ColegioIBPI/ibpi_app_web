@@ -80,7 +80,7 @@ export async function sincronizarChavesDeAviso(
   await db
     .collection(COLECOES.users)
     .doc(pessoa.uid)
-    .set({ chavesDeAviso: chaves }, { merge: true });
+    .set({ chavesDeAlcance: chaves }, { merge: true });
 
   return chaves;
 }

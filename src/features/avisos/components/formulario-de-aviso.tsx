@@ -5,13 +5,17 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import {
-  ROTULOS_DE_SEGMENTO,
   type Destino,
-  type Segmento,
 } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
-import { SelectField, TextField } from "@/core/ui/field";
+import { TextField } from "@/core/ui/field";
+import {
+  montarDestino,
+  opcoesDoTipo,
+  SeletorDeDestino,
+  type OpcaoDeDestino,
+} from "@/core/ui/seletor-de-destino";
 import { publicarAviso } from "@/features/avisos/actions/avisos";
 import {
   ANEXOS_POR_AVISO,
@@ -20,25 +24,12 @@ import {
   validarAnexo,
 } from "@/features/avisos/domain/anexo";
 
-interface Opcao {
-  valor: string;
-  rotulo: string;
-}
-
 interface FormularioDeAvisoProps {
   destinosPermitidos: Destino["tipo"][];
-  turmas: Opcao[];
-  alunos: Opcao[];
-  responsaveis: Opcao[];
+  turmas: OpcaoDeDestino[];
+  alunos: OpcaoDeDestino[];
+  responsaveis: OpcaoDeDestino[];
 }
-
-const ROTULO_DO_TIPO: Record<Destino["tipo"], string> = {
-  todos: "Toda a comunidade escolar",
-  segmento: "Um segmento",
-  turma: "Uma turma",
-  aluno: "Um aluno",
-  responsavel: "Um responsável",
-};
 
 export function FormularioDeAviso({
   destinosPermitidos,
@@ -136,43 +127,16 @@ export function FormularioDeAviso({
       )}
 
       <Card title="Para quem">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectField
-            label="Destinatário"
-            value={tipo}
-            onChange={(evento) => {
-              setTipo(evento.target.value as Destino["tipo"]);
-              setAlvo("");
-            }}
-          >
-            {destinosPermitidos.map((opcao) => (
-              <option key={opcao} value={opcao}>
-                {ROTULO_DO_TIPO[opcao]}
-              </option>
-            ))}
-          </SelectField>
-
-          {precisaDeAlvo && (
-            <SelectField
-              label={ROTULO_DO_TIPO[tipo]}
-              value={alvo}
-              onChange={(evento) => setAlvo(evento.target.value)}
-            >
-              <option value="">Selecione…</option>
-              {opcoes.map((opcao) => (
-                <option key={opcao.valor} value={opcao.valor}>
-                  {opcao.rotulo}
-                </option>
-              ))}
-            </SelectField>
-          )}
-        </div>
-
-        {tipo === "turma" && (
-          <p className="text-ink-muted mt-3 text-xs">
-            O aviso de turma alcança os alunos e também os responsáveis deles.
-          </p>
-        )}
+        <SeletorDeDestino
+          tipos={destinosPermitidos}
+          tipo={tipo}
+          alvo={alvo}
+          turmas={turmas}
+          alunos={alunos}
+          responsaveis={responsaveis}
+          onTipo={setTipo}
+          onAlvo={setAlvo}
+        />
       </Card>
 
       <Card title="Mensagem">
@@ -266,44 +230,4 @@ export function FormularioDeAviso({
       </div>
     </div>
   );
-}
-
-function opcoesDoTipo(
-  tipo: Destino["tipo"],
-  turmas: Opcao[],
-  alunos: Opcao[],
-  responsaveis: Opcao[],
-): Opcao[] {
-  if (tipo === "turma") return turmas;
-  if (tipo === "aluno") return alunos;
-  if (tipo === "responsavel") return responsaveis;
-  if (tipo === "segmento") {
-    return Object.entries(ROTULOS_DE_SEGMENTO).map(([valor, rotulo]) => ({
-      valor,
-      rotulo,
-    }));
-  }
-  return [];
-}
-
-function montarDestino(
-  tipo: Destino["tipo"],
-  alvo: string,
-  opcoes: Opcao[],
-): Destino | null {
-  if (tipo === "todos") return { tipo: "todos" };
-
-  const opcao = opcoes.find((item) => item.valor === alvo);
-  if (!opcao) return null;
-
-  switch (tipo) {
-    case "segmento":
-      return { tipo: "segmento", segmento: alvo as Segmento };
-    case "turma":
-      return { tipo: "turma", turmaId: alvo, turmaCodigo: opcao.rotulo };
-    case "aluno":
-      return { tipo: "aluno", matricula: alvo, nome: opcao.rotulo };
-    case "responsavel":
-      return { tipo: "responsavel", responsavelId: alvo, nome: opcao.rotulo };
-  }
 }

@@ -258,7 +258,7 @@ Detalhe completo, com exemplos: [`avaliacao.md`](avaliacao.md).
 segmento:  fundamental | medio | eja-fundamental | eja-medio
 turno:     manha | tarde | flex
 situacao (presença):  presente | falta | atraso
-situacao (cobrança):  calculada, não gravada — ver seção 7
+situacao (cobrança):  calculada, não gravada — ver seção 8
 role:      aluno | responsavel | professor | secretaria | coordenacao | financeiro
 ```
 
@@ -284,11 +284,11 @@ O campo `chave` existe justamente para o app consultar
 `where("chave", "in", [minhas chaves])` sem índice composto.
 
 A regra usa esse campo. Ela **não recalcula o alcance** — lê a lista pronta
-de `users/{uid}.chavesDeAviso`, gravada pelo Portal a partir da mesma função
+de `users/{uid}.chavesDeAlcance`, gravada pelo Portal a partir da mesma função
 que o servidor usa (`features/avisos/domain/destinatarios.ts`).
 
 ```kotlin
-val chaves = usuario.get("chavesDeAviso") as List<String>
+val chaves = usuario.get("chavesDeAlcance") as List<String>
 
 db.collection("avisos")
   .whereEqualTo("ativo", true)
@@ -301,14 +301,14 @@ mesma decisão, e divergir ali significa aviso de uma família aparecendo para
 outra. Regra do Firestore também não percorre lista: a partir de
 `alunosVinculados` não daria para montar a chave da turma de cada filho.
 
-O Portal mantém `chavesDeAviso` em dia sozinho — na criação da conta, na
+O Portal mantém `chavesDeAlcance` em dia sozinho — na criação da conta, na
 troca de vínculo e quando o aluno muda de turma.
 
 **Duas coisas para o app respeitar:**
 
 - **Filtre `ativo == true`.** Aviso despublicado some para a família e
   continua para a equipe: o que foi comunicado fica registrado.
-- **Se `chavesDeAviso` faltar**, a pessoa ainda lê o aviso geral. A regra
+- **Se `chavesDeAlcance` faltar**, a pessoa ainda lê o aviso geral. A regra
   tem esse caminho para uma conta antiga não perder até o comunicado da
   escola inteira — mas o app não deve contar com ele.
 
@@ -326,7 +326,63 @@ equivalente; hoje não existe.
 
 ---
 
-## 7. Financeiro — pronto, sem pendência
+## 7. Informações úteis — os cards com link
+
+A aba de cards: horário das aulas, calendário de avaliação, calendário
+escolar, critérios de avaliação, proposta pedagógica, dependências, eletivas,
+tutoria.
+
+```
+informacoes/{id} = {
+  tipo: "horario-de-aulas" | "calendario-de-avaliacao" | "calendario-escolar"
+      | "criterios-de-avaliacao" | "proposta-pedagogica" | "dependencias"
+      | "eletivas" | "tutoria" | "outros",
+  titulo: string,
+  descricao: string | null,
+  url: string,                   // http/https; o card abre no navegador
+  destino: { ... },              // o mesmo do aviso
+  chave: string,                 // derivada do destino
+  ordem: number,                 // menor aparece primeiro
+  ativo: boolean,
+  publicadoPorNome: string,
+  publicadoEm: string
+}
+```
+
+**O alcance é o mesmo dos avisos** — `destino` + `chave`, e a mesma
+`chavesDeAlcance`. A consulta é a mesma, só muda a coleção:
+
+```kotlin
+val chaves = usuario.get("chavesDeAlcance") as List<String>
+
+db.collection("informacoes")
+  .whereEqualTo("ativo", true)
+  .whereIn("chave", chaves.take(30))
+```
+
+O colégio publica cada tipo com um alcance: horário por turma, calendário de
+avaliação e critérios por segmento, calendário escolar e proposta pedagógica
+para todos, tutoria por aluno. Isso é **o que a secretaria costuma fazer**,
+não uma garantia do modelo — o app deve tratar qualquer tipo com qualquer
+alcance, porque o formulário permite.
+
+**Para o app:**
+
+- **Ordene por `ordem`, e por `titulo` no empate.** O Firestore não promete
+  ordem estável, e sem o desempate os cards trocariam de lugar entre uma
+  abertura e outra.
+- **`url` é um link externo.** Abra no navegador; o Portal não hospeda o
+  arquivo, aponta para onde ele já está (Drive, site do colégio).
+- **`tipo` escolhe o ícone.** Trate um tipo desconhecido com um ícone
+  genérico em vez de esconder o card — a lista pode crescer.
+
+Verificado com o SDK cliente, entrando como responsável de teste: lê o card
+para todos e o da turma do filho; não lê a tutoria de outro aluno nem o card
+fora do ar.
+
+---
+
+## 8. Financeiro — pronto, sem pendência
 
 ```
 cobrancas/{id} = {
@@ -374,7 +430,7 @@ preenchido. Mostre o saldo, não uma quarta situação.
 
 ---
 
-## 8. Recuperação de senha
+## 9. Recuperação de senha
 
 O Portal usa o fluxo do próprio Firebase Auth, sem nada por cima:
 
@@ -397,7 +453,7 @@ Duas coisas aprendidas na prática aqui:
 
 ---
 
-## 9. O que o app não deve fazer
+## 10. O que o app não deve fazer
 
 **Nenhuma escrita.** As regras negam escrita de cliente em **todas** as
 coleções (`allow write: if false`). Todo lançamento passa por Server Action
@@ -409,7 +465,7 @@ regra: a auditoria é obrigatória em nota, frequência e financeiro.
 
 ---
 
-## 10. Sobre mandar "print" de coleção
+## 11. Sobre mandar "print" de coleção
 
 A coleção `alunos` tem nome, data de nascimento, CPF, telefone, e-mail e
 filiação de **menores de idade**. O que este documento traz é a **forma**
@@ -423,12 +479,13 @@ teste.
 
 ## Resumo do que está livre e do que trava
 
-| Aba         | Situação                                                      |
-| ----------- | ------------------------------------------------------------- |
-| Frequência  | ✅ livre                                                      |
-| Financeiro  | ✅ livre                                                      |
-| Boletim     | ✅ livre — regras definidas nesta página, seção 4              |
-| Ocorrências | ✅ livre — sem campo de natureza; ver seção 2                  |
-| Avisos      | ✅ livre — a regra lê `users/{uid}.chavesDeAviso`              |
-| Anexos      | ⚠️ sem caminho de leitura para o app                          |
-| Senha       | ✅ livre — SDK do Firebase, sem endpoint nosso                 |
+| Aba              | Situação                                             |
+| ---------------- | ---------------------------------------------------- |
+| Frequência       | ✅ livre                                             |
+| Financeiro       | ✅ livre                                             |
+| Boletim          | ✅ livre — regras definidas nesta página, seção 4    |
+| Ocorrências      | ✅ livre — sem campo de natureza; ver seção 2        |
+| Avisos           | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`  |
+| Informações úteis| ✅ livre — mesmo alcance dos avisos; ver seção 7     |
+| Anexos           | ⚠️ sem caminho de leitura para o app                 |
+| Senha            | ✅ livre — SDK do Firebase, sem endpoint nosso       |

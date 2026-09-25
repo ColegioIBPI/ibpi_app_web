@@ -24,6 +24,7 @@ import { randomBytes } from "node:crypto";
 import { criarOuAtualizarConta } from "@/core/auth/contas";
 import { getAdminAuth, getAdminDb } from "@/core/firebase/admin";
 import { COLECOES } from "@/core/modelo";
+import { sincronizarChavesPorUid } from "@/features/avisos/services/chaves.server";
 
 const PROFESSOR = {
   id: "teste-professor",
@@ -145,6 +146,11 @@ async function criarResponsavel() {
     { merge: true },
   );
 
+  // Sem as chaves de alcance, a conta só enxergaria o aviso geral e o card
+  // publicado para todos — e o teste de aviso por turma passaria a mostrar
+  // um vazio que não é o do Portal, e sim o da conta mal montada.
+  const chaves = await sincronizarChavesPorUid(conta.uid);
+
   const nomes = await Promise.all(
     RESPONSAVEL.filhos.map(async (matricula) => {
       const doc = await db.collection(COLECOES.alunos).doc(matricula).get();
@@ -155,6 +161,7 @@ async function criarResponsavel() {
 
   anunciar("responsavel", RESPONSAVEL.email, senha, [
     `Filhos vinculados: ${nomes.join(" e ")}`,
+    `Alcance de avisos e informações: ${chaves.join(", ")}`,
   ]);
 }
 

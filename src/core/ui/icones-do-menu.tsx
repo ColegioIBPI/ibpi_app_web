@@ -4,6 +4,7 @@ import {
   CircleDot,
   Contact,
   Flag,
+  LifeBuoy,
   Megaphone,
   NotebookPen,
   Presentation,
@@ -40,6 +41,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/gestao/notas": SquarePen,
   "/gestao/boletins": ScrollText,
   "/gestao/avisos": Megaphone,
+  "/gestao/informacoes": LifeBuoy,
   "/gestao/financeiro": Wallet,
 
   "/portal/avisos": Megaphone,
@@ -47,6 +49,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/portal/frequencia": CalendarCheck,
   "/portal/ocorrencias": Flag,
   "/portal/financeiro": Wallet,
+  "/portal/informacoes": LifeBuoy,
 };
 
 export function iconeDoMenu(href: string): LucideIcon {

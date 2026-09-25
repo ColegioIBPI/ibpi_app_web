@@ -139,9 +139,21 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar a listagem da equipe e a leitura no Portal da família
 - [x] Implementar despublicar sem apagar
 - [x] Escrever e publicar as Security Rules de `avisos`
-- [x] Reescrever a regra de leitura de `avisos` para o app MyIBPI ler direto do Firestore (`users/{uid}.chavesDeAviso`)
+- [x] Reescrever a regra de leitura de `avisos` para o app MyIBPI ler direto do Firestore (`users/{uid}.chavesDeAlcance`)
 - [ ] Servir anexo de aviso para o app (hoje o Storage nega todo acesso de cliente)
 - [ ] Disparar notificação push ao publicar _(canal do app)_
+
+### 3.4c Informações úteis
+
+> Os cards com link da aba do app. Reaproveitam o alcance dos avisos (3.4b).
+
+- [x] Modelar a coleção `informacoes`, com tipo, link, ordem e o destino dos avisos
+- [x] Extrair o seletor de destino, compartilhado com a publicação de aviso
+- [x] Implementar a publicação pela secretaria e pela coordenação
+- [x] Implementar os cards no Portal da família
+- [x] Implementar despublicar sem apagar
+- [x] Escrever e publicar as Security Rules de `informacoes`
+- [ ] Publicar o material de verdade do colégio (hoje a coleção está vazia)
 
 ### 3.5 Frequência — registro diário (secretaria)
 

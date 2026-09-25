@@ -86,7 +86,7 @@ O app MyIBPI lê o Firestore **direto**, sem o servidor do Portal para
 aplicar o alcance dos avisos. A regra precisa decidir sozinha se um aviso
 alcança quem pede.
 
-Ela não recalcula nada: lê `users/{uid}.chavesDeAviso`, que o servidor grava
+Ela não recalcula nada: lê `users/{uid}.chavesDeAlcance`, que o servidor grava
 a partir de `chavesDoDestinatario` — a mesma função que monta a consulta do
 Portal. Duas razões:
 
@@ -100,7 +100,7 @@ As chaves são refeitas na criação da conta, na troca de vínculo e quando o
 aluno muda de turma — esta última também refaz as dos responsáveis dele,
 senão o aviso da turma nova não chegaria, em silêncio.
 
-Conta sem `chavesDeAviso` ainda lê o aviso geral: perder até o comunicado da
+Conta sem `chavesDeAlcance` ainda lê o aviso geral: perder até o comunicado da
 escola inteira seria pior que o problema. Para preencher contas antigas:
 
 ```bash

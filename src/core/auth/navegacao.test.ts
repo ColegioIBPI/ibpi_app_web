@@ -11,6 +11,14 @@ describe("navegacaoPara", () => {
     expect(rotulos("financeiro")).toEqual(["Alunos", "Avisos", "Financeiro"]);
   });
 
+  it("quem publica aviso não publica material institucional", () => {
+    // Informações úteis é calendário, proposta pedagógica, critérios de
+    // avaliação: sai da secretaria e da coordenação, não de quem apenas
+    // comunica.
+    expect(rotulos("financeiro")).not.toContain("Informações úteis");
+    expect(rotulos("professor")).not.toContain("Informações úteis");
+  });
+
   it("professor não vê financeiro nem gestão de turmas", () => {
     const itens = rotulos("professor");
     expect(itens).toContain("Frequência");
@@ -39,12 +47,18 @@ describe("navegacaoPara", () => {
       "Notas",
       "Boletins",
       "Avisos",
+      "Informações úteis",
       "Financeiro",
     ]);
   });
 
   it("aluno não vê ocorrências nem financeiro", () => {
-    expect(rotulos("aluno")).toEqual(["Avisos", "Boletim", "Frequência"]);
+    expect(rotulos("aluno")).toEqual([
+      "Avisos",
+      "Boletim",
+      "Frequência",
+      "Informações úteis",
+    ]);
   });
 
   it("responsável vê tudo da área de consulta", () => {
@@ -54,6 +68,7 @@ describe("navegacaoPara", () => {
       "Frequência",
       "Ocorrências",
       "Financeiro",
+      "Informações úteis",
     ]);
   });
 

@@ -399,6 +399,39 @@ precisa poder mostrar depois.
 > Notificação push é canal do app e entra com ele. O campo `notificadoEm` já
 > existe para o app saber o que não repetir quando entrar no ar.
 
+### 5.9b Informações úteis
+
+Os cards com link da aba do app: horário das aulas, calendário de avaliação,
+calendário escolar, critérios de avaliação, proposta pedagógica, dependências,
+eletivas, tutoria.
+
+**O alcance é o mesmo dos avisos** — a tabela de destinos de 5.9 vale aqui
+sem mudança. O colégio pensa "para quem isto vale" de um jeito só, e um
+segundo modelo de alcance significaria uma segunda Security Rule dizendo a
+mesma coisa que a primeira, até uma delas ficar para trás.
+
+Cada tipo tem um alcance **usual**, que o formulário sugere e não impõe:
+
+| Material                                    | Alcance usual |
+| ------------------------------------------- | ------------- |
+| Horário das aulas                           | Turma         |
+| Calendário de avaliação                     | Segmento      |
+| Critérios de avaliação                      | Segmento      |
+| Dependências, Eletivas                      | Segmento      |
+| Calendário escolar, Proposta Pedagógica     | Todos         |
+| Tutoria                                     | Aluno         |
+
+A diferença para o aviso é o tempo: **aviso é do dia, informação fica**. Por
+isso o card tem `ordem` — a secretaria decide a posição na tela — e não tem
+anexo: `url` aponta para onde o material já está (Drive, site do colégio), e
+o Portal não hospeda arquivo que ele não precisa hospedar. Só `http` e
+`https` são aceitos; um `javascript:` ali viraria execução de código na tela
+da família.
+
+**Quem publica:** secretaria e coordenação. É material institucional — quem
+tem permissão de *publicar aviso* (professor, financeiro) não publica
+proposta pedagógica.
+
 ### 5.10 Modelo de dados (Firestore)
 
 Modelagem inicial, compartilhada com o app MyIBPI:
@@ -419,6 +452,8 @@ Modelagem inicial, compartilhada com o app MyIBPI:
 | `notas`            | aluno × disciplina × trimestre → projeto, tarefas, av | id gerado              |
 | `boletins`         | consolidado por aluno × ano letivo                    | id gerado              |
 | `cobrancas`        | aluno, parcela, vencimento, valor, situação, baixa    | id gerado              |
+| `avisos`           | comunicado + destino e chave de alcance               | id gerado              |
+| `informacoes`      | card com link + destino, chave de alcance e ordem     | id gerado              |
 | `auditoria`        | quem alterou o quê, quando, valor antes e depois      | id gerado              |
 
 > ⚠️ A definir na FASE 3: se as subcoleções (ex.: `alunos/{id}/notas`) rendem consultas melhores que coleções raiz para os relatórios de turma. A decisão sai da primeira modelagem com dados reais migrados.

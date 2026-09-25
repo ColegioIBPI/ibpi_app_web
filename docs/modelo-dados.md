@@ -31,6 +31,8 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `diarioClasse`       | —         | `PAUTA DE CONTEÚDO` (PDF)          |
 | `ocorrencias`        | —         | `CONTROLE DE FALTAS.xlsx`          |
 | `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
+| `avisos`             | —         | Não existia; criada no Portal      |
+| `informacoes`        | —         | Não existia; criada no Portal      |
 | `auditoria`          | —         | `log` do Access (vazia)            |
 
 As coleções sem registro **já estão modeladas**, com os campos espelhando a
@@ -231,6 +233,41 @@ As regras de cálculo estão em [`avaliacao.md`](avaliacao.md). Elas viram funç
 `src/features/notas/domain/` quando a tela for construída.
 
 > ⚠️ Nenhuma nota foi migrada: depende da conversão bimestre → trimestre.
+
+### `avisos/{id}` e `informacoes/{id}`
+
+As duas coleções que a família lê, e as duas que o app MyIBPI consulta
+direto no Firestore.
+
+**Aviso** — o comunicado do dia:
+`titulo` · `corpo` · `anexos[]` · `destino` · `chave` · `ativo` ·
+`publicadoPorUid` · `publicadoPorNome` · `publicadoEm`
+
+**Informação útil** — o material que fica: horário das aulas, calendário
+escolar, critérios de avaliação, proposta pedagógica, dependências, eletivas,
+tutoria.
+`tipo` · `titulo` · `descricao` · `url` · `destino` · `chave` · `ordem` ·
+`ativo` · `publicadoPorUid` · `publicadoPorNome` · `publicadoEm`
+
+`url` é http/https e aponta para onde o material já está — o Portal não
+hospeda o arquivo. `ordem` define a posição do card, com o título
+desempatando.
+
+**As duas usam o mesmo alcance.** `destino` é `{ tipo: "todos" | "segmento" |
+"turma" | "aluno" | "responsavel", ... }` e `chave` é a forma achatada dele
+(`turma:2026-EM3A`, `aluno:26029`). A chave existe para a consulta ser um
+`where("chave", "in", [...])`, que o cliente consegue fazer e a Security Rule
+consegue verificar — percorrer vínculo por vínculo, nenhum dos dois
+conseguiria. Um alcance só significa uma regra só; duas regras dizendo a
+mesma coisa é como uma delas fica para trás.
+
+O contrapeso é `users/{uid}.chavesDeAlcance`, a lista pronta de chaves de
+cada conta, refeita pelo servidor na criação da conta, na troca de vínculo e
+na troca de turma do aluno. Detalhes em [`permissoes.md`](permissoes.md) e
+[`app-mobile.md`](app-mobile.md).
+
+Nenhuma das duas é apagada pelo Portal: `ativo: false` tira da família e
+mantém o registro.
 
 ### `auditoria/{id}`
 
