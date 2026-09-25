@@ -37,7 +37,9 @@ export default async function FinanceiroPage({
   const resumo = resumir(linhas);
 
   const turmas = [
-    ...new Set(linhas.map((l) => l.turmaCodigo).filter((t): t is string => !!t)),
+    ...new Set(
+      linhas.map((l) => l.turmaCodigo).filter((t): t is string => !!t),
+    ),
   ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   // O relatório e a planilha saem com o mesmo recorte que está na tela.
@@ -128,22 +130,40 @@ export default async function FinanceiroPage({
               </caption>
               <thead>
                 <tr className="border-line border-b text-left">
-                  <th scope="col" className="text-ink-muted py-2 pr-3 font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 pr-3 font-medium"
+                  >
                     Aluno
                   </th>
-                  <th scope="col" className="text-ink-muted py-2 pr-3 font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 pr-3 font-medium"
+                  >
                     Turma
                   </th>
-                  <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 pr-3 text-right font-medium"
+                  >
                     Contratado
                   </th>
-                  <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 pr-3 text-right font-medium"
+                  >
                     Pago
                   </th>
-                  <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 pr-3 text-right font-medium"
+                  >
                     Em aberto
                   </th>
-                  <th scope="col" className="text-ink-muted py-2 text-right font-medium">
+                  <th
+                    scope="col"
+                    className="text-ink-muted py-2 text-right font-medium"
+                  >
                     Vencido
                   </th>
                 </tr>

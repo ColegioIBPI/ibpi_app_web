@@ -71,28 +71,40 @@ describe("gerarParcelas", () => {
 
   it("recusa número de parcelas inválido", () => {
     expect(
-      gerarParcelas({ valor: 100, parcelas: 0, primeiroVencimento: "2026-03-05" })
-        .erro,
+      gerarParcelas({
+        valor: 100,
+        parcelas: 0,
+        primeiroVencimento: "2026-03-05",
+      }).erro,
     ).toContain("pelo menos uma");
 
     expect(
-      gerarParcelas({ valor: 100, parcelas: 99, primeiroVencimento: "2026-03-05" })
-        .erro,
+      gerarParcelas({
+        valor: 100,
+        parcelas: 99,
+        primeiroVencimento: "2026-03-05",
+      }).erro,
     ).toContain("24 parcelas");
   });
 
   it("recusa valor pequeno demais para o número de parcelas", () => {
     // Dividir R$ 0,01 em duas deixaria uma parcela zerada.
     expect(
-      gerarParcelas({ valor: 0.01, parcelas: 2, primeiroVencimento: "2026-03-05" })
-        .erro,
+      gerarParcelas({
+        valor: 0.01,
+        parcelas: 2,
+        primeiroVencimento: "2026-03-05",
+      }).erro,
     ).toContain("pequeno demais");
   });
 
   it("recusa vencimento mal formado", () => {
     expect(
-      gerarParcelas({ valor: 100, parcelas: 2, primeiroVencimento: "05/03/2026" })
-        .erro,
+      gerarParcelas({
+        valor: 100,
+        parcelas: 2,
+        primeiroVencimento: "05/03/2026",
+      }).erro,
     ).toContain("vencimento");
   });
 });

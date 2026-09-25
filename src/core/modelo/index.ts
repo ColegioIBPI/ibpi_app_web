@@ -42,6 +42,7 @@ export const COLECOES = {
   boletins: "boletins",
   cobrancas: "cobrancas",
   contratos: "contratos",
+  planosDePagamento: "planosDePagamento",
   avisos: "avisos",
   informacoes: "informacoes",
   auditoria: "auditoria",

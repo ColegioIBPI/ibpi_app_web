@@ -4,7 +4,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { formatCurrency, formatDate } from "@/core/lib/format";
-import { ROTULOS_DE_CONTRATO, type TipoDeContrato } from "@/core/modelo";
+import {
+  ROTULOS_DE_TIPO_DE_COBRANCA,
+  type TipoDeCobranca,
+} from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { SelectField, TextField } from "@/core/ui/field";
 import { criarPlanoDePagamento } from "@/features/financeiro/actions/financeiro";
@@ -27,7 +30,9 @@ export function NovoPlano({ matricula }: { matricula: string }) {
   const [valor, setValor] = useState("");
   const [parcelas, setParcelas] = useState("12");
   const [primeiroVencimento, setPrimeiroVencimento] = useState("");
-  const [tipo, setTipo] = useState<TipoDeContrato>("anuidade");
+  // Um carnê é quase sempre a anuidade dividida — cada parcela dele é uma
+  // mensalidade.
+  const [tipo, setTipo] = useState<TipoDeCobranca>("mensalidade");
   const [observacoes, setObservacoes] = useState("");
 
   const [erro, setErro] = useState<string | null>(null);
@@ -122,17 +127,17 @@ export function NovoPlano({ matricula }: { matricula: string }) {
           onChange={(evento) => setPrimeiroVencimento(evento.target.value)}
         />
         <SelectField
-          label="Tipo"
+          label="Descrição do pagamento"
           value={tipo}
-          onChange={(evento) =>
-            setTipo(evento.target.value as TipoDeContrato)
-          }
+          onChange={(evento) => setTipo(evento.target.value as TipoDeCobranca)}
         >
-          {Object.entries(ROTULOS_DE_CONTRATO).map(([valor, rotulo]) => (
-            <option key={valor} value={valor}>
-              {rotulo}
-            </option>
-          ))}
+          {Object.entries(ROTULOS_DE_TIPO_DE_COBRANCA).map(
+            ([valor, rotulo]) => (
+              <option key={valor} value={valor}>
+                {rotulo}
+              </option>
+            ),
+          )}
         </SelectField>
       </div>
 

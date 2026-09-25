@@ -10,6 +10,7 @@ import { ROTULOS_DE_CONTRATO } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
 import { Extrato } from "@/features/financeiro/components/extrato";
 import { NovoPlano } from "@/features/financeiro/components/novo-plano";
+import { PlanoAcordado } from "@/features/financeiro/components/plano-acordado";
 import { extratoDoAluno } from "@/features/financeiro/services/financeiro.server";
 
 export const metadata: Metadata = { title: "Extrato financeiro" };
@@ -59,6 +60,11 @@ export default async function ExtratoDoAlunoPage({
             <dd className="text-success text-lg font-semibold tabular-nums">
               {formatCurrency(extrato.totais.pago)}
             </dd>
+            {extrato.totais.aConfirmar > 0 && (
+              <dd className="text-warning text-xs">
+                {formatCurrency(extrato.totais.aConfirmar)} a confirmar
+              </dd>
+            )}
           </div>
           <div>
             <dt className="text-ink-muted text-sm">Em aberto</dt>
@@ -75,8 +81,23 @@ export default async function ExtratoDoAlunoPage({
         </dl>
       </Card>
 
-      <Card title="Parcelas">
-        <Extrato cobrancas={extrato.cobrancas} podeLancar={podeLancar} />
+      <Card
+        title="Plano de pagamento acordado"
+        description="O que foi combinado no ato da matrícula. Registro interno, não aparece para a família."
+      >
+        <PlanoAcordado
+          matricula={extrato.matricula}
+          plano={extrato.planoAcordado}
+          podeLancar={podeLancar}
+        />
+      </Card>
+
+      <Card title="Pagamentos">
+        <Extrato
+          matricula={extrato.matricula}
+          cobrancas={extrato.cobrancas}
+          podeLancar={podeLancar}
+        />
       </Card>
 
       {extrato.contratos.length > 0 && (

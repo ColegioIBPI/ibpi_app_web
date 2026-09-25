@@ -17,17 +17,29 @@ import type { Cobranca, SituacaoDaCobranca } from "@/core/modelo";
 export interface DadosDaSituacao {
   vencimento: string;
   dataPagamento?: string | null;
+  confirmado?: boolean | null;
 }
 
 export function situacaoDaCobranca(
-  { vencimento, dataPagamento }: DadosDaSituacao,
+  { vencimento, dataPagamento, confirmado }: DadosDaSituacao,
   hoje: Date | string = new Date(),
 ): SituacaoDaCobranca {
   // O pagamento é o fato que encerra a parcela. Pago depois do vencimento
   // continua pago — atraso quitado não é inadimplência.
-  if (dataPagamento) return "paga";
+  //
+  // Só o `false` explícito segura a parcela em "a confirmar": ausente é o
+  // estado das 847 parcelas migradas, que já vieram quitadas do Access, e
+  // tratá-las como pendentes inventaria pendências que não existem.
+  if (dataPagamento) return confirmado === false ? "a-confirmar" : "paga";
 
   return vencimento < paraDataISO(hoje) ? "vencida" : "aberta";
+}
+
+/** Pagamento lançado que ainda espera a conferência de quem cuida do caixa. */
+export function esperaConfirmacao(
+  cobranca: Pick<Cobranca, "dataPagamento" | "confirmado">,
+): boolean {
+  return Boolean(cobranca.dataPagamento) && cobranca.confirmado === false;
 }
 
 /**
@@ -75,6 +87,8 @@ export interface Totais {
   pago: number;
   emAberto: number;
   vencido: number;
+  /** Parte do `pago` que ainda espera conferência. */
+  aConfirmar: number;
 }
 
 /**
@@ -83,6 +97,11 @@ export interface Totais {
  * `emAberto` inclui o que está vencido: é o que a família ainda deve. O
  * `vencido` é o recorte dentro dele que já passou do prazo — separar os dois
  * em vez de somar evita a pergunta "então devo isso ou aquilo?".
+ *
+ * `aConfirmar` é um recorte de `pago`, e não um quarto estado do dinheiro: o
+ * pagamento foi lançado e a família não deve mais nada; o que falta é a
+ * conferência interna. Somá-lo ao "em aberto" faria o extrato cobrar de novo
+ * quem já pagou.
  */
 export function totalizar(
   cobrancas: readonly Cobranca[],
@@ -94,6 +113,7 @@ export function totalizar(
     pago: 0,
     emAberto: 0,
     vencido: 0,
+    aConfirmar: 0,
   };
 
   for (const cobranca of cobrancas) {
@@ -102,6 +122,10 @@ export function totalizar(
 
     totais.contratado += cobranca.valor ?? 0;
     totais.pago += cobranca.valorPago ?? 0;
+
+    if (esperaConfirmacao(cobranca)) {
+      totais.aConfirmar += cobranca.valorPago ?? 0;
+    }
 
     if (devido > 0) {
       totais.emAberto += devido;
@@ -115,11 +139,14 @@ export function totalizar(
     pago: arredondarReais(totais.pago),
     emAberto: arredondarReais(totais.emAberto),
     vencido: arredondarReais(totais.vencido),
+    aConfirmar: arredondarReais(totais.aConfirmar),
   };
 }
 
 /** Vencimento crescente — a ordem do extrato e do carnê. */
-export function ordenarPorVencimento(cobrancas: readonly Cobranca[]): Cobranca[] {
+export function ordenarPorVencimento(
+  cobrancas: readonly Cobranca[],
+): Cobranca[] {
   return [...cobrancas].sort(
     (a, b) =>
       a.vencimento.localeCompare(b.vencimento) ||

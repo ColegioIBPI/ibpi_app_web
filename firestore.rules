@@ -191,6 +191,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // O plano acordado na matrícula, em texto livre.
+    //
+    // A família **não lê**, e é de propósito: é o registro interno da
+    // negociação — condição, desconto, exceção —, escrito pela secretaria
+    // para a equipe. Texto escrito para a equipe não é texto escrito para a
+    // família. O que a família precisa ver do seu financeiro está em
+    // `cobrancas`, parcela a parcela.
+    match /planosDePagamento/{matricula} {
+      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow write: if false;
+    }
+
     // Itens contratados do ano: anuidade, matrícula, taxa de material,
     // dependência. Vieram da tabela `Fatos` do Access, cujo nome sugere
     // ocorrência disciplinar mas guarda financeiro.

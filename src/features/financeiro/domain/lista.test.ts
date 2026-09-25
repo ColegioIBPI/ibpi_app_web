@@ -23,6 +23,7 @@ const linha = (
     pago: 1000 - emAberto,
     emAberto,
     vencido,
+    aConfirmar: 0,
   },
 });
 
@@ -78,9 +79,9 @@ describe("filtrarLinhas", () => {
   });
 
   it("busca que não acha nada devolve lista vazia", () => {
-    expect(
-      filtrarLinhas(ESCOLA, { recorte: "todos", termo: "zzz" }),
-    ).toEqual([]);
+    expect(filtrarLinhas(ESCOLA, { recorte: "todos", termo: "zzz" })).toEqual(
+      [],
+    );
   });
 });
 

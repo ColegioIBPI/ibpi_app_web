@@ -400,12 +400,15 @@ outro aluno nem o card fora do ar.
 cobrancas/{id} = {
   matricula: string,
   vencimento: "2026-03-05",
+  tipo: string | null,           // descrição do pagamento; ver abaixo
   parcela: number | null,
   totalDeParcelas: number | null,
   valor: number | null,          // em reais, não centavos
   valorPago: number | null,
   dataPagamento: string | null,
-  banco: string | null,
+  formaDePagamento: string | null,
+  confirmado: boolean | null,    // ausente conta como confirmado
+  banco: string | null,          // legado do Access
   recibo: string | null,
   observacoes: string | null
 }
@@ -420,11 +423,12 @@ contratos/{id} = {
 
 **A situação da parcela não está gravada** — e isso é de propósito:
 
-| Situação      | Quando                                          |
-| ------------- | ----------------------------------------------- |
-| **Paga**      | existe `dataPagamento`                          |
-| **Vencida**   | sem pagamento e `vencimento` já passou          |
-| **Em aberto** | sem pagamento e `vencimento` ainda não chegou   |
+| Situação        | Quando                                                   |
+| --------------- | -------------------------------------------------------- |
+| **Paga**        | existe `dataPagamento` e `confirmado !== false`           |
+| **A confirmar** | existe `dataPagamento` e `confirmado === false`           |
+| **Vencida**     | sem pagamento e `vencimento` já passou                    |
+| **Em aberto**   | sem pagamento e `vencimento` ainda não chegou             |
 
 "Vencida" é uma conclusão sobre hoje. Uma parcela gravada como "em aberto"
 em abril continuaria assim em dezembro. **O app conclui na leitura**, com a
@@ -435,10 +439,32 @@ Duas finezas: parcela paga com atraso continua **paga** — atraso quitado não
 em dia.
 
 Pagamento parcial existe: `valorPago < valor` com `dataPagamento`
-preenchido. Mostre o saldo, não uma quarta situação.
+preenchido. Mostre o saldo, não uma situação própria.
+
+**Para o app, sobre os campos novos:**
+
+- **`confirmado` ausente conta como confirmado.** É o estado das 847
+  parcelas migradas, que já vieram quitadas do Access; tratar a ausência como
+  pendência mostraria 800 pendências que não existem. Só o `false` explícito
+  é "a confirmar".
+- **"A confirmar" não é dívida.** A família pagou; o que falta é a
+  conferência interna do colégio. Não some esse valor ao que está em aberto —
+  seria cobrar de novo quem já pagou. Se a distinção não ajudar a família,
+  mostre simplesmente "paga".
+- **`tipo` e `formaDePagamento` vêm vazios nas parcelas antigas.** Mostre
+  `—`, não um padrão inventado. Algumas antigas têm `banco` — é o `No Banco`
+  do Access, e serve de forma de pagamento quando é o que existe.
+- **`tipo`**: `taxa-de-matricula` · `taxa-de-material` · `mensalidade` ·
+  `reclassificacao` · `dependencia` · `extras` · `outros`.
+- **`formaDePagamento`**: `pix` · `dinheiro` · `boleto` ·
+  `link-de-pagamento` · `cartao-de-debito` · `cartao-de-credito`.
 
 > O **aluno não vê financeiro** — mensalidade é assunto de quem paga. As
 > regras barram; a aba não deve aparecer para esse perfil.
+
+> A coleção `planosDePagamento` existe e o app **não deve lê-la**: é o
+> registro interno da negociação de matrícula, escrito pela secretaria para a
+> equipe. A regra nega para a família.
 
 ---
 

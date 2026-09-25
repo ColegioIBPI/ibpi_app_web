@@ -4,8 +4,10 @@ import {
   COLECOES,
   type Cobranca,
   type Contrato,
+  type PlanoDePagamento,
   type SituacaoDaCobranca,
 } from "@/core/modelo";
+import { isEquipe } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
@@ -39,6 +41,8 @@ export interface ExtratoDoAluno {
   turmaCodigo: string | null;
   cobrancas: CobrancaComId[];
   contratos: Contrato[];
+  /** O acordado na matrícula. `null` enquanto ninguém escreveu. */
+  planoAcordado: PlanoDePagamento | null;
   totais: Totais;
 }
 
@@ -57,9 +61,18 @@ export async function extratoDoAluno(
 
   const db = getAdminDb();
 
-  const [cobrancasDocs, contratosDocs] = await Promise.all([
+  // O plano acordado é registro interno: a secretaria escreve nele a
+  // condição negociada, e um texto livre escrito para a equipe não é um
+  // texto escrito para a família ler. O extrato do Portal da família sai
+  // sem ele.
+  const interno = isEquipe(sessao.role);
+
+  const [cobrancasDocs, contratosDocs, planoDoc] = await Promise.all([
     db.collection(COLECOES.cobrancas).where("matricula", "==", matricula).get(),
     db.collection(COLECOES.contratos).where("matricula", "==", matricula).get(),
+    interno
+      ? db.collection(COLECOES.planosDePagamento).doc(matricula).get()
+      : null,
   ]);
 
   const cobrancas = ordenarPorVencimento(
@@ -80,6 +93,9 @@ export async function extratoDoAluno(
     contratos: contratosDocs.docs
       .map((doc) => doc.data() as Contrato)
       .sort((a, b) => (a.data ?? "").localeCompare(b.data ?? "")),
+    planoAcordado: planoDoc?.exists
+      ? (planoDoc.data() as PlanoDePagamento)
+      : null,
     totais: totalizar(cobrancas, hoje),
   };
 }

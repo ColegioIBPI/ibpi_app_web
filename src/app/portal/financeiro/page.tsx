@@ -44,8 +44,8 @@ export default async function FinanceiroDoPortalPage() {
       <div>
         <h1 className="text-ink text-xl font-semibold">Financeiro</h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Situação das parcelas. Pagamentos são feitos fora do sistema, no
-          banco ou na secretaria.
+          Situação das parcelas. Pagamentos são feitos fora do sistema, no banco
+          ou na secretaria.
         </p>
       </div>
 
@@ -86,7 +86,11 @@ export default async function FinanceiroDoPortalPage() {
               </div>
             </dl>
 
-            <Extrato cobrancas={extrato.cobrancas} podeLancar={false} />
+            <Extrato
+              matricula={extrato.matricula}
+              cobrancas={extrato.cobrancas}
+              podeLancar={false}
+            />
           </Card>
         ))
       )}

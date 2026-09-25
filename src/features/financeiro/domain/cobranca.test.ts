@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Cobranca } from "@/core/modelo";
 import {
   diasDeAtraso,
+  esperaConfirmacao,
   filtrarCobrancas,
   ordenarPorVencimento,
   pagaParcialmente,
@@ -24,10 +25,74 @@ const cobranca = (
     valor,
     valorPago: extra.valorPago ?? 0,
     dataPagamento: extra.dataPagamento ?? null,
+    confirmado: extra.confirmado,
     parcela: extra.parcela ?? 1,
     totalDeParcelas: extra.totalDeParcelas ?? 1,
     origem: "portal",
   }) as Cobranca;
+
+describe("conferência do pagamento", () => {
+  const pago = { vencimento: "2026-03-05", dataPagamento: "2026-03-05" };
+
+  it("pagamento lançado e não conferido fica a confirmar", () => {
+    expect(situacaoDaCobranca({ ...pago, confirmado: false }, HOJE)).toBe(
+      "a-confirmar",
+    );
+  });
+
+  it("pagamento conferido é pago", () => {
+    expect(situacaoDaCobranca({ ...pago, confirmado: true }, HOJE)).toBe(
+      "paga",
+    );
+  });
+
+  it("parcela migrada, sem o campo, conta como paga", () => {
+    // As 847 parcelas do Access já vieram quitadas. Tratar a ausência do
+    // campo como "não conferida" inventaria 800 pendências.
+    expect(situacaoDaCobranca(pago, HOJE)).toBe("paga");
+    expect(situacaoDaCobranca({ ...pago, confirmado: null }, HOJE)).toBe(
+      "paga",
+    );
+  });
+
+  it("sem pagamento, a conferência não muda nada", () => {
+    // Confirmar uma parcela que ninguém pagou não quer dizer nada.
+    expect(
+      situacaoDaCobranca({ vencimento: "2026-12-05", confirmado: false }, HOJE),
+    ).toBe("aberta");
+    expect(esperaConfirmacao({ dataPagamento: null, confirmado: false })).toBe(
+      false,
+    );
+  });
+
+  it("a confirmação pendente não conta como atraso", () => {
+    // O dinheiro entrou; o que falta é a conferência interna.
+    expect(
+      diasDeAtraso(
+        { ...pago, confirmado: false, vencimento: "2026-01-05" },
+        HOJE,
+      ),
+    ).toBe(0);
+  });
+
+  it("o valor a confirmar é um recorte do pago, não uma dívida", () => {
+    // Somá-lo ao "em aberto" faria o extrato cobrar de novo quem já pagou.
+    const totais = totalizar(
+      [
+        cobranca("2026-03-05", 1000, {
+          dataPagamento: "2026-03-05",
+          valorPago: 1000,
+          confirmado: false,
+        }),
+      ],
+      HOJE,
+    );
+
+    expect(totais.pago).toBe(1000);
+    expect(totais.aConfirmar).toBe(1000);
+    expect(totais.emAberto).toBe(0);
+  });
+});
 
 describe("situacaoDaCobranca", () => {
   it("parcela paga é paga, mesmo vencida", () => {
@@ -150,6 +215,7 @@ describe("totalizar", () => {
       pago: 1000,
       emAberto: 2000,
       vencido: 1000,
+      aConfirmar: 0,
     });
   });
 
@@ -175,6 +241,7 @@ describe("totalizar", () => {
       pago: 0,
       emAberto: 0,
       vencido: 0,
+      aConfirmar: 0,
     });
   });
 
@@ -187,7 +254,10 @@ describe("totalizar", () => {
 
 describe("ordenarPorVencimento", () => {
   it("segue a ordem do carnê", () => {
-    const fora = [cobranca("2026-05-05", 1000, { parcela: 2 }), cobranca("2026-04-05", 1000, { parcela: 1 })];
+    const fora = [
+      cobranca("2026-05-05", 1000, { parcela: 2 }),
+      cobranca("2026-04-05", 1000, { parcela: 1 }),
+    ];
 
     expect(ordenarPorVencimento(fora).map((c) => c.parcela)).toEqual([1, 2]);
   });
@@ -195,15 +265,24 @@ describe("ordenarPorVencimento", () => {
 
 describe("filtrarCobrancas", () => {
   const extrato = [
-    cobranca("2026-03-05", 1000, { dataPagamento: "2026-03-05", valorPago: 1000 }),
+    cobranca("2026-03-05", 1000, {
+      dataPagamento: "2026-03-05",
+      valorPago: 1000,
+    }),
     cobranca("2026-08-05"),
     cobranca("2026-12-05"),
   ];
 
   it("filtra pela situação calculada, não pela gravada", () => {
-    expect(filtrarCobrancas(extrato, { situacao: "vencida" }, HOJE)).toHaveLength(1);
-    expect(filtrarCobrancas(extrato, { situacao: "paga" }, HOJE)).toHaveLength(1);
-    expect(filtrarCobrancas(extrato, { situacao: "aberta" }, HOJE)).toHaveLength(1);
+    expect(
+      filtrarCobrancas(extrato, { situacao: "vencida" }, HOJE),
+    ).toHaveLength(1);
+    expect(filtrarCobrancas(extrato, { situacao: "paga" }, HOJE)).toHaveLength(
+      1,
+    );
+    expect(
+      filtrarCobrancas(extrato, { situacao: "aberta" }, HOJE),
+    ).toHaveLength(1);
   });
 
   it("filtra por período de vencimento, incluindo as pontas", () => {
@@ -214,6 +293,8 @@ describe("filtrarCobrancas", () => {
 
   it("sem filtro devolve tudo", () => {
     expect(filtrarCobrancas(extrato, {}, HOJE)).toHaveLength(3);
-    expect(filtrarCobrancas(extrato, { situacao: "todas" }, HOJE)).toHaveLength(3);
+    expect(filtrarCobrancas(extrato, { situacao: "todas" }, HOJE)).toHaveLength(
+      3,
+    );
   });
 });

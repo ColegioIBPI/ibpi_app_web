@@ -31,6 +31,7 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `diarioClasse`       | —         | `PAUTA DE CONTEÚDO` (PDF)          |
 | `ocorrencias`        | —         | `CONTROLE DE FALTAS.xlsx`          |
 | `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
+| `planosDePagamento`  | —         | Não existia; criada no Portal      |
 | `avisos`             | —         | Não existia; criada no Portal      |
 | `informacoes`        | —         | Não existia; criada no Portal      |
 | `auditoria`          | —         | `log` do Access (vazia)            |
@@ -106,15 +107,26 @@ duas existentes sem renumerar todas; quem não tem ordem cai no fim.
 Espelham `Tabela_pagamento` e `Fatos`. Ver [`docs/migracao.md`](migracao.md)
 para a composição do id, que precisou de um distintivo.
 
-**Cobrança** — a parcela: `matricula` · `vencimento` · `parcela` ·
+**Cobrança** — a parcela: `matricula` · `vencimento` · `tipo` · `parcela` ·
 `totalDeParcelas` · `valor` · `valorPago` · `dataPagamento` ·
-`emitidaPeloBanco` · `emitidaPeloColegio` · `banco` · `recibo` ·
-`observacoes` · `baixadoPor`
+`formaDePagamento` · `confirmado` · `emitidaPeloBanco` ·
+`emitidaPeloColegio` · `banco` · `recibo` · `observacoes` · `baixadoPor`
+
+`tipo` é a descrição do pagamento (taxa de matrícula · taxa de material ·
+mensalidade · reclassificação · dependências · extras · outros) e
+`formaDePagamento` é como a família pagou (PIX · dinheiro · boleto · link de
+pagamento · cartão de débito · cartão de crédito). Nas 847 parcelas migradas
+os dois são **ausentes**: o Access guardava só valor e vencimento, e
+preencher um padrão inventaria dado que ninguém conferiu.
 
 **Não há campo de situação.** "Vencida" é uma conclusão sobre hoje: gravada,
 ela envelhece — uma parcela salva como "em aberto" em abril continuaria assim
 em dezembro. O documento guarda os fatos, e `situacaoDaCobranca()` conclui na
 leitura (ver [`financeiro.md`](financeiro.md)).
+
+`confirmado` é a conferência de quem cuida do caixa. **Ausente conta como
+confirmado**, porque é o estado das parcelas migradas, que já vieram
+quitadas; só o `false` explícito segura a parcela em "a confirmar".
 
 **Contrato** — o item contratado do ano: `matricula` · `data` · `tipo`
 (anuidade · matrícula · taxa-material · dependência · reclassificação) ·
@@ -123,6 +135,20 @@ leitura (ver [`financeiro.md`](financeiro.md)).
 `descricao` mantém o texto original do Access (`12XR$1.923,00 Plano Cartão`).
 Nenhuma interpretação de campo livre é confiável o bastante para apagar a
 origem.
+
+### `planosDePagamento/{matricula}`
+
+`matricula` · `texto` · `atualizadoPorNome` · `atualizadoEm` ·
+`atualizadoPor`
+
+O que foi acordado no ato da matrícula, em texto livre. Um documento por
+aluno — o id é a matrícula, porque o plano é do aluno e não um registro que
+se acumula; o histórico do que mudou fica na auditoria.
+
+**A família não lê.** É o registro interno da negociação, escrito pela
+secretaria para a equipe. A Security Rule nega, e o extrato do Portal da
+família nem carrega o documento — não depende de a tela lembrar de
+escondê-lo.
 
 ---
 

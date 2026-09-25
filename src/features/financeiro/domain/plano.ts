@@ -49,9 +49,7 @@ export function gerarParcelas(entrada: EntradaDoPlano): ResultadoDoPlano {
       parcela: indice + 1,
       totalDeParcelas: total,
       vencimento: somarMeses(primeiroVencimento, indice),
-      valor: arredondarReais(
-        (base + (indice === total - 1 ? sobra : 0)) / 100,
-      ),
+      valor: arredondarReais((base + (indice === total - 1 ? sobra : 0)) / 100),
     })),
   };
 }

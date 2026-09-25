@@ -6,12 +6,13 @@ colégio — é o mesmo papel que a `Tabela_pagamento` do Access tinha.
 
 ---
 
-## 1. Duas coleções
+## 1. As coleções
 
-| Coleção     | O que é                     | Origem            |
-| ----------- | --------------------------- | ----------------- |
-| `cobrancas` | as **parcelas** do carnê    | `Tabela_pagamento` (847) |
-| `contratos` | os **itens contratados** do ano | `Fatos` (274) |
+| Coleção              | O que é                            | Origem                   |
+| -------------------- | ---------------------------------- | ------------------------ |
+| `cobrancas`          | as **parcelas**                    | `Tabela_pagamento` (847) |
+| `contratos`          | os **itens contratados** do ano    | `Fatos` (274)            |
+| `planosDePagamento`  | o **acordado na matrícula**, em texto | criada no Portal      |
 
 `contratos` é histórico do Access, mostrado no extrato com o texto original
 preservado. Quem gera parcela hoje é o plano de pagamento.
@@ -27,31 +28,112 @@ dezembro, muito depois de vencer — e o relatório de inadimplência sairia
 errado sem ninguém perceber. O que o banco guarda são os **fatos**:
 
 ```
-vencimento · valor · dataPagamento · valorPago
+vencimento · valor · dataPagamento · valorPago · confirmado
 ```
 
 E `situacaoDaCobranca()` conclui a partir deles, em toda leitura:
 
-| Situação      | Quando                                      |
-| ------------- | ------------------------------------------- |
-| **Paga**      | existe data de pagamento                    |
-| **Vencida**   | sem pagamento e o vencimento já passou      |
-| **Em aberto** | sem pagamento e o vencimento ainda não chegou |
+| Situação         | Quando                                           |
+| ---------------- | ------------------------------------------------ |
+| **Paga**         | existe data de pagamento, e o pagamento foi conferido |
+| **A confirmar**  | existe data de pagamento e `confirmado` é `false` |
+| **Vencida**      | sem pagamento e o vencimento já passou           |
+| **Em aberto**    | sem pagamento e o vencimento ainda não chegou    |
 
 Parcela paga com atraso continua **paga**: atraso quitado não é
 inadimplência. O **dia do vencimento é do pagador** — quem paga nele está em
 dia.
 
 Pagamento parcial existe e aparece como **saldo** mesmo na parcela quitada.
-Ele não vira uma quarta situação: o colégio trabalha com três, e o saldo
-responde a pergunta que interessa ("quanto ainda falta?").
+Ele não vira uma situação própria: o saldo já responde a pergunta que
+interessa ("quanto ainda falta?").
+
+### A conferência do pagamento
+
+`confirmado` é a caixa que quem cuida do caixa marca quando o dinheiro
+aparece de verdade — o PIX que a família avisou hoje e o extrato só mostra
+amanhã.
+
+Três decisões:
+
+- **Ausente conta como confirmado.** As 847 parcelas migradas já vieram
+  quitadas do Access e não têm o campo. Tratar a ausência como "não
+  conferida" inventaria 800 pendências que nunca existiram. Só o `false`
+  **explícito** segura a parcela em "a confirmar".
+- **A baixa entra marcada.** Quem lança quase sempre está com o comprovante
+  na mão; desmarcar é o caso raro, e por isso é a ação deliberada.
+- **"A confirmar" não é dívida.** O total `aConfirmar` é um recorte de
+  `pago`, e não entra em `emAberto`: a família pagou, o que falta é a
+  conferência interna. Somá-lo ao em aberto faria o extrato cobrar de novo
+  quem já pagou.
 
 > A migração chegou a gravar `situacao`. O campo foi apagado dos 847
 > documentos — ver a seção 5.
 
 ---
 
-## 3. Plano de pagamento
+## 3. O que fica em cada parcela
+
+A parcela guarda os dois lados do carnê que a secretaria já usava no papel:
+
+| O que se cobra                              | O que se pagou                    |
+| ------------------------------------------- | --------------------------------- |
+| `vencimento`                                | `dataPagamento`                   |
+| `tipo` — a descrição do pagamento           | `valorPago`                       |
+| `parcela` / `totalDeParcelas` — `5/12`      | `formaDePagamento`                |
+| `valor`                                     | `recibo`                          |
+| `observacoes`                               | `confirmado`                      |
+
+**Descrição do pagamento** (`tipo`): taxa de matrícula, taxa de material,
+mensalidade, reclassificação, dependências, extras, outros.
+
+**Forma de pagamento**: PIX, dinheiro, boleto, link de pagamento, cartão de
+débito, cartão de crédito.
+
+Nas 847 parcelas migradas o `tipo` é **ausente**, e de propósito: o Access
+guardava só valor e vencimento, e preencher "mensalidade" por padrão
+inventaria um dado que ninguém conferiu. A tela mostra `—`. As parcelas
+antigas também não têm forma de pagamento, mas algumas têm `banco` (o
+`No Banco` do Access) — a coluna mostra o banco quando é o que existe.
+
+`tipo` e `formaDePagamento` são **vocabulários diferentes** de
+`tipoDeContrato`, que descreve o que foi contratado no ano: a anuidade é um
+contrato e vira doze mensalidades; "extras" é cobrança que não nasce de
+contrato nenhum.
+
+Cada parcela pode ser **cadastrada isolada** — taxa de material lançada em
+março, uma dependência, um extra. O id dela é gerado pelo Firestore, e não
+montado a partir de matrícula e vencimento como no carnê: duas cobranças
+avulsas podem cair legitimamente no mesmo dia, e um id determinístico faria a
+segunda sobrescrever a primeira em silêncio.
+
+---
+
+## 3b. O plano acordado na matrícula
+
+Um **texto livre por aluno**, em `planosDePagamento/{matricula}`: "anuidade
+de R$ 23.076,00 em 12x de R$ 1.923,00 vencendo todo dia 5; desconto de 10%
+para pagamento até o vencimento".
+
+É texto de propósito. Negociação de matrícula tem condição, desconto, exceção
+e combinado verbal, e todo campo estruturado que se tentasse criar para isso
+ou não caberia no caso seguinte ou viraria um "observações" com outro nome. O
+carnê — que é o que o sistema precisa calcular — vive em `cobrancas`; aqui
+fica o que a escola prometeu, para quem atender a família depois saber.
+
+**A família não lê.** É registro interno, escrito pela secretaria para a
+equipe, e texto escrito para a equipe não é texto escrito para a família. A
+Security Rule nega, e o extrato do Portal da família sai sem o campo — não
+depende de a tela lembrar de escondê-lo. O que a família precisa ver do seu
+financeiro está em `cobrancas`, parcela a parcela.
+
+Um documento por aluno, com a matrícula como id: o plano é do aluno, não um
+registro que se acumula. O histórico de quem mudou a condição fica na
+auditoria.
+
+---
+
+## 3c. Carnê a partir de um plano
 
 A secretaria informa **valor total**, **número de parcelas** e **primeiro
 vencimento**; o sistema gera o carnê. A prévia é calculada na tela com a
@@ -76,12 +158,14 @@ cima apagaria baixas já lançadas.
 
 ## 4. Quem faz o quê
 
-| Ação                                   | Perfil                    |
-| -------------------------------------- | ------------------------- |
-| Ver a lista e o extrato                | Financeiro, secretaria, coordenação |
-| Gerar carnê, dar baixa, editar, apagar | **Financeiro**            |
-| Ver o extrato dos filhos               | Responsável (somente leitura) |
-| —                                      | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
+| Ação                                                     | Perfil                              |
+| -------------------------------------------------------- | ----------------------------------- |
+| Ver a lista e o extrato                                  | Financeiro, secretaria, coordenação |
+| Ler o plano acordado                                     | Financeiro, secretaria, coordenação |
+| Cadastrar parcela, gerar carnê, dar baixa, confirmar, editar, apagar | **Financeiro**          |
+| Escrever o plano acordado                                | **Financeiro**                      |
+| Ver o extrato dos filhos                                 | Responsável (somente leitura)       |
+| —                                                        | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
 
 Secretaria e coordenação têm `ler` no recurso, e a tela não lhes mostra botão
 nenhum de lançamento. O guarda de rota confere de novo no servidor: esconder
@@ -93,7 +177,15 @@ Regras de escrita que existem por um motivo:
   de um pagamento que a família fez — e é esse registro que o colégio precisa
   quando a família contesta. Primeiro desfaz-se a baixa.
 - **Desfazer baixa existe** porque baixa na parcela errada acontece, e sem
-  isso a correção seria apagar e recriar, levando o histórico junto.
+  isso a correção seria apagar e recriar, levando o histórico junto. Desfazer
+  limpa também a forma de pagamento, o recibo e a conferência: é tudo fato do
+  pagamento que deixou de existir.
+- **Editar mexe no que foi cobrado; a baixa, no que foi pago.** São dois
+  fatos distintos, e um formulário que alterasse os dois juntos deixaria a
+  auditoria sem dizer qual deles a pessoa quis corrigir.
+- **Confirmar é ação à parte da baixa** porque a conferência costuma
+  acontecer depois: o pagamento entra no dia em que a família avisa, e o
+  extrato bancário chega no dia seguinte.
 
 Toda gravação passa por `gravarComAuditoria`: financeiro é um dos três dados
 com trilha obrigatória (README, seção 6.3).

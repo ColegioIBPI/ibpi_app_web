@@ -10,8 +10,11 @@ import {
   cobrancaSchema,
   COLECOES,
   dataSchema,
-  tipoDeContratoSchema,
+  formaDePagamentoSchema,
+  planoDePagamentoSchema,
+  tipoDeCobrancaSchema,
   type Cobranca,
+  type PlanoDePagamento,
 } from "@/core/modelo";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 import { gerarParcelas } from "@/features/financeiro/domain/plano";
@@ -41,7 +44,7 @@ const planoSchema = z.object({
   valor: z.number().positive("Informe o valor total do plano."),
   parcelas: z.number().int().positive(),
   primeiroVencimento: dataSchema,
-  tipo: tipoDeContratoSchema.default("outros"),
+  tipo: tipoDeCobrancaSchema.default("mensalidade"),
   observacoes: z.string().trim().nullable().default(null),
 });
 
@@ -97,6 +100,7 @@ export async function criarPlanoDePagamento(
     const cobranca = cobrancaSchema.safeParse({
       matricula: entrada.data.matricula,
       vencimento: parcela.vencimento,
+      tipo: entrada.data.tipo,
       parcela: parcela.parcela,
       totalDeParcelas: parcela.totalDeParcelas,
       valor: parcela.valor,
@@ -124,13 +128,74 @@ export async function criarPlanoDePagamento(
   return { ok: true, parcelas: parcelas.length };
 }
 
+const parcelaSchema = z.object({
+  matricula: z.string().min(1),
+  vencimento: dataSchema,
+  tipo: tipoDeCobrancaSchema,
+  parcela: z.number().int().positive().nullable().default(null),
+  totalDeParcelas: z.number().int().positive().nullable().default(null),
+  valor: z.number().min(0, "O valor não pode ser negativo."),
+  observacoes: z.string().trim().nullable().default(null),
+});
+
+export type EntradaDaParcela = z.infer<typeof parcelaSchema>;
+
+/**
+ * Cria uma parcela isolada.
+ *
+ * O carnê cobre a anuidade; isto cobre o resto — taxa de material lançada em
+ * março, uma dependência, um extra. O id é gerado pelo Firestore, e não
+ * montado a partir de matrícula e vencimento como no carnê: duas cobranças
+ * avulsas podem cair legitimamente no mesmo dia, e um id determinístico
+ * faria a segunda sobrescrever a primeira em silêncio.
+ */
+export async function criarCobranca(
+  dados: EntradaDaParcela,
+): Promise<ResultadoFinanceiro> {
+  const entrada = parcelaSchema.safeParse(dados);
+  if (!entrada.success) {
+    return { ok: false, erro: entrada.error.issues[0]?.message };
+  }
+
+  const sessao = await exigirPermissao("financeiro", "lancar");
+
+  const aluno = await obterAlunoVisivel(sessao, entrada.data.matricula);
+  if (!aluno) return { ok: false, erro: "Aluno não encontrado." };
+
+  const cobranca = cobrancaSchema.safeParse({
+    ...entrada.data,
+    valorPago: null,
+    dataPagamento: null,
+    origem: "portal",
+  });
+
+  if (!cobranca.success) {
+    return { ok: false, erro: cobranca.error.issues[0]?.message };
+  }
+
+  const referencia = getAdminDb().collection(COLECOES.cobrancas).doc();
+
+  await gravarComAuditoria({
+    colecao: COLECOES.cobrancas,
+    documentoId: referencia.id,
+    antes: null,
+    depois: cobranca.data,
+    autor: sessao,
+  });
+
+  revalidar(entrada.data.matricula);
+
+  return { ok: true, parcelas: 1 };
+}
+
 const baixaSchema = z.object({
   id: z.string().min(1),
   dataPagamento: dataSchema,
   valorPago: z.number().min(0, "O valor pago não pode ser negativo."),
-  banco: z.string().trim().nullable().default(null),
+  formaDePagamento: formaDePagamentoSchema.nullable().default(null),
   recibo: z.string().trim().nullable().default(null),
   observacoes: z.string().trim().nullable().default(null),
+  confirmado: z.boolean().default(true),
 });
 
 /** Baixa manual: registra o pagamento que já aconteceu. */
@@ -153,11 +218,44 @@ export async function darBaixa(
     depois: {
       dataPagamento: entrada.data.dataPagamento,
       valorPago: entrada.data.valorPago,
-      banco: entrada.data.banco,
+      formaDePagamento: entrada.data.formaDePagamento,
       recibo: entrada.data.recibo,
       observacoes: entrada.data.observacoes,
+      confirmado: entrada.data.confirmado,
       baixadoPor: sessao.uid,
     },
+    autor: sessao,
+  });
+
+  revalidar(contexto.cobranca.matricula);
+
+  return { ok: true, parcelas: 1 };
+}
+
+/**
+ * Marca ou desmarca o pagamento como confirmado.
+ *
+ * Separado da baixa porque a conferência costuma acontecer depois: o
+ * pagamento entra no dia em que a família avisa, e o extrato bancário chega
+ * no dia seguinte.
+ */
+export async function confirmarPagamento(
+  id: string,
+  confirmado: boolean,
+): Promise<ResultadoFinanceiro> {
+  const sessao = await exigirPermissao("financeiro", "lancar");
+  const contexto = await abrir(sessao, id);
+  if ("erro" in contexto) return { ok: false, erro: contexto.erro };
+
+  if (!contexto.cobranca.dataPagamento) {
+    return { ok: false, erro: "Esta parcela ainda não tem pagamento." };
+  }
+
+  await gravarComAuditoria({
+    colecao: COLECOES.cobrancas,
+    documentoId: id,
+    antes: contexto.cobranca,
+    depois: { confirmado },
     autor: sessao,
   });
 
@@ -173,9 +271,7 @@ export async function darBaixa(
  * correção seria apagar a parcela e recriá-la — o que levaria junto o
  * histórico dela.
  */
-export async function desfazerBaixa(
-  id: string,
-): Promise<ResultadoFinanceiro> {
+export async function desfazerBaixa(id: string): Promise<ResultadoFinanceiro> {
   const sessao = await exigirPermissao("financeiro", "lancar");
   const contexto = await abrir(sessao, id);
   if ("erro" in contexto) return { ok: false, erro: contexto.erro };
@@ -191,8 +287,10 @@ export async function desfazerBaixa(
     depois: {
       dataPagamento: null,
       valorPago: null,
+      formaDePagamento: null,
       banco: null,
       recibo: null,
+      confirmado: null,
       baixadoPor: sessao.uid,
     },
     autor: sessao,
@@ -206,10 +304,20 @@ export async function desfazerBaixa(
 const edicaoSchema = z.object({
   id: z.string().min(1),
   vencimento: dataSchema,
+  tipo: tipoDeCobrancaSchema,
+  parcela: z.number().int().positive().nullable().default(null),
+  totalDeParcelas: z.number().int().positive().nullable().default(null),
   valor: z.number().min(0, "O valor não pode ser negativo."),
   observacoes: z.string().trim().nullable().default(null),
 });
 
+/**
+ * Corrige uma parcela.
+ *
+ * Mexe no que foi **cobrado**; o que foi **pago** se corrige pela baixa. São
+ * dois fatos distintos, e um formulário que alterasse os dois juntos deixaria
+ * a auditoria sem dizer qual deles a pessoa quis corrigir.
+ */
 export async function editarCobranca(
   dados: z.infer<typeof edicaoSchema>,
 ): Promise<ResultadoFinanceiro> {
@@ -228,6 +336,9 @@ export async function editarCobranca(
     antes: contexto.cobranca,
     depois: {
       vencimento: entrada.data.vencimento,
+      tipo: entrada.data.tipo,
+      parcela: entrada.data.parcela,
+      totalDeParcelas: entrada.data.totalDeParcelas,
       valor: entrada.data.valor,
       observacoes: entrada.data.observacoes,
     },
@@ -281,6 +392,61 @@ export async function removerCobranca(
   revalidar(contexto.cobranca.matricula);
 
   return { ok: true, parcelas: 1 };
+}
+
+const planoAcordadoSchema = z.object({
+  matricula: z.string().min(1),
+  texto: z.string().trim().min(1, "Escreva o plano acordado."),
+});
+
+/**
+ * Grava o plano de pagamento acordado na matrícula.
+ *
+ * Um documento por aluno, com a matrícula como id: o plano é do aluno, não
+ * um registro que se acumula. O histórico do que mudou fica na auditoria,
+ * que é onde se procura "quem alterou a condição que a família tinha".
+ */
+export async function salvarPlanoAcordado(
+  dados: z.infer<typeof planoAcordadoSchema>,
+): Promise<ResultadoFinanceiro> {
+  const entrada = planoAcordadoSchema.safeParse(dados);
+  if (!entrada.success) {
+    return { ok: false, erro: entrada.error.issues[0]?.message };
+  }
+
+  const sessao = await exigirPermissao("financeiro", "lancar");
+
+  const aluno = await obterAlunoVisivel(sessao, entrada.data.matricula);
+  if (!aluno) return { ok: false, erro: "Aluno não encontrado." };
+
+  const referencia = getAdminDb()
+    .collection(COLECOES.planosDePagamento)
+    .doc(entrada.data.matricula);
+
+  const atual = await referencia.get();
+
+  const plano = planoDePagamentoSchema.safeParse({
+    matricula: entrada.data.matricula,
+    texto: entrada.data.texto,
+    atualizadoPorNome: sessao.nome,
+    origem: "portal",
+  });
+
+  if (!plano.success) {
+    return { ok: false, erro: plano.error.issues[0]?.message };
+  }
+
+  await gravarComAuditoria({
+    colecao: COLECOES.planosDePagamento,
+    documentoId: referencia.id,
+    antes: atual.exists ? (atual.data() as PlanoDePagamento) : null,
+    depois: plano.data,
+    autor: sessao,
+  });
+
+  revalidar(entrada.data.matricula);
+
+  return { ok: true };
 }
 
 /** Carrega a cobrança e verifica o escopo do aluno dela. */

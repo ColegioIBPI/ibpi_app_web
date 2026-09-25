@@ -19,14 +19,71 @@ import {
  *   contratados do ano, apesar do nome da tabela sugerir outra coisa.
  */
 
-export const situacaoDaCobrancaSchema = z.enum(["aberta", "paga", "vencida"]);
+export const situacaoDaCobrancaSchema = z.enum([
+  "aberta",
+  "a-confirmar",
+  "paga",
+  "vencida",
+]);
 
 export type SituacaoDaCobranca = z.infer<typeof situacaoDaCobrancaSchema>;
 
 export const ROTULOS_DE_COBRANCA: Record<SituacaoDaCobranca, string> = {
   aberta: "Em aberto",
+  "a-confirmar": "A confirmar",
   paga: "Paga",
   vencida: "Vencida",
+};
+
+/**
+ * O que a parcela cobra.
+ *
+ * É a "descrição do pagamento" do carnê. Não se confunde com
+ * `tipoDeContrato`, que descreve o que foi **contratado** no ano: a anuidade
+ * é um contrato e vira doze mensalidades, e "extras" é uma cobrança que não
+ * nasce de contrato nenhum.
+ */
+export const tipoDeCobrancaSchema = z.enum([
+  "taxa-de-matricula",
+  "taxa-de-material",
+  "mensalidade",
+  "reclassificacao",
+  "dependencia",
+  "extras",
+  "outros",
+]);
+
+export type TipoDeCobranca = z.infer<typeof tipoDeCobrancaSchema>;
+
+export const ROTULOS_DE_TIPO_DE_COBRANCA: Record<TipoDeCobranca, string> = {
+  "taxa-de-matricula": "Taxa de matrícula",
+  "taxa-de-material": "Taxa de material",
+  mensalidade: "Mensalidade",
+  reclassificacao: "Reclassificação",
+  dependencia: "Dependências",
+  extras: "Extras",
+  outros: "Outros",
+};
+
+/** Como a família pagou. Registrado na baixa, não antes dela. */
+export const formaDePagamentoSchema = z.enum([
+  "pix",
+  "dinheiro",
+  "boleto",
+  "link-de-pagamento",
+  "cartao-de-debito",
+  "cartao-de-credito",
+]);
+
+export type FormaDePagamento = z.infer<typeof formaDePagamentoSchema>;
+
+export const ROTULOS_DE_FORMA_DE_PAGAMENTO: Record<FormaDePagamento, string> = {
+  pix: "PIX",
+  dinheiro: "Dinheiro",
+  boleto: "Boleto",
+  "link-de-pagamento": "Link de pagamento",
+  "cartao-de-debito": "Cartão de débito",
+  "cartao-de-credito": "Cartão de crédito",
 };
 
 /**
@@ -41,12 +98,32 @@ export const ROTULOS_DE_COBRANCA: Record<SituacaoDaCobranca, string> = {
 export const cobrancaSchema = z.object({
   matricula: z.string().min(1),
   vencimento: dataSchema,
+  /**
+   * O que a parcela cobra.
+   *
+   * `nullish` porque as 847 parcelas migradas não trazem essa informação: o
+   * Access só guardava valor e vencimento. Tratar ausência como "mensalidade"
+   * inventaria um dado que ninguém conferiu.
+   */
+  tipo: tipoDeCobrancaSchema.nullish(),
   /** Número da parcela e total — `3/12` na origem. */
   parcela: z.number().int().positive().nullish(),
   totalDeParcelas: z.number().int().positive().nullish(),
   valor: z.number().nullable(),
   valorPago: z.number().nullable(),
   dataPagamento: dataSchema.nullish(),
+  /** Como a família pagou. Só faz sentido junto com `dataPagamento`. */
+  formaDePagamento: formaDePagamentoSchema.nullish(),
+  /**
+   * Conferência do pagamento — o dinheiro caiu mesmo.
+   *
+   * `nullish` é "não se aplica ou veio do sistema antigo", e conta como
+   * confirmado: as parcelas migradas já estavam quitadas no Access, e
+   * mostrá-las de repente como pendentes de conferência seria inventar
+   * 800 pendências que não existem. Só o `false` **explícito** — a caixa
+   * desmarcada na baixa — significa "ainda não confirmei".
+   */
+  confirmado: z.boolean().nullish(),
   /** `No Banco` e `No IBPI` do Access: por onde a cobrança foi emitida. */
   emitidaPeloBanco: z.boolean().nullish(),
   emitidaPeloColegio: z.boolean().nullish(),
@@ -100,6 +177,36 @@ export const contratoSchema = z.object({
 });
 
 export type Contrato = z.infer<typeof contratoSchema>;
+
+/**
+ * O plano de pagamento acordado no ato da matrícula.
+ *
+ * Um texto livre por aluno, escrito pela secretaria: "12x de R$ 1.923,00 no
+ * cartão, primeira em 05/02; desconto de 10% para pagamento até o dia 5".
+ *
+ * É **texto de propósito**. A negociação de uma matrícula tem condição,
+ * desconto, exceção e combinado verbal, e todo campo estruturado que se
+ * tentasse criar para isso ou não caberia no caso seguinte ou viraria um
+ * "observações" com outro nome. O carnê — que é o que o sistema precisa
+ * calcular — vive em `cobrancas`; aqui fica o que foi combinado, para quem
+ * for atender a família depois saber o que a escola prometeu.
+ *
+ * Um documento por aluno: o id é a matrícula.
+ */
+export const planoDePagamentoSchema = z.object({
+  matricula: z.string().min(1),
+  texto: z.string().trim().min(1, "Escreva o plano acordado"),
+  /**
+   * Nome de quem escreveu, para a tela não precisar resolver o `uid`.
+   * O `uid` e a data vêm de `atualizadoPor` e `atualizadoEm`, que
+   * `gravarComAuditoria` preenche sozinho.
+   */
+  atualizadoPorNome: z.string().optional(),
+  origem: origemSchema,
+  ...auditoriaDoDocumentoSchema.shape,
+});
+
+export type PlanoDePagamento = z.infer<typeof planoDePagamentoSchema>;
 
 /**
  * Trilha de auditoria.

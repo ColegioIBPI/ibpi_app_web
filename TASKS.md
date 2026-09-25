@@ -241,6 +241,11 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar o relatório de inadimplência por turma e período
 - [x] Corrigir os valores migrados que perdiam o ponto decimal (56 parcelas)
 - [x] Exportar o relatório de inadimplência em Excel/PDF
+- [x] Modelar a coleção `planosDePagamento` e a tela do plano acordado na matrícula
+- [x] Acrescentar a descrição do pagamento por parcela (matrícula, material, mensalidade, reclassificação, dependências, extras, outros)
+- [x] Acrescentar o tipo de pagamento na baixa (PIX, dinheiro, boleto, link, débito, crédito)
+- [x] Implementar o cadastro de parcela avulsa e a edição completa da parcela
+- [x] Implementar a conferência do pagamento (`confirmado`) e a situação "a confirmar"
 - [ ] Ligar o carnê gerado ao item contratado que o originou
 
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.

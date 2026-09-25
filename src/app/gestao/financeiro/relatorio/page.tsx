@@ -99,24 +99,37 @@ export default async function RelatorioDeInadimplenciaPage({
           />
         ) : (
           <table className="w-full border-collapse text-sm">
-            <caption className="sr-only">
-              Situação financeira por aluno
-            </caption>
+            <caption className="sr-only">Situação financeira por aluno</caption>
             <thead>
               <tr className="border-line border-b text-left">
-                <th scope="col" className="text-ink-muted py-2 pr-3 font-medium">
+                <th
+                  scope="col"
+                  className="text-ink-muted py-2 pr-3 font-medium"
+                >
                   Aluno
                 </th>
-                <th scope="col" className="text-ink-muted py-2 pr-3 font-medium">
+                <th
+                  scope="col"
+                  className="text-ink-muted py-2 pr-3 font-medium"
+                >
                   Turma
                 </th>
-                <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                <th
+                  scope="col"
+                  className="text-ink-muted py-2 pr-3 text-right font-medium"
+                >
                   Pago
                 </th>
-                <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                <th
+                  scope="col"
+                  className="text-ink-muted py-2 pr-3 text-right font-medium"
+                >
                   Em aberto
                 </th>
-                <th scope="col" className="text-ink-muted py-2 pr-3 text-right font-medium">
+                <th
+                  scope="col"
+                  className="text-ink-muted py-2 pr-3 text-right font-medium"
+                >
                   Vencido
                 </th>
                 <th scope="col" className="text-ink-muted py-2 font-medium">
@@ -127,7 +140,10 @@ export default async function RelatorioDeInadimplenciaPage({
             <tbody className="divide-line divide-y">
               {linhas.map((linha) => (
                 <tr key={linha.matricula}>
-                  <th scope="row" className="text-ink py-2 pr-3 text-left font-normal">
+                  <th
+                    scope="row"
+                    className="text-ink py-2 pr-3 text-left font-normal"
+                  >
                     {linha.nome}
                     <span className="text-ink-muted block text-xs">
                       {linha.matricula}

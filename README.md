@@ -324,9 +324,12 @@ Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descri�
 **Controle interno** — nenhum dinheiro passa pelo sistema, nenhum gateway integrado.
 
 - Plano de pagamento por aluno: número de parcelas, valor e vencimentos.
-- Extrato por aluno com situação de cada parcela: **em aberto**, **paga**, **vencida**.
-- Baixa manual pelo administrador: data do pagamento, valor pago, banco e número do recibo.
+- O **plano acordado na matrícula** em texto livre, por aluno — registro interno da negociação.
+- Cadastro de parcela avulsa: taxa de material, dependência, extra.
+- Extrato por aluno com situação de cada parcela: **em aberto**, **a confirmar**, **paga**, **vencida**.
+- Baixa manual pelo administrador: data do pagamento, valor pago, tipo de pagamento e número do recibo.
 - Campo de observações, como no Access.
+- Conferência do pagamento (`confirmado`), para o PIX que a família avisou e o extrato ainda não mostrou.
 - Visão do responsável: somente leitura, dos filhos vinculados.
 - Relatório de inadimplência por turma e por período.
 
@@ -335,7 +338,10 @@ Migra a tabela `Tabela_pagamento` (847 registros), com os campos `Matricula`, `V
 **Como está implementado** (detalhes e justificativas em [`docs/financeiro.md`](docs/financeiro.md)):
 
 - `/gestao/financeiro` — lista com o total vencido da escola, filtro por turma e três recortes (com parcela vencida, com saldo em aberto, todos). O padrão é a inadimplência, que é a pergunta que traz alguém a esta tela.
-- `/gestao/financeiro/[matricula]` — extrato do aluno com as parcelas, os itens contratados vindos do Access, baixa manual (data, valor, banco, recibo) e geração de carnê.
+- `/gestao/financeiro/[matricula]` — o plano acordado na matrícula, o extrato do aluno com as parcelas, os itens contratados vindos do Access, cadastro de parcela avulsa, baixa manual (data, valor, tipo de pagamento, recibo, conferência) e geração de carnê.
+- **Descrição do pagamento** por parcela: taxa de matrícula, taxa de material, mensalidade, reclassificação, dependências, extras, outros. **Tipo de pagamento** na baixa: PIX, dinheiro, boleto, link de pagamento, cartão de débito, cartão de crédito. Nas 847 parcelas migradas os dois são ausentes — o Access não os guardava, e preencher um padrão inventaria dado que ninguém conferiu.
+- **O plano acordado é interno:** a família não lê. Texto escrito pela secretaria para a equipe não é texto escrito para a família; a regra nega e o extrato do Portal nem carrega o documento.
+- **"A confirmar" não é dívida:** o total aparece como recorte do pago, nunca somado ao em aberto — a família pagou, o que falta é a conferência.
 - `/portal/financeiro` — o responsável vê o extrato dos filhos, somente leitura. O aluno não vê financeiro.
 - **A situação da parcela não é gravada:** "vencida" é uma conclusão sobre hoje, e uma parcela salva como "em aberto" em abril continuaria assim em dezembro. O banco guarda vencimento e pagamento; a situação é concluída a cada leitura.
 - A divisão do plano é feita em centavos e a sobra vai na última parcela, para o carnê fechar com o valor contratado.
@@ -458,7 +464,8 @@ Modelagem inicial, compartilhada com o app MyIBPI:
 | `ocorrencias`      | aluno, data, tipo, descrição, autor                   | id gerado              |
 | `notas`            | aluno × disciplina × trimestre → projeto, tarefas, av | id gerado              |
 | `boletins`         | consolidado por aluno × ano letivo                    | id gerado              |
-| `cobrancas`        | aluno, parcela, vencimento, valor, situação, baixa    | id gerado              |
+| `cobrancas`        | aluno, parcela, vencimento, valor, tipo, baixa        | id gerado              |
+| `planosDePagamento`| o acordado na matrícula, em texto livre               | `matricula`            |
 | `avisos`           | comunicado + destino e chave de alcance               | id gerado              |
 | `informacoes`      | card com texto + destino, chave de alcance e ordem    | id gerado              |
 | `auditoria`        | quem alterou o quê, quando, valor antes e depois      | id gerado              |

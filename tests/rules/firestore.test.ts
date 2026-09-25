@@ -187,6 +187,10 @@ beforeEach(async () => {
       chave: "todos",
       ativo: false,
     });
+    await setDoc(doc(db, `planosDePagamento/${FILHO}`), {
+      matricula: FILHO,
+      texto: "12x de R$ 1.923,00, vencendo todo dia 5.",
+    });
     await setDoc(doc(db, "informacoes/calendario"), {
       titulo: "Calendário escolar",
       tipo: "calendario-escolar",
@@ -455,6 +459,40 @@ describe("avisos", () => {
     const { secretaria } = contextos();
     await assertFails(
       setDoc(doc(secretaria.firestore(), "avisos/novo"), { titulo: "x" }),
+    );
+  });
+});
+
+describe("plano de pagamento acordado", () => {
+  it("quem cuida do financeiro e da secretaria lê", async () => {
+    const { financeiro, secretaria, coordenacao } = contextos();
+
+    for (const contexto of [financeiro, secretaria, coordenacao]) {
+      await assertSucceeds(ler(contexto, `planosDePagamento/${FILHO}`));
+    }
+  });
+
+  it("a família não lê o plano do próprio filho", async () => {
+    // É o registro interno da negociação — condição, desconto, exceção —,
+    // escrito pela secretaria para a equipe. O que a família precisa ver do
+    // seu financeiro está em `cobrancas`, parcela a parcela.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, `planosDePagamento/${FILHO}`));
+    await assertFails(ler(aluno, `planosDePagamento/${FILHO}`));
+  });
+
+  it("professor não lê plano de pagamento", async () => {
+    const { professor } = contextos();
+    await assertFails(ler(professor, `planosDePagamento/${FILHO}`));
+  });
+
+  it("ninguém escreve pelo cliente", async () => {
+    const { financeiro } = contextos();
+    await assertFails(
+      setDoc(doc(financeiro.firestore(), `planosDePagamento/${FILHO}`), {
+        texto: "x",
+      }),
     );
   });
 });
