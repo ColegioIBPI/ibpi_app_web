@@ -83,7 +83,7 @@ export default async function ExtratoDoAlunoPage({
 
       <Card
         title="Plano de pagamento acordado"
-        description="O que foi combinado no ato da matrícula. Registro interno, não aparece para a família."
+        description="O que foi combinado no ato da matrícula. O responsável lê este texto no Portal."
       >
         <PlanoAcordado
           matricula={extrato.matricula}

@@ -86,6 +86,19 @@ export default async function FinanceiroDoPortalPage() {
               </div>
             </dl>
 
+            {extrato.planoAcordado && (
+              <div className="border-line bg-surface-subtle mb-4 rounded-md border p-3">
+                <h3 className="text-ink text-sm font-medium">
+                  Plano de pagamento acordado
+                </h3>
+                {/* `whitespace-pre-wrap`: o que a secretaria escreveu em
+                    linhas separadas continua em linhas separadas. */}
+                <p className="text-ink mt-1 text-sm whitespace-pre-wrap">
+                  {extrato.planoAcordado.texto}
+                </p>
+              </div>
+            )}
+
             <Extrato
               matricula={extrato.matricula}
               cobrancas={extrato.cobrancas}

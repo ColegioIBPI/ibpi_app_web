@@ -7,7 +7,6 @@ import {
   type PlanoDePagamento,
   type SituacaoDaCobranca,
 } from "@/core/modelo";
-import { isEquipe } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
@@ -61,16 +60,17 @@ export async function extratoDoAluno(
 
   const db = getAdminDb();
 
-  // O plano acordado é registro interno: a secretaria escreve nele a
-  // condição negociada, e um texto livre escrito para a equipe não é um
-  // texto escrito para a família ler. O extrato do Portal da família sai
-  // sem ele.
-  const interno = isEquipe(sessao.role);
+  // O responsável lê o plano do próprio filho — é a condição que ele
+  // negociou. O aluno não, pela mesma razão que não vê o resto do
+  // financeiro: mensalidade é assunto de quem paga. Ele não chega a esta
+  // função (não tem permissão no recurso), e a exclusão fica explícita aqui
+  // para o dia em que a matriz mudar.
+  const vePlano = sessao.role !== "aluno";
 
   const [cobrancasDocs, contratosDocs, planoDoc] = await Promise.all([
     db.collection(COLECOES.cobrancas).where("matricula", "==", matricula).get(),
     db.collection(COLECOES.contratos).where("matricula", "==", matricula).get(),
-    interno
+    vePlano
       ? db.collection(COLECOES.planosDePagamento).doc(matricula).get()
       : null,
   ]);

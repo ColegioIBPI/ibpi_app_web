@@ -121,11 +121,17 @@ ou não caberia no caso seguinte ou viraria um "observações" com outro nome. O
 carnê — que é o que o sistema precisa calcular — vive em `cobrancas`; aqui
 fica o que a escola prometeu, para quem atender a família depois saber.
 
-**A família não lê.** É registro interno, escrito pela secretaria para a
-equipe, e texto escrito para a equipe não é texto escrito para a família. A
-Security Rule nega, e o extrato do Portal da família sai sem o campo — não
-depende de a tela lembrar de escondê-lo. O que a família precisa ver do seu
-financeiro está em `cobrancas`, parcela a parcela.
+**O responsável lê o do próprio filho**, no Portal e no aplicativo. É a
+condição que ele negociou, e não saber o que foi combinado é justamente o que
+gera a ligação para a secretaria.
+
+Duas consequências disso:
+
+- **O aluno não lê**, pela mesma razão que não vê o resto do financeiro:
+  mensalidade é assunto de quem paga.
+- **Não é lugar de recado interno.** O campo é a condição acordada, não
+  anotação sobre a família. O formulário avisa isso a quem escreve, porque a
+  pessoa que digita precisa saber quem vai ler.
 
 Um documento por aluno, com a matrícula como id: o plano é do aluno, não um
 registro que se acumula. O histórico de quem mudou a condição fica na

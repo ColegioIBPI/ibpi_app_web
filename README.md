@@ -324,7 +324,7 @@ Registro vinculado ao aluno, com data, tipo (disciplinar ou acadêmica), descri�
 **Controle interno** — nenhum dinheiro passa pelo sistema, nenhum gateway integrado.
 
 - Plano de pagamento por aluno: número de parcelas, valor e vencimentos.
-- O **plano acordado na matrícula** em texto livre, por aluno — registro interno da negociação.
+- O **plano acordado na matrícula** em texto livre, por aluno, visível para o responsável.
 - Cadastro de parcela avulsa: taxa de material, dependência, extra.
 - Extrato por aluno com situação de cada parcela: **em aberto**, **a confirmar**, **paga**, **vencida**.
 - Baixa manual pelo administrador: data do pagamento, valor pago, tipo de pagamento e número do recibo.
@@ -340,7 +340,7 @@ Migra a tabela `Tabela_pagamento` (847 registros), com os campos `Matricula`, `V
 - `/gestao/financeiro` — lista com o total vencido da escola, filtro por turma e três recortes (com parcela vencida, com saldo em aberto, todos). O padrão é a inadimplência, que é a pergunta que traz alguém a esta tela.
 - `/gestao/financeiro/[matricula]` — o plano acordado na matrícula, o extrato do aluno com as parcelas, os itens contratados vindos do Access, cadastro de parcela avulsa, baixa manual (data, valor, tipo de pagamento, recibo, conferência) e geração de carnê.
 - **Descrição do pagamento** por parcela: taxa de matrícula, taxa de material, mensalidade, reclassificação, dependências, extras, outros. **Tipo de pagamento** na baixa: PIX, dinheiro, boleto, link de pagamento, cartão de débito, cartão de crédito. Nas 847 parcelas migradas os dois são ausentes — o Access não os guardava, e preencher um padrão inventaria dado que ninguém conferiu.
-- **O plano acordado é interno:** a família não lê. Texto escrito pela secretaria para a equipe não é texto escrito para a família; a regra nega e o extrato do Portal nem carrega o documento.
+- **O responsável lê o plano acordado do próprio filho**, no Portal e no aplicativo: é a condição que ele negociou, e não saber o que foi combinado é o que gera a ligação para a secretaria. O aluno não lê, como no resto do financeiro. O formulário avisa quem escreve que a família lê — o campo é a condição acordada, não recado interno sobre a família.
 - **"A confirmar" não é dívida:** o total aparece como recorte do pago, nunca somado ao em aberto — a família pagou, o que falta é a conferência.
 - `/portal/financeiro` — o responsável vê o extrato dos filhos, somente leitura. O aluno não vê financeiro.
 - **A situação da parcela não é gravada:** "vencida" é uma conclusão sobre hoje, e uma parcela salva como "em aberto" em abril continuaria assim em dezembro. O banco guarda vencimento e pagamento; a situação é concluída a cada leitura.

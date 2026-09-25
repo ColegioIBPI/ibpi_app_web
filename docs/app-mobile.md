@@ -462,9 +462,32 @@ preenchido. Mostre o saldo, não uma situação própria.
 > O **aluno não vê financeiro** — mensalidade é assunto de quem paga. As
 > regras barram; a aba não deve aparecer para esse perfil.
 
-> A coleção `planosDePagamento` existe e o app **não deve lê-la**: é o
-> registro interno da negociação de matrícula, escrito pela secretaria para a
-> equipe. A regra nega para a família.
+### O plano acordado
+
+```
+planosDePagamento/{matricula} = {
+  matricula: string,
+  texto: string,                 // várias linhas; respeite as quebras
+  atualizadoPorNome: string,
+  atualizadoEm: string
+}
+```
+
+O que foi combinado no ato da matrícula, em texto livre: "anuidade de
+R$ 23.076,00 em 12x de R$ 1.923,00 vencendo todo dia 5; desconto de 10% para
+pagamento até o vencimento".
+
+**O responsável lê o do próprio filho**, e o id do documento é a matrícula —
+uma leitura direta, sem consulta:
+
+```kotlin
+db.collection("planosDePagamento").document(matricula).get()
+```
+
+- **O aluno não lê**, como no resto do financeiro. A regra nega.
+- **Pode não existir.** Aluno sem plano escrito ainda não tem o documento;
+  trate a ausência como "nada registrado", não como erro.
+- **Respeite as quebras de linha**, como nas informações úteis.
 
 ---
 
@@ -520,7 +543,7 @@ teste.
 | Aba              | Situação                                             |
 | ---------------- | ---------------------------------------------------- |
 | Frequência       | ✅ livre                                             |
-| Financeiro       | ✅ livre                                             |
+| Financeiro       | ✅ livre — inclui o plano acordado; ver seção 8      |
 | Boletim          | ✅ livre — regras definidas nesta página, seção 4    |
 | Ocorrências      | ✅ livre — sem campo de natureza; ver seção 2        |
 | Avisos           | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`  |

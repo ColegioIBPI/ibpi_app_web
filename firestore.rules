@@ -193,13 +193,17 @@ service cloud.firestore {
 
     // O plano acordado na matrícula, em texto livre.
     //
-    // A família **não lê**, e é de propósito: é o registro interno da
-    // negociação — condição, desconto, exceção —, escrito pela secretaria
-    // para a equipe. Texto escrito para a equipe não é texto escrito para a
-    // família. O que a família precisa ver do seu financeiro está em
-    // `cobrancas`, parcela a parcela.
+    // O responsável lê o do próprio filho: é a condição que ele negociou, e
+    // não saber o que foi combinado é justamente o que gera a ligação para a
+    // secretaria. O **aluno não**, pela mesma razão que não vê o resto do
+    // financeiro — mensalidade é assunto de quem paga.
+    //
+    // O id do documento é a matrícula, e a regra usa ele: assim o acesso não
+    // depende de um campo dentro do documento estar preenchido.
     match /planosDePagamento/{matricula} {
-      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow read: if secretariaOuCoordenacao()
+                  || temPerfil(['financeiro'])
+                  || ehFilho(matricula);
       allow write: if false;
     }
 

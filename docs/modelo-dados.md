@@ -145,10 +145,10 @@ O que foi acordado no ato da matrícula, em texto livre. Um documento por
 aluno — o id é a matrícula, porque o plano é do aluno e não um registro que
 se acumula; o histórico do que mudou fica na auditoria.
 
-**A família não lê.** É o registro interno da negociação, escrito pela
-secretaria para a equipe. A Security Rule nega, e o extrato do Portal da
-família nem carrega o documento — não depende de a tela lembrar de
-escondê-lo.
+**O responsável lê o do próprio filho** — é a condição que ele negociou. A
+regra usa o **id** do documento (`ehFilho(matricula)`), e não um campo dentro
+dele: assim o acesso não depende de `matricula` estar preenchido no
+documento. O **aluno não lê**, como no resto do financeiro.
 
 ---
 

@@ -472,13 +472,21 @@ describe("plano de pagamento acordado", () => {
     }
   });
 
-  it("a família não lê o plano do próprio filho", async () => {
-    // É o registro interno da negociação — condição, desconto, exceção —,
-    // escrito pela secretaria para a equipe. O que a família precisa ver do
-    // seu financeiro está em `cobrancas`, parcela a parcela.
-    const { responsavel, aluno } = contextos();
+  it("o responsável lê o plano do próprio filho", async () => {
+    // É a condição que ele negociou: não saber o que foi combinado é
+    // justamente o que gera a ligação para a secretaria.
+    const { responsavel } = contextos();
+    await assertSucceeds(ler(responsavel, `planosDePagamento/${FILHO}`));
+  });
 
-    await assertFails(ler(responsavel, `planosDePagamento/${FILHO}`));
+  it("o responsável não lê o plano de outra família", async () => {
+    const { outroResponsavel } = contextos();
+    await assertFails(ler(outroResponsavel, `planosDePagamento/${FILHO}`));
+  });
+
+  it("o aluno não lê plano de pagamento", async () => {
+    // Mesma razão do resto do financeiro: mensalidade é assunto de quem paga.
+    const { aluno } = contextos();
     await assertFails(ler(aluno, `planosDePagamento/${FILHO}`));
   });
 

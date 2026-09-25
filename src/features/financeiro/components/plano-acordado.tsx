@@ -15,8 +15,11 @@ import type { PlanoDePagamento } from "@/core/modelo";
  * Texto livre de propósito: negociação de matrícula tem desconto, condição e
  * combinado que nenhum campo estruturado acomoda sem virar um "observações"
  * com outro nome. O carnê, que é o que o sistema calcula, está nas parcelas;
- * aqui fica o que a escola prometeu, para quem atender a família depois
- * saber o que foi combinado.
+ * aqui fica o que a escola prometeu.
+ *
+ * **O responsável lê este texto no Portal**, e o formulário avisa: o que se
+ * escreve aqui é a condição que a família negociou, não recado interno sobre
+ * ela.
  */
 export function PlanoAcordado({
   matricula,
@@ -92,7 +95,7 @@ export function PlanoAcordado({
           "Desconto de 10% para pagamento até o vencimento.\n" +
           "Taxa de material paga à vista na matrícula."
         }
-        hint="Registro interno: não aparece para a família no Portal nem no aplicativo."
+        hint="O responsável lê este texto no Portal e no aplicativo. Escreva o que foi combinado com a família, não recado interno sobre ela."
         value={texto}
         onChange={(evento) => setTexto(evento.target.value)}
       />
