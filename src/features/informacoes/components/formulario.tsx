@@ -12,7 +12,7 @@ import {
 } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
-import { SelectField, TextField } from "@/core/ui/field";
+import { SelectField, TextAreaField, TextField } from "@/core/ui/field";
 import {
   montarDestino,
   opcoesDoTipo,
@@ -61,6 +61,7 @@ export function FormularioDeInformacao({
     informacao?.titulo ?? ROTULOS_DE_INFORMACAO["calendario-escolar"],
   );
   const [descricao, setDescricao] = useState(informacao?.descricao ?? "");
+  const [conteudo, setConteudo] = useState(informacao?.conteudo ?? "");
   const [url, setUrl] = useState(informacao?.url ?? "");
   const [ordem, setOrdem] = useState(String(informacao?.ordem ?? 0));
 
@@ -105,7 +106,8 @@ export function FormularioDeInformacao({
         tipo,
         titulo,
         descricao: descricao.trim() || null,
-        url,
+        conteudo,
+        url: url.trim() || null,
         destino: montado,
         ordem: Number(ordem) || 0,
       });
@@ -156,22 +158,33 @@ export function FormularioDeInformacao({
 
           <div className="sm:col-span-2">
             <TextField
-              label="Endereço do material"
-              type="url"
-              inputMode="url"
-              placeholder="https://..."
-              hint="O card abre este endereço. O Portal não guarda o arquivo."
-              value={url}
-              onChange={(evento) => setUrl(evento.target.value)}
+              label="Descrição"
+              hint="Uma linha, opcional, abaixo do título no card."
+              value={descricao}
+              onChange={(evento) => setDescricao(evento.target.value)}
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <TextAreaField
+              label="Texto"
+              required
+              rows={12}
+              hint="É isto que a família lê ao abrir o card, no Portal e no aplicativo."
+              value={conteudo}
+              onChange={(evento) => setConteudo(evento.target.value)}
             />
           </div>
 
           <div className="sm:col-span-2">
             <TextField
-              label="Descrição"
-              hint="Uma linha, opcional, abaixo do título."
-              value={descricao}
-              onChange={(evento) => setDescricao(evento.target.value)}
+              label="Link complementar"
+              type="url"
+              inputMode="url"
+              placeholder="https://..."
+              hint="Opcional, para quando há um material à parte — um calendário em PDF, por exemplo."
+              value={url}
+              onChange={(evento) => setUrl(evento.target.value)}
             />
           </div>
 

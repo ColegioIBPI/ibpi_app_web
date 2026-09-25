@@ -8,7 +8,7 @@ import {
 import { destinoSchema, type Destino } from "@/core/modelo/aviso";
 
 /**
- * Informações úteis — os cards com link da aba do app.
+ * Informações úteis — os cards da aba do app.
  *
  * Horário das aulas, calendário escolar, critérios de avaliação, proposta
  * pedagógica, dependências, eletivas, tutoria.
@@ -74,10 +74,21 @@ export const informacaoSchema = z.object({
   descricao: textoOpcional,
 
   /**
-   * Endereço do material.
+   * O texto que a família lê.
    *
-   * Só `http` e `https`: o card abre num navegador, e um `javascript:` aqui
-   * viraria execução de código na mão de quem publica.
+   * É o conteúdo em si, não um ponteiro para ele: o colégio escreve o
+   * horário e o critério de avaliação aqui, e o app mostra na tela. Assim a
+   * informação chega sem depender de o arquivo continuar no ar, sem tirar a
+   * pessoa do aplicativo e sem exigir leitor de PDF no celular.
+   */
+  conteudo: z.string().trim().min(1, "Escreva o texto da informação"),
+
+  /**
+   * Link complementar, quando existe um material à parte — um calendário em
+   * PDF, por exemplo. Opcional: o texto acima já se basta.
+   *
+   * Só `http` e `https`: o link abre num navegador, e um `javascript:` aqui
+   * viraria execução de código na tela da família.
    */
   url: z
     .string()
@@ -86,7 +97,9 @@ export const informacaoSchema = z.object({
     .refine(
       (valor) => valor.startsWith("https://") || valor.startsWith("http://"),
       "O endereço precisa começar com https://",
-    ),
+    )
+    .nullable()
+    .default(null),
 
   destino: destinoSchema,
   /** Derivada do destino; a mesma `chaveDoDestino` dos avisos. */

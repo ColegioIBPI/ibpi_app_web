@@ -326,11 +326,16 @@ equivalente; hoje não existe.
 
 ---
 
-## 7. Informações úteis — os cards com link
+## 7. Informações úteis — os cards da aba
 
 A aba de cards: horário das aulas, calendário de avaliação, calendário
 escolar, critérios de avaliação, proposta pedagógica, dependências, eletivas,
 tutoria.
+
+**O conteúdo é texto, dentro do documento** — não um link para um arquivo
+fora. O colégio escreve a informação no Portal e o app mostra na tela: a
+informação chega sem depender de o arquivo continuar no ar, sem tirar a
+família do aplicativo e sem exigir leitor de PDF no celular.
 
 ```
 informacoes/{id} = {
@@ -338,8 +343,9 @@ informacoes/{id} = {
       | "criterios-de-avaliacao" | "proposta-pedagogica" | "dependencias"
       | "eletivas" | "tutoria" | "outros",
   titulo: string,
-  descricao: string | null,
-  url: string,                   // http/https; o card abre no navegador
+  descricao: string | null,      // uma linha, sob o título no card
+  conteudo: string,              // o texto da tela; pode ter várias linhas
+  url: string | null,            // link complementar, opcional; http/https
   destino: { ... },              // o mesmo do aviso
   chave: string,                 // derivada do destino
   ordem: number,                 // menor aparece primeiro
@@ -368,17 +374,23 @@ alcance, porque o formulário permite.
 
 **Para o app:**
 
+- **A lista mostra `titulo` + `descricao`; o card aberto mostra `conteudo`.**
+  Não é preciso buscar nada a mais: o texto já vem no mesmo documento.
+- **Respeite as quebras de linha de `conteudo`.** A secretaria digita em
+  linhas, e um horário de aulas colapsado num parágrafo só fica ilegível. No
+  Portal é `whitespace-pre-wrap`; no Android, nada de `singleLine`.
 - **Ordene por `ordem`, e por `titulo` no empate.** O Firestore não promete
   ordem estável, e sem o desempate os cards trocariam de lugar entre uma
   abertura e outra.
-- **`url` é um link externo.** Abra no navegador; o Portal não hospeda o
-  arquivo, aponta para onde ele já está (Drive, site do colégio).
+- **`url` é opcional e complementar.** Quando vier preenchido, ofereça um
+  botão "abrir o material completo" no navegador — nunca como o único
+  caminho, porque o texto é o conteúdo e o link pode não existir.
 - **`tipo` escolhe o ícone.** Trate um tipo desconhecido com um ícone
   genérico em vez de esconder o card — a lista pode crescer.
 
 Verificado com o SDK cliente, entrando como responsável de teste: lê o card
-para todos e o da turma do filho; não lê a tutoria de outro aluno nem o card
-fora do ar.
+para todos e o da turma do filho, com o texto completo; não lê a tutoria de
+outro aluno nem o card fora do ar.
 
 ---
 
@@ -486,6 +498,6 @@ teste.
 | Boletim          | ✅ livre — regras definidas nesta página, seção 4    |
 | Ocorrências      | ✅ livre — sem campo de natureza; ver seção 2        |
 | Avisos           | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`  |
-| Informações úteis| ✅ livre — mesmo alcance dos avisos; ver seção 7     |
+| Informações úteis| ✅ livre — texto no documento; ver seção 7           |
 | Anexos           | ⚠️ sem caminho de leitura para o app                 |
 | Senha            | ✅ livre — SDK do Firebase, sem endpoint nosso       |

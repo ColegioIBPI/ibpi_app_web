@@ -401,9 +401,15 @@ precisa poder mostrar depois.
 
 ### 5.9b Informações úteis
 
-Os cards com link da aba do app: horário das aulas, calendário de avaliação,
+Os cards da aba do app: horário das aulas, calendário de avaliação,
 calendário escolar, critérios de avaliação, proposta pedagógica, dependências,
 eletivas, tutoria.
+
+**O conteúdo é texto, escrito no Portal.** A secretaria digita a informação e
+ela aparece na tela da família — no Portal e no aplicativo. Guardar o texto,
+em vez de um link para um arquivo, é o que faz a informação chegar sem
+depender de o arquivo continuar no ar, sem tirar a família do aplicativo e
+sem exigir leitor de PDF no celular.
 
 **O alcance é o mesmo dos avisos** — a tabela de destinos de 5.9 vale aqui
 sem mudança. O colégio pensa "para quem isto vale" de um jeito só, e um
@@ -422,11 +428,12 @@ Cada tipo tem um alcance **usual**, que o formulário sugere e não impõe:
 | Tutoria                                     | Aluno         |
 
 A diferença para o aviso é o tempo: **aviso é do dia, informação fica**. Por
-isso o card tem `ordem` — a secretaria decide a posição na tela — e não tem
-anexo: `url` aponta para onde o material já está (Drive, site do colégio), e
-o Portal não hospeda arquivo que ele não precisa hospedar. Só `http` e
-`https` são aceitos; um `javascript:` ali viraria execução de código na tela
-da família.
+isso o card tem `ordem` — a secretaria decide a posição na tela.
+
+Há ainda um **link complementar opcional**, para quando existe um material à
+parte (um calendário em PDF, por exemplo). Ele nunca é o único caminho: o
+texto já se basta. Só `http` e `https` são aceitos; um `javascript:` ali
+viraria execução de código na tela da família.
 
 **Quem publica:** secretaria e coordenação. É material institucional — quem
 tem permissão de *publicar aviso* (professor, financeiro) não publica
@@ -453,7 +460,7 @@ Modelagem inicial, compartilhada com o app MyIBPI:
 | `boletins`         | consolidado por aluno × ano letivo                    | id gerado              |
 | `cobrancas`        | aluno, parcela, vencimento, valor, situação, baixa    | id gerado              |
 | `avisos`           | comunicado + destino e chave de alcance               | id gerado              |
-| `informacoes`      | card com link + destino, chave de alcance e ordem     | id gerado              |
+| `informacoes`      | card com texto + destino, chave de alcance e ordem    | id gerado              |
 | `auditoria`        | quem alterou o quê, quando, valor antes e depois      | id gerado              |
 
 > ⚠️ A definir na FASE 3: se as subcoleções (ex.: `alunos/{id}/notas`) rendem consultas melhores que coleções raiz para os relatórios de turma. A decisão sai da primeira modelagem com dados reais migrados.

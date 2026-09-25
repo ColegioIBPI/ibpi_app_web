@@ -35,7 +35,14 @@ const formularioSchema = z.object({
   tipo: tipoDeInformacaoSchema,
   titulo: z.string().trim().min(3, "Informe um título"),
   descricao: z.string().trim().nullable().default(null),
-  url: z.string().trim().min(1, "Informe o endereço do material"),
+  conteudo: z.string().trim().min(1, "Escreva o texto da informação"),
+  // Campo vazio no formulário é "sem link", não um endereço inválido.
+  url: z
+    .string()
+    .trim()
+    .transform((valor) => valor || null)
+    .nullable()
+    .default(null),
   destino: destinoSchema,
   ordem: z.number().int().default(0),
 });
@@ -64,6 +71,7 @@ export async function salvarInformacao(
     tipo: entrada.data.tipo,
     titulo: entrada.data.titulo,
     descricao: entrada.data.descricao,
+    conteudo: entrada.data.conteudo,
     url: entrada.data.url,
     destino: entrada.data.destino,
     chave: chaveDoDestino(entrada.data.destino),

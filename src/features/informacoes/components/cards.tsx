@@ -2,15 +2,16 @@ import {
   BookMarked,
   CalendarDays,
   CalendarRange,
+  ChevronRight,
   ClipboardCheck,
   Clock,
-  ExternalLink,
   FileText,
   RefreshCcw,
   Sparkles,
   UserRoundCheck,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 import { cn } from "@/core/lib/cn";
 import { ROTULOS_DE_INFORMACAO, type TipoDeInformacao } from "@/core/modelo";
@@ -19,9 +20,12 @@ import type { InformacaoComId } from "@/features/informacoes/services/informacoe
 /**
  * Os cards de informações úteis.
  *
- * Cada card é um **link** para o material — o Portal não hospeda o
- * documento, aponta para onde ele já está. O ícone vem do tipo, que é o que
- * permite a família reconhecer o card sem ler o título inteiro.
+ * O card abre o texto **dentro** do Portal, e não um arquivo em outro lugar:
+ * é a informação em si que o colégio escreve, e ela chega sem depender de um
+ * link continuar no ar nem de a família ter leitor de PDF no celular.
+ *
+ * O ícone vem do tipo, que é o que permite reconhecer o card sem ler o
+ * título inteiro.
  */
 
 const ICONES: Record<TipoDeInformacao, LucideIcon> = {
@@ -36,6 +40,19 @@ const ICONES: Record<TipoDeInformacao, LucideIcon> = {
   outros: FileText,
 };
 
+/** O ícone do tipo. Tipo desconhecido cai no genérico, não some da tela. */
+export function IconeDaInformacao({
+  tipo,
+  className,
+}: {
+  tipo: TipoDeInformacao;
+  className?: string;
+}) {
+  const Icone = ICONES[tipo] ?? FileText;
+
+  return <Icone className={className} aria-hidden />;
+}
+
 export function CardsDeInformacao({
   informacoes,
 }: {
@@ -44,24 +61,21 @@ export function CardsDeInformacao({
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {informacoes.map((informacao) => {
-        const Icone = ICONES[informacao.tipo] ?? FileText;
-
         return (
           <li key={informacao.id}>
-            <a
-              href={informacao.url}
-              target="_blank"
-              // `noopener` impede a página aberta de mexer nesta; `noreferrer`
-              // evita contar de onde a família veio.
-              rel="noopener noreferrer"
+            <Link
+              href={`/portal/informacoes/${informacao.id}`}
               className={cn(
                 "rounded-card border-line bg-surface hover:bg-surface-subtle",
                 "flex h-full flex-col gap-2 border p-4",
               )}
             >
               <span className="flex items-start justify-between gap-2">
-                <Icone className="text-brand-600 size-5 shrink-0" aria-hidden />
-                <ExternalLink
+                <IconeDaInformacao
+                  tipo={informacao.tipo}
+                  className="text-brand-600 size-5 shrink-0"
+                />
+                <ChevronRight
                   className="text-ink-muted size-4 shrink-0"
                   aria-hidden
                 />
@@ -78,7 +92,7 @@ export function CardsDeInformacao({
               <span className="text-ink-muted mt-auto pt-1 text-xs">
                 {ROTULOS_DE_INFORMACAO[informacao.tipo]}
               </span>
-            </a>
+            </Link>
           </li>
         );
       })}

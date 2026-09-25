@@ -4,6 +4,7 @@ import {
   useId,
   type InputHTMLAttributes,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from "react";
 
 import { cn } from "@/core/lib/cn";
@@ -90,6 +91,59 @@ export function TextField({
         }
         required={required}
         className={cn(controlClasses, className)}
+        {...props}
+      />
+    </FieldShell>
+  );
+}
+
+export interface TextAreaFieldProps extends Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "id"
+> {
+  label: string;
+  error?: string;
+  hint?: string;
+}
+
+/**
+ * Campo de texto longo.
+ *
+ * Mesma moldura do `TextField` — rótulo, dica e erro no mesmo lugar —,
+ * porque um texto de várias linhas não deixa de precisar das três coisas.
+ */
+export function TextAreaField({
+  label,
+  error,
+  hint,
+  className,
+  required,
+  rows = 6,
+  ...props
+}: TextAreaFieldProps) {
+  const id = useId();
+
+  return (
+    <FieldShell
+      id={id}
+      label={label}
+      error={error}
+      hint={hint}
+      required={required}
+    >
+      <textarea
+        id={id}
+        rows={rows}
+        aria-invalid={Boolean(error)}
+        aria-describedby={
+          error ? `${id}-error` : hint ? `${id}-hint` : undefined
+        }
+        required={required}
+        className={cn(
+          "border-line bg-surface text-ink placeholder:text-ink-muted",
+          "aria-[invalid=true]:border-danger w-full rounded-md border px-3 py-2 text-sm",
+          className,
+        )}
         {...props}
       />
     </FieldShell>

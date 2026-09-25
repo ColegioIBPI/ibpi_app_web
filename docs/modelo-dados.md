@@ -246,11 +246,17 @@ direto no Firestore.
 **Informação útil** — o material que fica: horário das aulas, calendário
 escolar, critérios de avaliação, proposta pedagógica, dependências, eletivas,
 tutoria.
-`tipo` · `titulo` · `descricao` · `url` · `destino` · `chave` · `ordem` ·
-`ativo` · `publicadoPorUid` · `publicadoPorNome` · `publicadoEm`
+`tipo` · `titulo` · `descricao` · `conteudo` · `url` · `destino` · `chave` ·
+`ordem` · `ativo` · `publicadoPorUid` · `publicadoPorNome` · `publicadoEm`
 
-`url` é http/https e aponta para onde o material já está — o Portal não
-hospeda o arquivo. `ordem` define a posição do card, com o título
+`conteudo` é **o texto que a família lê**, guardado no próprio documento: o
+colégio escreve a informação e ela chega sem depender de um arquivo continuar
+no ar e sem exigir leitor de PDF no celular. As quebras de linha são
+significativas — um horário de aulas colapsado em um parágrafo fica
+ilegível.
+
+`url` é um link complementar opcional (http/https), para quando existe um
+material à parte. `ordem` define a posição do card, com o título
 desempatando.
 
 **As duas usam o mesmo alcance.** `destino` é `{ tipo: "todos" | "segmento" |

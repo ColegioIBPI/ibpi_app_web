@@ -3,7 +3,9 @@ import "server-only";
 import { COLECOES, type Informacao } from "@/core/modelo";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
+import { isEquipe } from "@/core/auth/roles";
 import {
+  avisoEhPara,
   chavesDoDestinatario,
   lotesDeChaves,
 } from "@/features/avisos/domain/destinatarios";
@@ -68,4 +70,25 @@ export async function obterInformacao(
   const doc = await getAdminDb().collection(COLECOES.informacoes).doc(id).get();
 
   return doc.exists ? { id: doc.id, ...(doc.data() as Informacao) } : null;
+}
+
+/**
+ * O card, se ele alcança quem está pedindo.
+ *
+ * `null` tanto para "não existe" quanto para "não é para você" — quem chama
+ * responde 404 nos dois casos. Um 403 confirmaria que a tutoria daquele
+ * aluno existe, que é justamente o que não se deve contar.
+ */
+export async function obterInformacaoVisivel(
+  sessao: SessionUser,
+  id: string,
+): Promise<InformacaoComId | null> {
+  const informacao = await obterInformacao(id);
+  if (!informacao) return null;
+
+  if (isEquipe(sessao.role)) return informacao;
+  if (!informacao.ativo) return null;
+
+  const contexto = await contextoDaSessao(sessao);
+  return avisoEhPara(informacao.chave, contexto) ? informacao : null;
 }

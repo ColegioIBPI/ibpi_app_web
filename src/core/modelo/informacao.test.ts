@@ -11,7 +11,7 @@ import {
 const base = {
   tipo: "calendario-escolar" as const,
   titulo: "Calendário escolar 2026",
-  url: "https://colegioibpi.com.br/calendario.pdf",
+  conteudo: "Início das aulas: 3 de fevereiro.\nRecesso: 6 a 10 de julho.",
   destino: { tipo: "todos" as const },
   chave: "todos",
   publicadoPorUid: "uid-secretaria",
@@ -20,17 +20,39 @@ const base = {
 };
 
 describe("informacaoSchema", () => {
-  it("aceita uma publicação completa", () => {
+  it("aceita uma publicação só com texto, sem link", () => {
+    // O caso normal: o colégio escreve a informação, e ela chega sem
+    // depender de um arquivo em outro lugar.
     const resultado = informacaoSchema.safeParse(base);
 
     expect(resultado.success).toBe(true);
+    expect(resultado.data?.url).toBeNull();
     expect(resultado.data?.ativo).toBe(true);
     expect(resultado.data?.ordem).toBe(0);
   });
 
-  it("recusa endereço que não é http nem https", () => {
-    // O card abre o endereço no navegador: um `javascript:` aqui viraria
-    // execução de código na tela da família.
+  it("preserva as quebras de linha do texto", () => {
+    // A secretaria digita em linhas; a tela mostra em linhas.
+    const resultado = informacaoSchema.safeParse(base);
+
+    expect(resultado.data?.conteudo).toContain("\n");
+  });
+
+  it("aceita um link complementar", () => {
+    const resultado = informacaoSchema.safeParse({
+      ...base,
+      url: "https://colegioibpi.com.br/calendario.pdf",
+    });
+
+    expect(resultado.success).toBe(true);
+    expect(resultado.data?.url).toBe(
+      "https://colegioibpi.com.br/calendario.pdf",
+    );
+  });
+
+  it("recusa link que não é http nem https", () => {
+    // O link abre no navegador: um `javascript:` aqui viraria execução de
+    // código na tela da família.
     for (const url of [
       "javascript:alert(1)",
       "data:text/html,<script>alert(1)</script>",
@@ -40,13 +62,13 @@ describe("informacaoSchema", () => {
     }
   });
 
-  it("recusa título vazio e endereço vazio", () => {
+  it("recusa título vazio e texto vazio", () => {
     expect(informacaoSchema.safeParse({ ...base, titulo: "  " }).success).toBe(
       false,
     );
-    expect(informacaoSchema.safeParse({ ...base, url: "" }).success).toBe(
-      false,
-    );
+    expect(
+      informacaoSchema.safeParse({ ...base, conteudo: "   " }).success,
+    ).toBe(false);
   });
 
   it("guarda a chave derivada do destino, como os avisos", () => {

@@ -145,12 +145,13 @@ Referência de requisitos: [README.md](README.md).
 
 ### 3.4c Informações úteis
 
-> Os cards com link da aba do app. Reaproveitam o alcance dos avisos (3.4b).
+> Os cards da aba do app, com o texto escrito pela secretaria. Reaproveitam
+> o alcance dos avisos (3.4b).
 
-- [x] Modelar a coleção `informacoes`, com tipo, link, ordem e o destino dos avisos
+- [x] Modelar a coleção `informacoes`, com tipo, texto, ordem e o destino dos avisos
 - [x] Extrair o seletor de destino, compartilhado com a publicação de aviso
 - [x] Implementar a publicação pela secretaria e pela coordenação
-- [x] Implementar os cards no Portal da família
+- [x] Implementar os cards no Portal da família, com a tela que mostra o texto
 - [x] Implementar despublicar sem apagar
 - [x] Escrever e publicar as Security Rules de `informacoes`
 - [ ] Publicar o material de verdade do colégio (hoje a coleção está vazia)
