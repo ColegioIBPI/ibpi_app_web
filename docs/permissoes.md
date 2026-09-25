@@ -80,6 +80,33 @@ basta**: é o escopo que garante o recorte.
 
 Ver [`exportacoes.md`](exportacoes.md), seção 3.
 
+### Alcance de aviso: a regra lê uma lista pronta
+
+O app MyIBPI lê o Firestore **direto**, sem o servidor do Portal para
+aplicar o alcance dos avisos. A regra precisa decidir sozinha se um aviso
+alcança quem pede.
+
+Ela não recalcula nada: lê `users/{uid}.chavesDeAviso`, que o servidor grava
+a partir de `chavesDoDestinatario` — a mesma função que monta a consulta do
+Portal. Duas razões:
+
+- **Uma decisão, um lugar.** Reescrever o alcance na linguagem de regras
+  seria manter duas versões da mesma coisa, e divergir ali significa aviso
+  de uma família aparecendo para outra.
+- **Regra não percorre lista.** A partir de `alunosVinculados` não há como
+  montar `turma:<a de cada filho>`.
+
+As chaves são refeitas na criação da conta, na troca de vínculo e quando o
+aluno muda de turma — esta última também refaz as dos responsáveis dele,
+senão o aviso da turma nova não chegaria, em silêncio.
+
+Conta sem `chavesDeAviso` ainda lê o aviso geral: perder até o comunicado da
+escola inteira seria pior que o problema. Para preencher contas antigas:
+
+```bash
+npm run avisos:chaves
+```
+
 ## 2. Onde cada decisão acontece
 
 São **três camadas**, e só as duas últimas são segurança de verdade:

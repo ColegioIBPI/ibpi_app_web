@@ -18,6 +18,7 @@ import {
   normalizarTelefone,
 } from "@/features/migracao/domain/texto";
 import { podeCriarConta } from "@/features/responsaveis/domain/busca";
+import { sincronizarChavesDeAviso } from "@/features/avisos/services/chaves.server";
 
 /**
  * Cadastro de responsáveis, vínculo com alunos e criação do acesso.
@@ -209,6 +210,14 @@ export async function alterarVinculo(
   // recebendo "sem permissão" do banco.
   if (dados.uid) {
     await sincronizarVinculosDaConta(dados.uid, alunosVinculados);
+
+    // As chaves de aviso saem dos filhos: ganhar ou perder um filho muda a
+    // turma e o segmento que alcançam esta família.
+    await sincronizarChavesDeAviso({
+      uid: dados.uid,
+      role: "responsavel",
+      alunosVinculados,
+    });
   }
 
   revalidatePath(`/gestao/responsaveis/${id}`);
@@ -262,6 +271,12 @@ export async function criarAcessoDoResponsavel(id: string): Promise<Resultado> {
     antes: dados,
     depois: { uid: conta.uid },
     autor: sessao,
+  });
+
+  await sincronizarChavesDeAviso({
+    uid: conta.uid,
+    role: "responsavel",
+    alunosVinculados: dados.alunosVinculados ?? [],
   });
 
   revalidatePath(`/gestao/responsaveis/${id}`);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
+import { sincronizarChavesDoAluno } from "@/features/avisos/services/chaves.server";
 import { exigirPermissao } from "@/core/auth/guards";
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, type Turma } from "@/core/modelo";
@@ -70,6 +71,13 @@ export async function salvarAluno(
     depois: { ...aluno, ...vinculo.campos },
     autor: sessao,
   });
+
+  // Turma e segmento do aluno viram chave de aviso — dele e de quem o
+  // acompanha. Sem refazer as chaves, o aviso da turma nova não chegaria à
+  // família, e sem erro nenhum na tela.
+  if ("turmaId" in alteracoes || "segmento" in alteracoes) {
+    await sincronizarChavesDoAluno(matricula);
+  }
 
   revalidatePath("/gestao/alunos");
   revalidatePath(`/gestao/alunos/${matricula}`);

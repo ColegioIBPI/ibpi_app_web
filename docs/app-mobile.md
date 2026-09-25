@@ -268,9 +268,7 @@ aparece no fuso de São Paulo, e isso já quebrou boletim e financeiro aqui.
 
 ---
 
-## 6. ⚠️ Avisos — há uma pendência bloqueante
-
-A aba Avisos **não está pronta para o app**, ao contrário do que parece.
+## 6. Avisos
 
 ```
 avisos/{id} = {
@@ -285,23 +283,39 @@ avisos/{id} = {
 O campo `chave` existe justamente para o app consultar
 `where("chave", "in", [minhas chaves])` sem índice composto.
 
-**Mas a Security Rule atual só libera `chave == "todos"` para a família.**
-Aviso de turma, de segmento e individual **não serão lidos** pelo app.
+A regra usa esse campo. Ela **não recalcula o alcance** — lê a lista pronta
+de `users/{uid}.chavesDeAviso`, gravada pelo Portal a partir da mesma função
+que o servidor usa (`features/avisos/domain/destinatarios.ts`).
 
-O motivo: a regra precisaria cruzar a chave do aviso com a turma e o
-segmento da pessoa, e o Firestore não faz isso sem **desnormalizar turma e
-segmento dentro de `users`**. O Portal contorna lendo pelo servidor, que
-aplica o alcance — o app não tem esse servidor.
+```kotlin
+val chaves = usuario.get("chavesDeAviso") as List<String>
 
-**O que falta fazer no Portal** (uma tarefa, já registrada):
+db.collection("avisos")
+  .whereEqualTo("ativo", true)
+  .whereIn("chave", chaves)   // o Firestore aceita até 30 por consulta
+  .get()
+```
 
-1. gravar `turmaId` e `segmento` em `users/{uid}` para aluno e responsável,
-   e mantê-los em dia quando o aluno troca de turma;
-2. reescrever a regra de `avisos` para aceitar as chaves da pessoa.
+Refazer a conta do alcance dentro da regra seria manter duas versões da
+mesma decisão, e divergir ali significa aviso de uma família aparecendo para
+outra. Regra do Firestore também não percorre lista: a partir de
+`alunosVinculados` não daria para montar a chave da turma de cada filho.
 
-Até isso acontecer, a aba Avisos do app mostra só o aviso geral. **Me peça
-essa tarefa antes de o app entrar em teste com famílias** — senão o
-comunicado de turma simplesmente não chega, sem erro nenhum na tela.
+O Portal mantém `chavesDeAviso` em dia sozinho — na criação da conta, na
+troca de vínculo e quando o aluno muda de turma.
+
+**Duas coisas para o app respeitar:**
+
+- **Filtre `ativo == true`.** Aviso despublicado some para a família e
+  continua para a equipe: o que foi comunicado fica registrado.
+- **Se `chavesDeAviso` faltar**, a pessoa ainda lê o aviso geral. A regra
+  tem esse caminho para uma conta antiga não perder até o comunicado da
+  escola inteira — mas o app não deve contar com ele.
+
+Verificado com o SDK cliente, entrando como responsável de teste: lê o geral,
+o da turma do filho e o individual do filho; não lê o de outra turma, o de
+outro aluno, nem o despublicado. O acesso direto ao documento de outra
+família é negado.
 
 ### Anexos
 
@@ -415,6 +429,6 @@ teste.
 | Financeiro  | ✅ livre                                                      |
 | Boletim     | ✅ livre — regras definidas nesta página, seção 4              |
 | Ocorrências | ✅ livre — sem campo de natureza; ver seção 2                  |
-| Avisos      | ⚠️ **só o aviso geral chega** até a regra ser reescrita        |
+| Avisos      | ✅ livre — a regra lê `users/{uid}.chavesDeAviso`              |
 | Anexos      | ⚠️ sem caminho de leitura para o app                          |
 | Senha       | ✅ livre — SDK do Firebase, sem endpoint nosso                 |

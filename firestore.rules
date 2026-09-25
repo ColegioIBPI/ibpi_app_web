@@ -57,6 +57,14 @@ service cloud.firestore {
         && turmaId in eu().turmas;
     }
 
+    // O aviso geral vale sempre, mesmo para uma conta antiga que ainda não
+    // tem `chavesDeAviso`: sem esta linha, uma conta não sincronizada
+    // deixaria de ver até o comunicado da escola inteira.
+    function avisoAlcanca(chave) {
+      return chave == 'todos'
+        || (eu().chavesDeAviso is list && chave in eu().chavesDeAviso);
+    }
+
     // ------------------------------------------------------------- usuários
 
     match /users/{uid} {
@@ -196,18 +204,22 @@ service cloud.firestore {
       // A equipe escolar lê tudo: publica, confere e precisa saber o que já
       // foi comunicado, inclusive o que saiu do ar.
       //
-      // Para a família, a regra libera só o aviso geral. O aviso de turma,
-      // de segmento e o individual dependem de cruzar a chave do aviso com
-      // a turma e os vínculos da pessoa — e regra do Firestore não faz isso
-      // sem desnormalizar turma e segmento dentro de `users`. Enquanto isso
-      // não for necessário, o Portal lê pelo servidor, que já aplica o
-      // alcance (`features/avisos/domain/destinatarios.ts`).
+      // A família lê o que a alcança. O alcance não é recalculado aqui: ele
+      // vem pronto em `users/{uid}.chavesDeAviso`, gravado pelo servidor a
+      // partir de `features/avisos/domain/destinatarios.ts`.
       //
-      // ⚠️ Quando o app MyIBPI for ler avisos direto do Firestore, esta
-      // regra precisa ser reescrita junto com a desnormalização — senão a
-      // família só enxergará o aviso geral.
+      // Refazer a conta nesta linguagem seria manter duas versões da mesma
+      // regra, e divergir aqui significa aviso de uma família aparecendo
+      // para outra. Além disso, regra do Firestore não percorre lista: a
+      // partir de `alunosVinculados` não dá para montar a chave da turma de
+      // cada filho.
+      //
+      // O aviso despublicado some para a família e continua para a equipe:
+      // o que foi comunicado fica registrado.
       allow read: if temPerfil(['secretaria', 'coordenacao', 'professor', 'financeiro'])
-                  || (autenticado() && resource.data.chave == 'todos' && resource.data.ativo == true);
+                  || (autenticado()
+                      && resource.data.ativo == true
+                      && avisoAlcanca(resource.data.chave));
       allow write: if false;
     }
 

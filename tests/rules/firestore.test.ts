@@ -39,6 +39,12 @@ const contextos = () => ({
   }),
   aluno: testEnv.authenticatedContext("u-aluno", { role: "aluno" }),
   responsavel: testEnv.authenticatedContext("u-resp", { role: "responsavel" }),
+  outroResponsavel: testEnv.authenticatedContext("u-resp2", {
+    role: "responsavel",
+  }),
+  responsavelSemChaves: testEnv.authenticatedContext("u-resp-sem-chaves", {
+    role: "responsavel",
+  }),
   visitante: testEnv.unauthenticatedContext(),
   /** Autenticado no Firebase, mas sem perfil aplicado. */
   semPerfil: testEnv.authenticatedContext("u-sem-perfil"),
@@ -85,10 +91,44 @@ beforeEach(async () => {
       role: "aluno",
       nome: "Alice",
       matricula: FILHO,
+      chavesDeAviso: [
+        "todos",
+        "segmento:medio",
+        `turma:${TURMA_DO_PROFESSOR}`,
+        `aluno:${FILHO}`,
+      ],
     });
     await setDoc(doc(db, "users/u-resp"), {
       role: "responsavel",
       nome: "Mãe da Alice",
+      alunosVinculados: [FILHO],
+      chavesDeAviso: [
+        "todos",
+        "segmento:medio",
+        `turma:${TURMA_DO_PROFESSOR}`,
+        `aluno:${FILHO}`,
+        "responsavel:r-1",
+      ],
+    });
+    // Família de outro aluno: é ela que não pode enxergar o assunto da
+    // primeira.
+    await setDoc(doc(db, "users/u-resp2"), {
+      role: "responsavel",
+      nome: "Pai do Outro",
+      alunosVinculados: [OUTRO_ALUNO],
+      chavesDeAviso: [
+        "todos",
+        "segmento:fundamental",
+        `turma:${OUTRA_TURMA}`,
+        `aluno:${OUTRO_ALUNO}`,
+        "responsavel:r-2",
+      ],
+    });
+    // Conta ainda sem chaves — o estado de quem foi criado antes da
+    // sincronização existir.
+    await setDoc(doc(db, "users/u-resp-sem-chaves"), {
+      role: "responsavel",
+      nome: "Sem chaves",
       alunosVinculados: [FILHO],
     });
 
@@ -126,6 +166,26 @@ beforeEach(async () => {
       titulo: "Assunto da família",
       chave: `aluno:${FILHO}`,
       ativo: true,
+    });
+    await setDoc(doc(db, "avisos/da-turma"), {
+      titulo: "Prova na sexta",
+      chave: `turma:${TURMA_DO_PROFESSOR}`,
+      ativo: true,
+    });
+    await setDoc(doc(db, "avisos/do-segmento"), {
+      titulo: "Calendário do Médio",
+      chave: "segmento:medio",
+      ativo: true,
+    });
+    await setDoc(doc(db, "avisos/ao-responsavel"), {
+      titulo: "Mensalidade",
+      chave: "responsavel:r-1",
+      ativo: true,
+    });
+    await setDoc(doc(db, "avisos/despublicado"), {
+      titulo: "Saiu do ar",
+      chave: "todos",
+      ativo: false,
     });
     await setDoc(doc(db, "turmas/EM1A"), { nome: "EM1A" });
     await setDoc(doc(db, "coisa-nova/x1"), { qualquer: true });
@@ -295,6 +355,8 @@ describe("avisos", () => {
     for (const contexto of [secretaria, coordenacao, professor, financeiro]) {
       await assertSucceeds(ler(contexto, "avisos/geral"));
       await assertSucceeds(ler(contexto, "avisos/individual"));
+      // Inclusive o que saiu do ar: o que foi comunicado fica registrado.
+      await assertSucceeds(ler(contexto, "avisos/despublicado"));
     }
   });
 
@@ -304,14 +366,59 @@ describe("avisos", () => {
     await assertSucceeds(ler(responsavel, "avisos/geral"));
   });
 
-  it("a família não lê aviso individual direto do banco", async () => {
-    // O alcance do aviso individual depende de cruzar a chave com os
-    // vínculos da pessoa, o que a regra não faz hoje. O Portal lê pelo
-    // servidor, que aplica o alcance; o acesso direto fica fechado para não
-    // entregar o assunto de outra família.
+  it("a família lê o aviso da turma, do segmento e o individual", async () => {
+    // É o que o app MyIBPI precisa: ele lê o Firestore direto, sem o
+    // servidor do Portal para aplicar o alcance.
     const { aluno, responsavel } = contextos();
-    await assertFails(ler(aluno, "avisos/individual"));
-    await assertFails(ler(responsavel, "avisos/individual"));
+
+    for (const contexto of [aluno, responsavel]) {
+      await assertSucceeds(ler(contexto, "avisos/da-turma"));
+      await assertSucceeds(ler(contexto, "avisos/do-segmento"));
+      await assertSucceeds(ler(contexto, "avisos/individual"));
+    }
+  });
+
+  it("o responsável lê o que foi endereçado a ele", async () => {
+    const { responsavel } = contextos();
+    await assertSucceeds(ler(responsavel, "avisos/ao-responsavel"));
+  });
+
+  it("uma família não lê o assunto da outra", async () => {
+    // O ponto da regra: chave que não está na lista da pessoa é negada.
+    const { outroResponsavel } = contextos();
+
+    await assertSucceeds(ler(outroResponsavel, "avisos/geral"));
+    await assertFails(ler(outroResponsavel, "avisos/individual"));
+    await assertFails(ler(outroResponsavel, "avisos/da-turma"));
+    await assertFails(ler(outroResponsavel, "avisos/do-segmento"));
+    await assertFails(ler(outroResponsavel, "avisos/ao-responsavel"));
+  });
+
+  it("o aluno não lê o aviso endereçado ao responsável dele", async () => {
+    // Mensalidade é assunto de quem paga.
+    const { aluno } = contextos();
+    await assertFails(ler(aluno, "avisos/ao-responsavel"));
+  });
+
+  it("aviso despublicado some para a família", async () => {
+    const { aluno, responsavel } = contextos();
+    await assertFails(ler(aluno, "avisos/despublicado"));
+    await assertFails(ler(responsavel, "avisos/despublicado"));
+  });
+
+  it("conta sem chaves ainda lê o aviso geral, e só ele", async () => {
+    // Estado de quem foi criado antes da sincronização existir: perder até
+    // o comunicado da escola inteira seria pior que o problema.
+    const { responsavelSemChaves } = contextos();
+
+    await assertSucceeds(ler(responsavelSemChaves, "avisos/geral"));
+    await assertFails(ler(responsavelSemChaves, "avisos/individual"));
+  });
+
+  it("visitante não lê nem o aviso geral", async () => {
+    const { visitante, semPerfil } = contextos();
+    await assertFails(ler(visitante, "avisos/geral"));
+    await assertFails(ler(semPerfil, "avisos/geral"));
   });
 
   it("ninguém publica aviso pelo cliente", async () => {
