@@ -139,7 +139,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar a listagem da equipe e a leitura no Portal da família
 - [x] Implementar despublicar sem apagar
 - [x] Escrever e publicar as Security Rules de `avisos`
-- [ ] Reescrever a regra de leitura de `avisos` quando o app MyIBPI for ler direto do Firestore (exige desnormalizar turma e segmento em `users`)
+- [ ] Reescrever a regra de leitura de `avisos` quando o app MyIBPI for ler direto do Firestore (exige desnormalizar turma e segmento em `users`) — **bloqueia a aba Avisos do app**
+- [ ] Servir anexo de aviso para o app (hoje o Storage nega todo acesso de cliente)
 - [ ] Disparar notificação push ao publicar _(canal do app)_
 
 ### 3.5 Frequência — registro diário (secretaria)
