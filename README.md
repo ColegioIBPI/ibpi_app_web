@@ -65,18 +65,33 @@ Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso just
 
 ### 3.1 Matriz de acesso
 
-**Seis perfis**, os mesmos do app MyIBPI. Cada célula vale dentro do escopo
-definido em 3.2 — "lê" para o professor significa "lê dos alunos que ele
-leciona", não da escola inteira.
+**Seis perfis de trabalho**, os mesmos do app MyIBPI, mais a
+**Administração**. Cada célula vale dentro do escopo definido em 3.2 — "lê"
+para o professor significa "lê dos alunos que ele leciona", não da escola
+inteira.
 
 | Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      | Avisos                    |
 | --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
+| **Administração** | Lê e **gerencia**    | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia**   |
 | **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |
 | **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   | **Publica** (suas turmas) |
 | **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | ❌ Sem acesso   | Lê (próprio)     | ❌ Sem acesso   | Lê (os dele)              |
 | **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) | Lê (dele e dos filhos)    |
+
+A **Administração** é a chave mestra: enxerga e lança em tudo. Existe para
+quem mantém o Portal e para o colégio pequeno, onde a mesma pessoa faz
+secretaria e caixa. Não é perfil de trabalho — deve ficar em poucas contas,
+e cada perfil de trabalho continua existindo para que o acesso normal seja
+o restrito.
+
+Ela **não vira família**: as regras que liberam o dado de um aluno ao próprio
+aluno ou ao responsável exigem, além do perfil, uma matrícula ou um vínculo
+no documento do usuário, que a conta de administração não tem. A chave mestra
+abre as portas da escola, não a identidade de um aluno. E **não desliga a
+auditoria**: nenhuma escrita passa pelo cliente, e toda gravação registra
+quem alterou o quê.
 
 A separação do **Financeiro** é intencional: quem cuida de mensalidade não
 precisa ver nota, falta nem ocorrência disciplinar de aluno. É o mesmo

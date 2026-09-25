@@ -152,10 +152,11 @@ describe("podePublicarPara — permissão diz o quê, escopo diz para quem", () 
   };
   const todos: Destino = { tipo: "todos" };
 
-  it("secretaria e coordenação publicam para qualquer destino", () => {
-    for (const role of ["secretaria", "coordenacao"] as const) {
+  it("quem administra a escola publica para qualquer destino", () => {
+    for (const role of ["secretaria", "coordenacao", "admin"] as const) {
       expect(podePublicarPara(role, todos).ok).toBe(true);
       expect(podePublicarPara(role, outraTurma).ok).toBe(true);
+      expect(destinosPermitidos(role)).toContain("todos");
     }
   });
 

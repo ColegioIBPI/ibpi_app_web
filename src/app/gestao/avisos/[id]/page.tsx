@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { administraEscola } from "@/core/auth/roles";
 import { descreverDestino } from "@/core/modelo";
 import { formatDate } from "@/core/lib/format";
 import { BotaoDePublicacao } from "@/core/ui/botao-de-publicacao";
@@ -28,8 +29,7 @@ export default async function AvisoPage({
   const aviso = await obterAvisoVisivel(sessao, id);
   if (!aviso) notFound();
 
-  const gerencia =
-    sessao.role === "secretaria" || sessao.role === "coordenacao";
+  const gerencia = administraEscola(sessao.role);
   const meu = aviso.publicadoPorUid === sessao.uid;
 
   return (

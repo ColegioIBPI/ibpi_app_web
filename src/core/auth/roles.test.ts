@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  administraEscola,
   areaDoPerfil,
   escopoDeAlunos,
   isEquipe,
@@ -24,12 +25,13 @@ const RECURSOS: Recurso[] = [
 ];
 
 describe("isRole", () => {
-  it("aceita os seis perfis conhecidos", () => {
+  it("aceita os perfis conhecidos", () => {
     for (const role of ROLES) expect(isRole(role)).toBe(true);
   });
 
   it("rejeita valor desconhecido vindo do banco ou do token", () => {
-    expect(isRole("admin")).toBe(false);
+    expect(isRole("diretor")).toBe(false);
+    expect(isRole("root")).toBe(false);
     expect(isRole("")).toBe(false);
     expect(isRole(undefined)).toBe(false);
     expect(isRole(null)).toBe(false);
@@ -104,21 +106,66 @@ describe("matriz de acesso — README seção 3.1", () => {
     }
   });
 
-  it("nenhum perfil além de secretaria e coordenação gerencia cadastro", () => {
+  it("nenhum perfil de trabalho além de secretaria e coordenação gerencia cadastro", () => {
     const gerenciam = ROLES.filter((role) =>
       pode(role, "cadastros", "gerenciar"),
     );
-    expect(gerenciam).toEqual(["secretaria", "coordenacao"]);
+    expect(gerenciam).toEqual(["secretaria", "coordenacao", "admin"]);
   });
 
   it("só o financeiro lança cobrança", () => {
     const lancam = ROLES.filter((role) => pode(role, "financeiro", "lancar"));
-    expect(lancam).toEqual(["financeiro"]);
+    expect(lancam).toEqual(["financeiro", "admin"]);
+  });
+});
+
+describe("admin — a chave mestra", () => {
+  it("gerencia todo recurso", () => {
+    for (const recurso of RECURSOS) {
+      expect(nivelDeAcesso("admin", recurso)).toBe("gerenciar");
+      expect(pode("admin", recurso, "gerenciar")).toBe(true);
+    }
+    expect(pode("admin", "avisos", "gerenciar")).toBe(true);
+  });
+
+  it("faz o que cada perfil de trabalho faz", () => {
+    // A garantia que interessa: não existe ação permitida a alguém e
+    // negada à administração.
+    for (const role of ROLES) {
+      for (const recurso of [...RECURSOS, "avisos" as const]) {
+        for (const acao of ["ler", "lancar", "gerenciar"] as const) {
+          if (pode(role, recurso, acao)) {
+            expect(pode("admin", recurso, acao)).toBe(true);
+          }
+        }
+      }
+    }
+  });
+
+  it("é equipe escolar, e entra pela gestão", () => {
+    expect(isEquipe("admin")).toBe(true);
+    expect(areaDoPerfil("admin")).toBe("gestao");
+    expect(rotaInicial("admin")).toBe("/gestao");
+  });
+
+  it("administra a escola, como secretaria e coordenação", () => {
+    // É o que decide abrir qualquer alocação e publicar para qualquer
+    // destino. Esquecer a administração aqui a deixaria com permissão de
+    // tudo e escopo de ninguém.
+    expect(administraEscola("admin")).toBe(true);
+    expect(administraEscola("secretaria")).toBe(true);
+    expect(administraEscola("coordenacao")).toBe(true);
+
+    expect(administraEscola("professor")).toBe(false);
+    expect(administraEscola("financeiro")).toBe(false);
+    expect(administraEscola("responsavel")).toBe(false);
+    expect(administraEscola("aluno")).toBe(false);
   });
 });
 
 describe("escopo de alunos", () => {
   it("recorta o que cada perfil enxerga", () => {
+    expect(escopoDeAlunos("admin")).toBe("todos");
     expect(escopoDeAlunos("secretaria")).toBe("todos");
     expect(escopoDeAlunos("coordenacao")).toBe("todos");
     expect(escopoDeAlunos("financeiro")).toBe("todos");
@@ -140,6 +187,7 @@ describe("área e rota inicial", () => {
       "coordenacao",
       "financeiro",
       "professor",
+      "admin",
     ] as Role[]) {
       expect(areaDoPerfil(role)).toBe("gestao");
       expect(isEquipe(role)).toBe(true);
@@ -166,6 +214,7 @@ describe("rótulos", () => {
       "Secretaria",
       "Coordenação",
       "Financeiro",
+      "Administração",
     ]);
     expect(new Set(rotulos).size).toBe(ROLES.length);
   });

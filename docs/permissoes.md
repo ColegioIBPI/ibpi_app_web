@@ -3,12 +3,44 @@
 Como uma pessoa entra no Portal, o que ela pode ver e onde cada decisão é
 tomada.
 
-## 1. Os seis perfis
+## 1. Os perfis
 
-Os mesmos do app MyIBPI, gravados no campo `role` do documento `users/{uid}`
-e replicados nas _custom claims_ do Firebase Auth:
+Seis de trabalho, os mesmos do app MyIBPI, gravados no campo `role` do
+documento `users/{uid}` e replicados nas _custom claims_ do Firebase Auth:
 
 `aluno` · `responsavel` · `professor` · `secretaria` · `coordenacao` · `financeiro`
+
+E um sétimo, `admin` — a **administração do sistema**, que enxerga e lança em
+tudo. Existe para quem mantém o Portal e para o colégio pequeno, onde a mesma
+pessoa faz secretaria e caixa.
+
+Três coisas que a chave mestra **não** faz:
+
+- **Não escreve pelo cliente.** Como ninguém escreve: toda gravação passa
+  pelo Admin SDK no servidor, com auditoria. Chave mestra abre porta, não
+  desliga o registro de quem entrou.
+- **Não vira família.** `ehProprioAluno` e `ehFilho` exigem, além do perfil,
+  uma matrícula ou um vínculo no documento do usuário — que a conta de
+  administração não tem.
+- **Não substitui os perfis de trabalho.** Eles continuam existindo para que
+  o acesso normal seja o restrito; a administração fica em poucas contas.
+
+Na Security Rule isso é **uma linha só**, dentro de `temPerfil`:
+
+```
+function temPerfil(perfis) {
+  return autenticado()
+    && (request.auth.token.role == 'admin'
+        || request.auth.token.role in perfis);
+}
+```
+
+Ali, e não repetida em cada `match`, porque toda regra de leitura da equipe
+passa por essa função: acrescentar `'admin'` a vinte listas é como uma delas
+fica de fora, e o buraco só aparece no dia em que alguém abre a tela e recebe
+"sem permissão". No lado do aplicativo, o equivalente é `administraEscola()`,
+pela mesma razão — foi assim que a administração ficou de fora de cinco
+verificações espalhadas quando o perfil nasceu.
 
 A matriz de acesso completa está no [README, seção 3.1](../README.md).
 A implementação é [`src/core/auth/roles.ts`](../src/core/auth/roles.ts).
@@ -34,7 +66,7 @@ Permissão diz **o quê**; escopo diz **de quem**:
 
 | Perfil                              | Enxerga os alunos      |
 | ----------------------------------- | ---------------------- |
-| Secretaria, coordenação, financeiro | todos                  |
+| Administração, secretaria, coordenação, financeiro | todos   |
 | Professor                           | das turmas que leciona |
 | Responsável                         | dos filhos vinculados  |
 | Aluno                               | apenas ele mesmo       |

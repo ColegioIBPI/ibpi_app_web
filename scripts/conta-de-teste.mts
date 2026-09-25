@@ -3,6 +3,7 @@
  *
  *   npm run conta:teste -- --perfil professor
  *   npm run conta:teste -- --perfil responsavel
+ *   npm run conta:teste -- --perfil financeiro
  *   npm run conta:teste -- --perfil professor --apagar
  *
  * Cada conta é montada como as telas da secretaria montariam: além do
@@ -36,9 +37,24 @@ const PROFESSOR = {
    * alunos.
    */
   alocacoes: [
-    { turmaId: "2026-EM2A", turmaCodigo: "EM2A", disciplinaId: "fisica", disciplinaNome: "Física" },
-    { turmaId: "2026-EM2A", turmaCodigo: "EM2A", disciplinaId: "matematica", disciplinaNome: "Matemática" },
-    { turmaId: "2026-EM3A", turmaCodigo: "EM3A", disciplinaId: "fisica", disciplinaNome: "Física" },
+    {
+      turmaId: "2026-EM2A",
+      turmaCodigo: "EM2A",
+      disciplinaId: "fisica",
+      disciplinaNome: "Física",
+    },
+    {
+      turmaId: "2026-EM2A",
+      turmaCodigo: "EM2A",
+      disciplinaId: "matematica",
+      disciplinaNome: "Matemática",
+    },
+    {
+      turmaId: "2026-EM3A",
+      turmaCodigo: "EM3A",
+      disciplinaId: "fisica",
+      disciplinaNome: "Física",
+    },
   ],
 };
 
@@ -54,21 +70,45 @@ const RESPONSAVEL = {
   filhos: ["26029", "25022"],
 };
 
+/**
+ * Quem cuida do caixa.
+ *
+ * Não tem cadastro nem vínculo: o perfil financeiro enxerga a escola
+ * inteira, e a conta de acesso já basta para a tela funcionar. Existe
+ * porque **só este perfil escreve no financeiro** — secretaria e
+ * coordenação apenas leem —, e sem uma conta dele não há como testar
+ * baixa, carnê, plano acordado nem anotação interna.
+ */
+const FINANCEIRO = {
+  email: "financeiro.teste@ibpi.com.br",
+  nome: "Financeiro de Teste",
+};
+
+const PERFIS = ["professor", "responsavel", "financeiro"] as const;
+
+type PerfilDeTeste = (typeof PERFIS)[number];
+
 const db = getAdminDb();
 const argumentos = process.argv.slice(2);
 const apagando = argumentos.includes("--apagar");
-const perfil = argumentos[argumentos.indexOf("--perfil") + 1] ?? "professor";
+const perfil = (argumentos[argumentos.indexOf("--perfil") + 1] ??
+  "professor") as PerfilDeTeste;
 
-if (perfil !== "professor" && perfil !== "responsavel") {
-  console.error(`\nPerfil inválido: ${perfil}. Use professor ou responsavel.\n`);
+if (!PERFIS.includes(perfil)) {
+  console.error(`\nPerfil inválido: ${perfil}. Use ${PERFIS.join(", ")}.\n`);
   process.exit(1);
 }
 
-if (apagando) {
-  await (perfil === "professor" ? apagarProfessor() : apagarResponsavel());
-} else {
-  await (perfil === "professor" ? criarProfessor() : criarResponsavel());
-}
+const ACOES: Record<
+  PerfilDeTeste,
+  { criar: () => Promise<void>; apagar: () => Promise<void> }
+> = {
+  professor: { criar: criarProfessor, apagar: apagarProfessor },
+  responsavel: { criar: criarResponsavel, apagar: apagarResponsavel },
+  financeiro: { criar: criarFinanceiro, apagar: apagarFinanceiro },
+};
+
+await (apagando ? ACOES[perfil].apagar() : ACOES[perfil].criar());
 
 async function criarProfessor() {
   const senha = novaSenha();
@@ -163,6 +203,30 @@ async function criarResponsavel() {
     `Filhos vinculados: ${nomes.join(" e ")}`,
     `Alcance de avisos e informações: ${chaves.join(", ")}`,
   ]);
+}
+
+async function criarFinanceiro() {
+  const senha = novaSenha();
+
+  await criarOuAtualizarConta({
+    email: FINANCEIRO.email,
+    nome: FINANCEIRO.nome,
+    role: "financeiro",
+    senha,
+  });
+
+  anunciar("financeiro", FINANCEIRO.email, senha, [
+    "Escreve em: plano acordado, anotação interna, parcelas, baixa e carnê.",
+    "Secretaria e coordenação veem as mesmas telas, só de leitura.",
+  ]);
+}
+
+async function apagarFinanceiro() {
+  await apagarConta(FINANCEIRO.email);
+
+  // A conta não criou cadastro nem vínculo; o que ela lançou é do aluno e
+  // fica onde está.
+  console.log("\nO que a conta lançou continua no banco — é do aluno.\n");
 }
 
 async function apagarProfessor() {

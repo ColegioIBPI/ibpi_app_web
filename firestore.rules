@@ -27,8 +27,21 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.role != null;
     }
 
+    // `admin` passa em qualquer verificação de perfil.
+    //
+    // A regra mora aqui, e não repetida em cada `match`, porque toda regra
+    // de leitura da equipe passa por esta função: acrescentar 'admin' a
+    // vinte listas é como uma delas fica de fora, e o buraco só aparece no
+    // dia em que alguém abre a tela e recebe "sem permissão".
+    //
+    // Isso **não** dá acesso ao que é da família: `ehProprioAluno` e
+    // `ehFilho` exigem, além do perfil, uma matrícula ou um vínculo no
+    // documento do usuário, que a conta de administração não tem. A chave
+    // mestra abre as portas da escola, não a identidade de um aluno.
     function temPerfil(perfis) {
-      return autenticado() && request.auth.token.role in perfis;
+      return autenticado()
+        && (request.auth.token.role == 'admin'
+            || request.auth.token.role in perfis);
     }
 
     function secretariaOuCoordenacao() {

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { COLECOES, type Alocacao, type Aluno } from "@/core/modelo";
-import { isEquipe } from "@/core/auth/roles";
+import { administraEscola, isEquipe } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 
@@ -93,18 +93,16 @@ export async function podeAbrirAlocacao(
   sessao: SessionUser,
   alocacao: Alocacao,
 ): Promise<boolean> {
-  // Secretaria e coordenação conferem o trabalho do professor, então abrem
+  // Quem administra a escola confere o trabalho do professor, então abre
   // qualquer alocação.
-  if (sessao.role === "secretaria" || sessao.role === "coordenacao") return true;
+  if (administraEscola(sessao.role)) return true;
   if (!isEquipe(sessao.role)) return false;
 
   return alocacao.professorId === (await idDoProfessor(sessao.uid));
 }
 
 /** Alunos ativos da turma, na ordem em que aparecem na chamada. */
-export async function alunosDaTurma(
-  turmaId: string,
-): Promise<AlunoDaTurma[]> {
+export async function alunosDaTurma(turmaId: string): Promise<AlunoDaTurma[]> {
   const docs = await getAdminDb()
     .collection(COLECOES.alunos)
     .where("turmaId", "==", turmaId)

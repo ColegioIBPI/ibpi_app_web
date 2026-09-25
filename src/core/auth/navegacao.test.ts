@@ -52,6 +52,15 @@ describe("navegacaoPara", () => {
     ]);
   });
 
+  it("a administração vê todos os itens de gestão", () => {
+    // A chave mestra não pode ter menos porta que a secretaria.
+    const daSecretaria = new Set(rotulos("secretaria"));
+    const doAdmin = rotulos("admin");
+
+    for (const item of daSecretaria) expect(doAdmin).toContain(item);
+    expect(doAdmin).toContain("Financeiro");
+  });
+
   it("aluno não vê ocorrências nem financeiro", () => {
     expect(rotulos("aluno")).toEqual([
       "Avisos",

@@ -4,9 +4,7 @@ import { Paperclip, Send, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-import {
-  type Destino,
-} from "@/core/modelo";
+import { type Destino } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
 import { TextField } from "@/core/ui/field";

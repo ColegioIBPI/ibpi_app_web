@@ -1,4 +1,4 @@
-import type { Role } from "@/core/auth/roles";
+import { administraEscola, type Role } from "@/core/auth/roles";
 import type { Destino, Segmento } from "@/core/modelo";
 
 /**
@@ -109,7 +109,7 @@ export function podePublicarPara(
   destino: Destino,
   turmasDoProfessor: readonly string[] = [],
 ): { ok: boolean; erro?: string } {
-  if (role === "secretaria" || role === "coordenacao") return { ok: true };
+  if (administraEscola(role)) return { ok: true };
 
   if (role === "professor") {
     if (destino.tipo === "turma") {
@@ -147,7 +147,7 @@ export function podePublicarPara(
 
 /** Destinos que o perfil pode escolher na tela. */
 export function destinosPermitidos(role: Role): Destino["tipo"][] {
-  if (role === "secretaria" || role === "coordenacao") {
+  if (administraEscola(role)) {
     return ["todos", "segmento", "turma", "aluno", "responsavel"];
   }
 

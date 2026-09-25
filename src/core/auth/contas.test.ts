@@ -20,9 +20,8 @@ vi.mock("@/core/firebase/admin", () => ({
   }),
 }));
 
-const { criarOuAtualizarConta, sincronizarEmailDaConta } = await import(
-  "@/core/auth/contas"
-);
+const { criarOuAtualizarConta, sincronizarEmailDaConta } =
+  await import("@/core/auth/contas");
 
 beforeEach(() => {
   vi.clearAllMocks();

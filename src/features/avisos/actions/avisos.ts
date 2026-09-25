@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
+import { administraEscola } from "@/core/auth/roles";
 import { getAdminDb, getAdminStorage } from "@/core/firebase/admin";
 import {
   avisoSchema,
@@ -135,9 +136,8 @@ export async function alterarPublicacao(
 
   const aviso = atual.data() as Aviso;
 
-  // Quem só lança mexe no que publicou; quem gerencia mexe em qualquer um.
-  const gerencia =
-    sessao.role === "secretaria" || sessao.role === "coordenacao";
+  // Quem só lança mexe no que publicou; quem administra mexe em qualquer um.
+  const gerencia = administraEscola(sessao.role);
   if (!gerencia && aviso.publicadoPorUid !== sessao.uid) {
     return { ok: false, erro: "Este aviso foi publicado por outra pessoa." };
   }

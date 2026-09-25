@@ -6,7 +6,13 @@
  * mesma matriz no servidor — o cliente é substituível, então a restrição não
  * pode viver só aqui. Ao mudar uma linha desta tabela, mude a regra também.
  *
- * Os seis perfis são os mesmos do app MyIBPI. Ver README, seção 3.
+ * Os seis perfis de trabalho são os mesmos do app MyIBPI. Ver README,
+ * seção 3.
+ *
+ * O sétimo, `admin`, é a administração do sistema: enxerga e lança em tudo.
+ * Ele existe para quem mantém o Portal e para o colégio pequeno, onde a
+ * mesma pessoa faz secretaria e caixa. Não é um perfil de trabalho — é a
+ * chave mestra, e deve ser dada a poucas contas.
  */
 
 export const ROLES = [
@@ -16,6 +22,7 @@ export const ROLES = [
   "secretaria",
   "coordenacao",
   "financeiro",
+  "admin",
 ] as const;
 
 export type Role = (typeof ROLES)[number];
@@ -44,6 +51,18 @@ const ORDEM: Record<Nivel, number> = {
 };
 
 const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
+  // A chave mestra: tudo, no nível mais alto. Declarada por extenso, e não
+  // gerada com um `map`, para o dia em que um recurso novo entrar na lista:
+  // o TypeScript exige a linha aqui, e a decisão de dar o acesso fica
+  // escrita em vez de acontecer sozinha.
+  admin: {
+    cadastros: "gerenciar",
+    frequencia: "gerenciar",
+    ocorrencias: "gerenciar",
+    notas: "gerenciar",
+    financeiro: "gerenciar",
+    avisos: "gerenciar",
+  },
   secretaria: {
     cadastros: "gerenciar",
     frequencia: "lancar",
@@ -109,6 +128,7 @@ export type EscopoDeAlunos =
   "todos" | "turmas-lecionadas" | "filhos" | "proprio";
 
 const ESCOPOS: Record<Role, EscopoDeAlunos> = {
+  admin: "todos",
   secretaria: "todos",
   coordenacao: "todos",
   financeiro: "todos",
@@ -121,6 +141,7 @@ const ESCOPOS: Record<Role, EscopoDeAlunos> = {
 export type Area = "gestao" | "consulta";
 
 const AREAS: Record<Role, Area> = {
+  admin: "gestao",
   secretaria: "gestao",
   coordenacao: "gestao",
   financeiro: "gestao",
@@ -131,6 +152,7 @@ const AREAS: Record<Role, Area> = {
 
 const ROTULOS: Record<Role, string> = {
   aluno: "Aluno",
+  admin: "Administração",
   responsavel: "Responsável",
   professor: "Professor",
   secretaria: "Secretaria",
@@ -189,4 +211,20 @@ export function rotaInicial(role: Role): string {
 /** O perfil faz parte da equipe escolar (em oposição à família)? */
 export function isEquipe(role: Role): boolean {
   return areaDoPerfil(role) === "gestao";
+}
+
+/**
+ * O perfil administra a escola inteira, sem recorte?
+ *
+ * É a pergunta que separa quem confere o trabalho dos outros — abre
+ * qualquer alocação, publica aviso para qualquer destino, despublica o
+ * aviso alheio — de quem trabalha dentro de um escopo. Professor tem as
+ * turmas dele; o financeiro fala com quem paga.
+ *
+ * Existe como função, e não como `role === "secretaria" || role ===
+ * "coordenacao"` repetido pelo código, porque foi exatamente assim que a
+ * administração ficou de fora de cinco lugares quando o perfil nasceu.
+ */
+export function administraEscola(role: Role): boolean {
+  return role === "admin" || role === "secretaria" || role === "coordenacao";
 }

@@ -259,7 +259,10 @@ segmento:  fundamental | medio | eja-fundamental | eja-medio
 turno:     manha | tarde | flex
 situacao (presença):  presente | falta | atraso
 situacao (cobrança):  calculada, não gravada — ver seção 8
-role:      aluno | responsavel | professor | secretaria | coordenacao | financeiro
+role:      aluno | responsavel | professor | secretaria | coordenacao
+           | financeiro | admin        // admin = administração do sistema,
+                                       // enxerga tudo; o app não precisa
+                                       // tratar, não é perfil de família
 ```
 
 Datas puras são **string `AAAA-MM-DD`**, nunca `Timestamp`. Ao converter

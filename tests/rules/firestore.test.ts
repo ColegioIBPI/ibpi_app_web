@@ -30,6 +30,7 @@ const FILHO = "1001";
 const OUTRO_ALUNO = "2002";
 
 const contextos = () => ({
+  admin: testEnv.authenticatedContext("u-admin", { role: "admin" }),
   secretaria: testEnv.authenticatedContext("u-sec", { role: "secretaria" }),
   coordenacao: testEnv.authenticatedContext("u-coord", { role: "coordenacao" }),
   financeiro: testEnv.authenticatedContext("u-fin", { role: "financeiro" }),
@@ -602,6 +603,58 @@ describe("informações úteis", () => {
     await assertFails(
       setDoc(doc(secretaria.firestore(), "informacoes/nova"), { titulo: "x" }),
     );
+  });
+});
+
+describe("administração — a chave mestra", () => {
+  it("lê toda coleção prevista", async () => {
+    // A verificação que importa: um `match` novo que esqueça de incluir a
+    // administração aparece aqui, e não no dia em que alguém abre a tela.
+    const { admin } = contextos();
+
+    for (const caminho of [
+      `users/${"u-aluno"}`,
+      `alunos/${FILHO}`,
+      "responsaveis/r-1",
+      "professores/p-1",
+      "turmas/EM1A",
+      "notas/n1",
+      "boletins/b1",
+      "frequenciaDiaria/f1",
+      "ocorrencias/o1",
+      "cobrancas/c1",
+      `planosDePagamento/${FILHO}`,
+      `anotacoesFinanceiras/${FILHO}`,
+      "avisos/individual",
+      "avisos/despublicado",
+      "informacoes/tutoria",
+      "informacoes/fora-do-ar",
+      "auditoria/a1",
+    ]) {
+      await assertSucceeds(ler(admin, caminho));
+    }
+  });
+
+  it("não escreve pelo cliente, como ninguém escreve", async () => {
+    // Chave mestra abre porta; não desliga a auditoria. Toda escrita passa
+    // pelo Admin SDK no servidor, que registra quem alterou o quê.
+    const { admin } = contextos();
+
+    await assertFails(
+      setDoc(doc(admin.firestore(), "notas/n1"), { valor: 10 }),
+    );
+    await assertFails(
+      setDoc(doc(admin.firestore(), "users/u-admin"), { role: "admin" }),
+    );
+  });
+
+  it("não vira aluno nem responsável de ninguém", async () => {
+    // `ehProprioAluno` e `ehFilho` exigem matrícula ou vínculo no documento
+    // do usuário, que a conta de administração não tem. A chave mestra abre
+    // as portas da escola, não a identidade de um aluno.
+    const { admin } = contextos();
+
+    await assertFails(ler(admin, "coisa-nova/x1"));
   });
 });
 
