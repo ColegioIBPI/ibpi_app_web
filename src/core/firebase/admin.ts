@@ -46,16 +46,35 @@ export function getAdminStorage() {
  * não tem quebra de linha.
  */
 function parseServiceAccount(raw: string) {
-  const json = raw.trim().startsWith("{")
-    ? raw
-    : Buffer.from(raw, "base64").toString("utf8");
+  const limpo = raw.trim();
+  const json = limpo.startsWith("{")
+    ? limpo
+    : Buffer.from(limpo, "base64").toString("utf8");
 
   try {
-    return JSON.parse(json);
+    const credencial = JSON.parse(json);
+
+    // JSON válido ainda pode ser o arquivo errado — o `google-services.json`
+    // do app Android, por exemplo, também é JSON e também vem do Firebase.
+    if (!credencial.private_key || !credencial.client_email) {
+      throw new Error("sem private_key ou client_email");
+    }
+
+    return credencial;
   } catch {
+    /**
+     * A mensagem descreve **o que chegou**, sem mostrar o conteúdo.
+     *
+     * Antes ela só dizia "inválida", e uma variável cortada na metade, uma
+     * colagem que não foi ou o arquivo errado produziam exatamente o mesmo
+     * texto — sem nada que distinguisse os três. Tamanho e primeiro
+     * caractere bastam para separá-los, e nenhum dos dois revela a chave.
+     */
     throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT inválida: esperado JSON da conta de serviço " +
-        "(ou o mesmo JSON em base64).",
+      `FIREBASE_SERVICE_ACCOUNT inválida: recebi ${limpo.length} caracteres ` +
+        `começando com "${limpo.slice(0, 1)}". Esperado o JSON da conta de ` +
+        `serviço (começa com "{") ou o mesmo JSON em base64 (cerca de 3100 ` +
+        `caracteres, começa com "ey"). Confira se o valor foi colado inteiro.`,
     );
   }
 }
