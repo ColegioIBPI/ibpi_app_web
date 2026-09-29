@@ -43,7 +43,22 @@ export async function POST(request: Request) {
     await criarSessao(corpo.data.idToken);
 
     return NextResponse.json({ rota: rotaInicial(perfil.role) });
-  } catch {
+  } catch (erro) {
+    /**
+     * A causa vai para o log do servidor; o usuário recebe a mensagem
+     * genérica.
+     *
+     * São falhas muito diferentes — token expirado, conta desativada, chave
+     * de serviço revogada, relógio fora de hora — e todas apareciam como
+     * "tente entrar novamente", inclusive as que nenhuma tentativa resolve.
+     * Sem isto, um erro de configuração em produção é indistinguível de uma
+     * senha errada, e a investigação começa no lugar errado.
+     *
+     * O que é registrado é o erro do Firebase, não o token nem o e-mail:
+     * log de produção não é lugar de credencial.
+     */
+    console.error("[sessão] falha ao trocar token por cookie:", erro);
+
     return NextResponse.json(
       { erro: "Não foi possível iniciar a sessão. Tente entrar novamente." },
       { status: 401 },
