@@ -23,7 +23,14 @@ Referência de requisitos: [README.md](README.md).
 - [x] Adicionar `npm run check:firebase` para diagnosticar a configuração
 - [x] Ativar o Cloud Storage (plano Blaze)
 - [ ] Conectar o repositório à Vercel e validar o primeiro deploy
-- [ ] Configurar as variáveis de ambiente no painel da Vercel
+- [ ] Configurar as variáveis de ambiente no painel da Vercel (`FIREBASE_SERVICE_ACCOUNT` como **Sensitive** e só em Production)
+- [ ] Ligar o Deployment Protection (Vercel Authentication, Standard Protection)
+- [ ] Autorizar só o domínio de produção no Firebase Auth — nunca `*.vercel.app`
+- [x] Bloquear deploy de preview no código, com `PERMITIR_PREVIEW` para abrir de propósito
+- [x] Cabeçalhos de segurança: CSP de sessão, HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`
+- [x] `robots.txt` servido sem sessão
+- [ ] Criar `colegioibpi-dev` para a preview não apontar para dado real
+- [ ] Limitar tentativas de login por conta (hoje só o limite do Firebase Auth)
 
 ### Design system
 
@@ -313,7 +320,7 @@ Referência de requisitos: [README.md](README.md).
 - [ ] `docs/modelo-dados.md` — coleções, campos e relacionamentos
 - [ ] `docs/avaliacao.md` — regras de nota, média, recuperação e situação
 - [ ] `docs/migracao.md` — mapeamento Access → Firestore e como rodar o script
-- [ ] `docs/deploy.md` — variáveis de ambiente e processo na Vercel
+- [x] `docs/deploy.md` — variáveis de ambiente, processo na Vercel e a lista de segurança de acesso
 - [ ] Manual de uso da secretaria (o público que mais vai usar o sistema)
 - [ ] Atualizar o README do app MyIBPI com as regras de avaliação definidas aqui
 

@@ -42,6 +42,49 @@ test.describe("visitante", () => {
       /noindex/,
     );
   });
+
+  test("o robots.txt é servido sem sessão", async ({ request }) => {
+    // Ele existe para ser lido antes de qualquer página. Dentro do proxy, o
+    // buscador receberia o HTML do login no lugar das regras — ou seja,
+    // nenhuma regra.
+    const resposta = await request.get("/robots.txt", { maxRedirects: 0 });
+
+    expect(resposta.status()).toBe(200);
+    expect(await resposta.text()).toContain("Disallow: /");
+  });
+});
+
+test.describe("cabeçalhos de segurança", () => {
+  test("toda resposta sai com a proteção de sessão", async ({ request }) => {
+    // O alvo é a sessão de quem já entrou: não é preciso descobrir senha se
+    // dá para fazer a secretaria logada clicar em algo em nome dela.
+    const cabecalhos = (await request.get("/login")).headers();
+
+    expect(cabecalhos["content-security-policy"]).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(cabecalhos["content-security-policy"]).toContain(
+      "form-action 'self'",
+    );
+    expect(cabecalhos["x-frame-options"]).toBe("DENY");
+    expect(cabecalhos["strict-transport-security"]).toContain("max-age=");
+    expect(cabecalhos["x-content-type-options"]).toBe("nosniff");
+    expect(cabecalhos["referrer-policy"]).toBe(
+      "strict-origin-when-cross-origin",
+    );
+    // A versão do Next só serve a quem procura uma falha conhecida.
+    expect(cabecalhos["x-powered-by"]).toBeUndefined();
+  });
+
+  test("a rota de exportação também sai protegida", async ({ request }) => {
+    // Ela devolve planilha com dado de aluno; os cabeçalhos valem para todo
+    // caminho, não só para as telas.
+    const cabecalhos = (
+      await request.get("/api/exportacoes/alunos", { maxRedirects: 0 })
+    ).headers();
+
+    expect(cabecalhos["x-content-type-options"]).toBe("nosniff");
+  });
 });
 
 test.describe("formulário de login", () => {
