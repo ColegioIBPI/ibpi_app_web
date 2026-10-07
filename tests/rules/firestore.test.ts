@@ -226,6 +226,18 @@ beforeEach(async () => {
       chave: "todos",
       ativo: false,
     });
+    await setDoc(doc(db, "solicitacoes/do-filho"), {
+      tipo: "documentacao",
+      matricula: FILHO,
+      documentoNome: "Declaração de matrícula",
+      situacao: "aberta",
+    });
+    await setDoc(doc(db, "solicitacoes/de-outra-familia"), {
+      tipo: "documentacao",
+      matricula: "26031",
+      documentoNome: "Histórico escolar",
+      situacao: "aberta",
+    });
     await setDoc(doc(db, "documentosSolicitaveis/declaracao"), {
       nome: "Declaração de matrícula",
       ativo: true,
@@ -614,6 +626,53 @@ describe("informações úteis", () => {
   });
 });
 
+describe("solicitações da família", () => {
+  it("o responsável lê o pedido do próprio filho", async () => {
+    const { responsavel } = contextos();
+    await assertSucceeds(ler(responsavel, "solicitacoes/do-filho"));
+  });
+
+  it("uma família não lê o pedido da outra", async () => {
+    const { outroResponsavel } = contextos();
+    await assertFails(ler(outroResponsavel, "solicitacoes/do-filho"));
+  });
+
+  it("o aluno não lê pedido nenhum", async () => {
+    // É menor de idade, e o pedido é um ato do adulto por ele.
+    const { aluno } = contextos();
+    await assertFails(ler(aluno, "solicitacoes/do-filho"));
+  });
+
+  it("secretaria e coordenação leem a fila inteira", async () => {
+    const { secretaria, coordenacao } = contextos();
+
+    for (const contexto of [secretaria, coordenacao]) {
+      await assertSucceeds(ler(contexto, "solicitacoes/do-filho"));
+      await assertSucceeds(ler(contexto, "solicitacoes/de-outra-familia"));
+    }
+  });
+
+  it("professor e financeiro não leem pedido", async () => {
+    const { professor, financeiro } = contextos();
+    await assertFails(ler(professor, "solicitacoes/do-filho"));
+    await assertFails(ler(financeiro, "solicitacoes/do-filho"));
+  });
+
+  it("nem a família escreve pelo cliente", async () => {
+    // É a única coleção em que a família escreve — e ainda assim pela
+    // Server Action, que confere o vínculo antes de gravar.
+    const { responsavel, secretaria } = contextos();
+
+    for (const contexto of [responsavel, secretaria]) {
+      await assertFails(
+        setDoc(doc(contexto.firestore(), "solicitacoes/nova"), {
+          matricula: FILHO,
+        }),
+      );
+    }
+  });
+});
+
 describe("catálogo de documentos", () => {
   it("toda pessoa com sessão lê a lista", async () => {
     // É a lista de onde a família escolhe ao pedir uma declaração: sem
@@ -679,6 +738,7 @@ describe("administração — a chave mestra", () => {
       "avisos/individual",
       "avisos/despublicado",
       "documentosSolicitaveis/declaracao",
+      "solicitacoes/do-filho",
       "informacoes/tutoria",
       "informacoes/fora-do-ar",
       "auditoria/a1",

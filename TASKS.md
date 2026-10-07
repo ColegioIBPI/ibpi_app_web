@@ -275,16 +275,19 @@ Referência de requisitos: [README.md](README.md).
 
 **Solicitação de documentação** — o pedido em si:
 
-- [ ] Modelar `solicitacoes` com tipo, aluno, situação e histórico de atendimento
-- [ ] Implementar o pedido pela família, escolhendo do catálogo
-- [ ] Implementar a fila da secretaria, com mudança de situação
-- [ ] Definir o recurso de permissão `solicitacoes` na matriz
+- [x] Modelar `solicitacoes` com tipo, aluno, situação e histórico de atendimento
+- [x] Implementar o pedido pela família, escolhendo do catálogo
+- [x] Implementar a fila da secretaria, com mudança de situação
+- [x] Definir o recurso de permissão `solicitacoes` na matriz
+- [x] Publicar a Security Rule: a família lê os pedidos dos filhos; aluno não lê
+- [ ] Avisar a família quando o pedido fica pronto _(depende do canal do app)_
 
 **Solicitação de saída antecipada**:
 
 - [ ] Data, horário e motivo
 - [ ] Quando acompanhada, nome e CPF de quem busca o aluno
-- [ ] Definir quem autoriza, e se a portaria precisa de uma lista do dia
+- [x] Definido: **quem autoriza é a coordenação**
+- [ ] Definir se a portaria precisa de uma lista do dia
 
 **Solicitação de 2ª chamada**:
 

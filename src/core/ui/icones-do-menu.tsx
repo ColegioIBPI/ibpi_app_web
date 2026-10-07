@@ -11,6 +11,7 @@ import {
   Presentation,
   School,
   ScrollText,
+  Send,
   SquarePen,
   Users,
   Wallet,
@@ -44,6 +45,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/gestao/boletins": ScrollText,
   "/gestao/avisos": Megaphone,
   "/gestao/informacoes": LifeBuoy,
+  "/gestao/solicitacoes": Send,
   "/gestao/financeiro": Wallet,
 
   "/portal/avisos": Megaphone,
@@ -52,6 +54,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/portal/ocorrencias": Flag,
   "/portal/financeiro": Wallet,
   "/portal/informacoes": LifeBuoy,
+  "/portal/solicitacoes": Send,
 };
 
 export function iconeDoMenu(href: string): LucideIcon {

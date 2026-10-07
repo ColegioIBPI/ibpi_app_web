@@ -119,6 +119,37 @@ describe("matriz de acesso — README seção 3.1", () => {
   });
 });
 
+describe("solicitações — a única escrita da família", () => {
+  it("o responsável lança; em todo o resto ele só lê", () => {
+    expect(pode("responsavel", "solicitacoes", "lancar")).toBe(true);
+
+    for (const recurso of RECURSOS) {
+      expect(pode("responsavel", recurso, "lancar")).toBe(false);
+    }
+  });
+
+  it("o responsável não gerencia a fila — quem atende é a escola", () => {
+    expect(pode("responsavel", "solicitacoes", "gerenciar")).toBe(false);
+  });
+
+  it("o aluno não abre pedido", () => {
+    // É menor de idade: o pedido é um ato do adulto por ele.
+    expect(podeVer("aluno", "solicitacoes")).toBe(false);
+  });
+
+  it("professor e financeiro ficam de fora", () => {
+    expect(podeVer("professor", "solicitacoes")).toBe(false);
+    expect(podeVer("financeiro", "solicitacoes")).toBe(false);
+  });
+
+  it("quem atende a fila é secretaria, coordenação e administração", () => {
+    const atendem = ROLES.filter((role) =>
+      pode(role, "solicitacoes", "gerenciar"),
+    );
+    expect(atendem).toEqual(["secretaria", "coordenacao", "admin"]);
+  });
+});
+
 describe("admin — a chave mestra", () => {
   it("gerencia todo recurso", () => {
     for (const recurso of RECURSOS) {

@@ -33,6 +33,7 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
 | `planosDePagamento`  | —         | Não existia; criada no Portal      |
 | `documentosSolicitaveis` | —     | Não existia; criada no Portal      |
+| `solicitacoes`       | —         | Não existia; criada no Portal      |
 | `anotacoesFinanceiras` | —       | Não existia; criada no Portal      |
 | `avisos`             | —         | Não existia; criada no Portal      |
 | `informacoes`        | —         | Não existia; criada no Portal      |
@@ -302,6 +303,40 @@ Dois campos que parecem redundantes e não são:
 Qualquer pessoa autenticada lê, inclusive o que está `ativo: false` — um
 pedido antigo aponta para um item que pode ter saído da lista, e sem poder
 lê-lo a família veria o próprio pedido sem nome.
+
+### `solicitacoes/{id}`
+
+`tipo` · `matricula` · `alunoNome` · `turmaCodigo` · `solicitanteUid` ·
+`solicitanteNome` · `situacao` · `historico[]` · `observacoes` · `abertaEm`
+
+Os pedidos da família à secretaria. Uma coleção só para os três tipos,
+discriminada por `tipo` — a secretaria atende os três no mesmo lugar, e
+separar em três coleções significaria três filas, três regras e três telas
+dizendo a mesma coisa. Hoje existe `documentacao`, que acrescenta
+`documentoId` e `documentoNome`.
+
+**`documentoNome` é cópia proposital.** Sem ela, renomear um item do catálogo
+reescreveria o que a família pediu no mês passado. O pedido guarda o que foi
+pedido; o catálogo guarda o que se oferece hoje.
+
+**A situação é gravada**, ao contrário da situação de uma cobrança. Lá,
+"vencida" é conclusão sobre hoje e envelhece sozinha; aqui é o registro de um
+ato humano — alguém pegou, alguém deixou pronto, alguém entregou. Isso não se
+deduz de data nenhuma, e se não for gravado se perde.
+
+O `historico[]` guarda cada passo com quem o deu e quando. É o que responde
+"desde quando está em andamento" e "quem recusou, e por quê" — perguntas que
+aparecem justamente quando a família reclama.
+
+**É a única coleção em que a família escreve.** Em todo o resto ela lê. E
+ainda assim a regra do Firestore nega toda escrita pelo cliente: quem grava é
+a Server Action, que confere o vínculo com o aluno antes de aceitar — sem
+isso, bastaria trocar a matrícula no corpo da requisição para pedir o
+histórico de outro aluno.
+
+A leitura é por `matricula` e não por quem abriu: dois responsáveis
+acompanham o mesmo aluno, e os dois precisam ver o pedido que qualquer um
+deles fez.
 
 ### `avisos/{id}` e `informacoes/{id}`
 

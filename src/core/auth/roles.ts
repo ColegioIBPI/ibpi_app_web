@@ -34,7 +34,8 @@ export type Recurso =
   | "ocorrencias"
   | "notas"
   | "financeiro"
-  | "avisos";
+  | "avisos"
+  | "solicitacoes";
 
 /**
  * Níveis de acesso, cumulativos: quem gerencia também lança, quem lança
@@ -62,6 +63,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     notas: "gerenciar",
     financeiro: "gerenciar",
     avisos: "gerenciar",
+    solicitacoes: "gerenciar",
   },
   secretaria: {
     cadastros: "gerenciar",
@@ -70,6 +72,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     notas: "gerenciar",
     financeiro: "ler",
     avisos: "gerenciar",
+    // Atende a fila: muda a situação do pedido e o recusa quando for o caso.
+    solicitacoes: "gerenciar",
   },
   coordenacao: {
     cadastros: "gerenciar",
@@ -78,6 +82,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     notas: "gerenciar",
     financeiro: "ler",
     avisos: "gerenciar",
+    solicitacoes: "gerenciar",
   },
   // Quem cuida de mensalidade não precisa ver nota, falta nem ocorrência
   // disciplinar. Lê o cadastro apenas para contato e cobrança.
@@ -89,6 +94,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     financeiro: "lancar",
     // Publica aviso de cobrança e prazo, mas não apaga o de outra pessoa.
     avisos: "lancar",
+    // Pedido de declaração e de saída não passa pelo caixa.
+    solicitacoes: "nenhum",
   },
   professor: {
     cadastros: "ler",
@@ -98,6 +105,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     financeiro: "nenhum",
     // Publica para as turmas que leciona — o escopo vale aqui também.
     avisos: "lancar",
+    solicitacoes: "nenhum",
   },
   aluno: {
     cadastros: "ler",
@@ -106,6 +114,9 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     notas: "ler",
     financeiro: "nenhum",
     avisos: "ler",
+    // Quem pede declaração, saída antecipada e 2ª chamada é o responsável.
+    // O aluno é menor de idade, e o pedido é um ato do adulto por ele.
+    solicitacoes: "nenhum",
   },
   responsavel: {
     cadastros: "ler",
@@ -114,6 +125,15 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     notas: "ler",
     financeiro: "ler",
     avisos: "ler",
+    /**
+     * **A única escrita da família no sistema inteiro.**
+     *
+     * Em todo o resto ela lê. Aqui ela abre o próprio pedido e o cancela
+     * enquanto ninguém o pegou — fora isso, quem move a fila é a escola.
+     * Continua valendo que nada é gravado pelo cliente: a Server Action
+     * verifica o vínculo com o aluno antes de aceitar.
+     */
+    solicitacoes: "lancar",
   },
 };
 

@@ -73,6 +73,8 @@ inteira.
 | Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      | Avisos                    |
 | --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
 | **Administração** | Lê e **gerencia**    | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia**   |
+
+> A coluna **Solicitações** não cabe na tabela acima: atendem a fila a secretaria, a coordenação e a administração; o **responsável abre o próprio pedido** — a única escrita da família no sistema —; aluno, professor e financeiro não participam.
 | **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |
@@ -487,6 +489,7 @@ Modelagem inicial, compartilhada com o app MyIBPI:
 | `avisos`           | comunicado + destino e chave de alcance               | id gerado              |
 | `informacoes`      | card com texto + destino, chave de alcance e ordem    | id gerado              |
 | `documentosSolicitaveis` | catálogo do que a secretaria emite              | id gerado              |
+| `solicitacoes`     | pedidos da família, com situação e histórico          | id gerado              |
 | `auditoria`        | quem alterou o quê, quando, valor antes e depois      | id gerado              |
 
 > ⚠️ A definir na FASE 3: se as subcoleções (ex.: `alunos/{id}/notas`) rendem consultas melhores que coleções raiz para os relatórios de turma. A decisão sai da primeira modelagem com dados reais migrados.

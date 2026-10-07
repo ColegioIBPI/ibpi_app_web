@@ -133,6 +133,14 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/solicitacoes",
+    rotulo: "Solicitações",
+    area: "gestao",
+    recurso: "solicitacoes",
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/informacoes",
     rotulo: "Informações úteis",
     area: "gestao",
@@ -190,6 +198,17 @@ const ITENS: ItemDeNavegacao[] = [
     area: "consulta",
     recurso: "financeiro",
     minimo: "ler",
+    disponivel: true,
+  },
+  {
+    href: "/portal/solicitacoes",
+    rotulo: "Solicitações",
+    area: "consulta",
+    recurso: "solicitacoes",
+    // A família **abre** o pedido: é a única escrita dela no sistema, e por
+    // isso o mínimo aqui é `lancar` e não `ler`. O aluno não tem o recurso,
+    // então o item não aparece para ele.
+    minimo: "lancar",
     disponivel: true,
   },
   {

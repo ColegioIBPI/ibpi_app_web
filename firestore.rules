@@ -257,6 +257,27 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --------------------------------------------------- solicitações
+
+    // Os pedidos que a família faz à secretaria.
+    //
+    // Quem abre é o **responsável**, e a leitura é por `matricula` e não por
+    // quem abriu: dois responsáveis acompanham o mesmo aluno, e os dois
+    // precisam ver o pedido que qualquer um deles fez — senão um liga para a
+    // secretaria perguntando por um documento que o outro já pediu.
+    //
+    // O aluno não lê: é menor de idade, e o pedido é um ato do adulto por
+    // ele. Professor e financeiro também não — não é assunto deles.
+    //
+    // `allow write: if false` como em toda coleção, inclusive aqui, onde a
+    // família **escreve** pela primeira vez no sistema: ela escreve pela
+    // Server Action, que confere o vínculo com o aluno antes de gravar.
+    match /solicitacoes/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || ehFilho(resource.data.matricula);
+      allow write: if false;
+    }
+
     // --------------------------------------------------------------- avisos
 
     match /avisos/{id} {

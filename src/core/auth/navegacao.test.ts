@@ -48,6 +48,7 @@ describe("navegacaoPara", () => {
       "Notas",
       "Boletins",
       "Avisos",
+      "Solicitações",
       "Informações úteis",
       "Financeiro",
     ]);
@@ -78,6 +79,7 @@ describe("navegacaoPara", () => {
       "Frequência",
       "Ocorrências",
       "Financeiro",
+      "Solicitações",
       "Informações úteis",
     ]);
   });
