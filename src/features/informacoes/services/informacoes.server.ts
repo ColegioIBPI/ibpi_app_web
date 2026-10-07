@@ -10,7 +10,7 @@ import {
   lotesDeChaves,
 } from "@/features/avisos/domain/destinatarios";
 import { contextoDaSessao } from "@/features/avisos/services/avisos.server";
-import { ordenarCards } from "@/features/informacoes/domain/ordem";
+import { ordenarPorOrdem } from "@/core/lib/ordem";
 
 /**
  * Leitura das informações úteis.
@@ -50,7 +50,7 @@ export async function listarInformacoesPara(
     }
   }
 
-  return ordenarCards([...cards.values()]);
+  return ordenarPorOrdem([...cards.values()], (card) => card.titulo);
 }
 
 /** Tudo que foi publicado — visão da equipe escolar. */
@@ -59,8 +59,9 @@ export async function listarInformacoesPublicadas(): Promise<
 > {
   const docs = await getAdminDb().collection(COLECOES.informacoes).get();
 
-  return ordenarCards(
+  return ordenarPorOrdem(
     docs.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Informacao) })),
+    (card) => card.titulo,
   );
 }
 

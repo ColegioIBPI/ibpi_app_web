@@ -22,6 +22,7 @@ export * from "@/core/modelo/nota";
 export * from "@/core/modelo/financeiro";
 export * from "@/core/modelo/aviso";
 export * from "@/core/modelo/informacao";
+export * from "@/core/modelo/documento";
 
 /** Nome de cada coleção no Firestore, em um lugar só. */
 export const COLECOES = {
@@ -46,6 +47,13 @@ export const COLECOES = {
   anotacoesFinanceiras: "anotacoesFinanceiras",
   avisos: "avisos",
   informacoes: "informacoes",
+  documentosSolicitaveis: "documentosSolicitaveis",
+  /**
+   * Os pedidos da família. A coleção em si entra na próxima entrega; o nome
+   * já existe porque o catálogo precisa dele para recusar a exclusão de um
+   * documento já solicitado — guarda escrito depois é guarda escrito tarde.
+   */
+  solicitacoes: "solicitacoes",
   auditoria: "auditoria",
 } as const;
 

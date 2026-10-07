@@ -486,6 +486,7 @@ Modelagem inicial, compartilhada com o app MyIBPI:
 | `anotacoesFinanceiras` | anotação interna da equipe sobre o aluno         | `matricula`            |
 | `avisos`           | comunicado + destino e chave de alcance               | id gerado              |
 | `informacoes`      | card com texto + destino, chave de alcance e ordem    | id gerado              |
+| `documentosSolicitaveis` | catálogo do que a secretaria emite              | id gerado              |
 | `auditoria`        | quem alterou o quê, quando, valor antes e depois      | id gerado              |
 
 > ⚠️ A definir na FASE 3: se as subcoleções (ex.: `alunos/{id}/notas`) rendem consultas melhores que coleções raiz para os relatórios de turma. A decisão sai da primeira modelagem com dados reais migrados.

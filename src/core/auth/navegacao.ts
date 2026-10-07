@@ -73,6 +73,16 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/documentos",
+    rotulo: "Documentos",
+    area: "gestao",
+    recurso: "cadastros",
+    // Catálogo do que a secretaria emite: cadastro estrutural, como Turmas
+    // e Disciplinas, e com o mesmo dono.
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/frequencia",
     rotulo: "Frequência",
     area: "gestao",

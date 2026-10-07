@@ -41,6 +41,7 @@ describe("navegacaoPara", () => {
       "Professores",
       "Turmas",
       "Disciplinas",
+      "Documentos",
       "Frequência",
       "Diário de classe",
       "Ocorrências",

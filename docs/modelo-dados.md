@@ -32,6 +32,7 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 | `ocorrencias`        | —         | `CONTROLE DE FALTAS.xlsx`          |
 | `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
 | `planosDePagamento`  | —         | Não existia; criada no Portal      |
+| `documentosSolicitaveis` | —     | Não existia; criada no Portal      |
 | `anotacoesFinanceiras` | —       | Não existia; criada no Portal      |
 | `avisos`             | —         | Não existia; criada no Portal      |
 | `informacoes`        | —         | Não existia; criada no Portal      |
@@ -273,6 +274,34 @@ As regras de cálculo estão em [`avaliacao.md`](avaliacao.md). Elas viram funç
 `src/features/notas/domain/` quando a tela for construída.
 
 > ⚠️ Nenhuma nota foi migrada: depende da conversão bimestre → trimestre.
+
+### `documentosSolicitaveis/{id}`
+
+`nome` · `descricao` · `prazoEmDiasUteis` · `valor` · `exigeComprovante` ·
+`ordem` · `ativo`
+
+O catálogo do que a secretaria emite: declaração de matrícula, de frequência,
+histórico. É a lista de onde a família escolhe ao fazer um pedido.
+
+**Não é arquivo de aluno.** O RG digitalizado e o comprovante de residência
+são outra coisa, e o nome da coleção diz isso — `documentosSolicitaveis`, e
+não `documentos`, para a confusão não nascer junto com a segunda coleção.
+
+O catálogo existe separado do pedido pela mesma razão que a lista de
+disciplinas existe separada da nota: a secretaria muda o que oferece sem
+mexer no que já foi pedido, e um pedido antigo continua dizendo o que foi
+pedido mesmo depois de o item sair de circulação.
+
+Dois campos que parecem redundantes e não são:
+
+- **`prazoEmDiasUteis` nulo ≠ zero.** Nulo é "não prometemos prazo"; zero é
+  "sai na hora". São promessas diferentes.
+- **`exigeComprovante` não se deduz de `valor`.** Há documento cobrado que a
+  família paga na secretaria, em dinheiro, sem nada para anexar.
+
+Qualquer pessoa autenticada lê, inclusive o que está `ativo: false` — um
+pedido antigo aponta para um item que pode ter saído da lista, e sem poder
+lê-lo a família veria o próprio pedido sem nome.
 
 ### `avisos/{id}` e `informacoes/{id}`
 

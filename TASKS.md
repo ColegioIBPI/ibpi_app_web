@@ -261,6 +261,40 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.12 Solicitações da família
+
+> Quatro entregas. A primeira é pré-requisito da segunda: não dá para a
+> família escolher de uma lista que não existe.
+
+**Catálogo de documentos** — o que a secretaria emite:
+
+- [x] Modelar `documentosSolicitaveis` com nome, descrição, prazo, valor e comprovante
+- [x] Implementar a tela de cadastro (inserir, alterar, tirar da lista)
+- [x] Recusar a exclusão de documento já solicitado — tirar da lista é o caminho
+- [x] Publicar a Security Rule: qualquer pessoa autenticada lê o catálogo
+
+**Solicitação de documentação** — o pedido em si:
+
+- [ ] Modelar `solicitacoes` com tipo, aluno, situação e histórico de atendimento
+- [ ] Implementar o pedido pela família, escolhendo do catálogo
+- [ ] Implementar a fila da secretaria, com mudança de situação
+- [ ] Definir o recurso de permissão `solicitacoes` na matriz
+
+**Solicitação de saída antecipada**:
+
+- [ ] Data, horário e motivo
+- [ ] Quando acompanhada, nome e CPF de quem busca o aluno
+- [ ] Definir quem autoriza, e se a portaria precisa de uma lista do dia
+
+**Solicitação de 2ª chamada**:
+
+- [ ] Disciplina e comprovante de pagamento anexado
+- [ ] Servir o anexo por rota autenticada (o Storage nega todo acesso de cliente)
+- [ ] Definir o prazo em que o pedido é aceito após a falta
+
+> O contrato do app (`docs/app-mobile.md`) entra junto com a segunda entrega:
+> o catálogo sozinho não serve para nada no aplicativo.
+
 ### 3.10 Auditoria
 
 - [x] Modelar a coleção `auditoria`

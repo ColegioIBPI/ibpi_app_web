@@ -226,6 +226,14 @@ beforeEach(async () => {
       chave: "todos",
       ativo: false,
     });
+    await setDoc(doc(db, "documentosSolicitaveis/declaracao"), {
+      nome: "Declaração de matrícula",
+      ativo: true,
+    });
+    await setDoc(doc(db, "documentosSolicitaveis/fora-da-lista"), {
+      nome: "Documento descontinuado",
+      ativo: false,
+    });
     await setDoc(doc(db, "turmas/EM1A"), { nome: "EM1A" });
     await setDoc(doc(db, "coisa-nova/x1"), { qualquer: true });
   });
@@ -606,6 +614,49 @@ describe("informações úteis", () => {
   });
 });
 
+describe("catálogo de documentos", () => {
+  it("toda pessoa com sessão lê a lista", async () => {
+    // É a lista de onde a família escolhe ao pedir uma declaração: sem
+    // poder lê-la, não há o que escolher.
+    const { aluno, responsavel, professor, secretaria, financeiro } =
+      contextos();
+
+    for (const contexto of [
+      aluno,
+      responsavel,
+      professor,
+      secretaria,
+      financeiro,
+    ]) {
+      await assertSucceeds(ler(contexto, "documentosSolicitaveis/declaracao"));
+    }
+  });
+
+  it("a família lê também o que saiu da lista", async () => {
+    // Um pedido antigo aponta para um item descontinuado. Sem poder lê-lo,
+    // a família veria o próprio pedido sem nome.
+    const { responsavel } = contextos();
+    await assertSucceeds(
+      ler(responsavel, "documentosSolicitaveis/fora-da-lista"),
+    );
+  });
+
+  it("visitante não lê o catálogo", async () => {
+    const { visitante, semPerfil } = contextos();
+    await assertFails(ler(visitante, "documentosSolicitaveis/declaracao"));
+    await assertFails(ler(semPerfil, "documentosSolicitaveis/declaracao"));
+  });
+
+  it("ninguém cadastra pelo cliente", async () => {
+    const { secretaria } = contextos();
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "documentosSolicitaveis/novo"), {
+        nome: "x",
+      }),
+    );
+  });
+});
+
 describe("administração — a chave mestra", () => {
   it("lê toda coleção prevista", async () => {
     // A verificação que importa: um `match` novo que esqueça de incluir a
@@ -627,6 +678,7 @@ describe("administração — a chave mestra", () => {
       `anotacoesFinanceiras/${FILHO}`,
       "avisos/individual",
       "avisos/despublicado",
+      "documentosSolicitaveis/declaracao",
       "informacoes/tutoria",
       "informacoes/fora-do-ar",
       "auditoria/a1",

@@ -136,6 +136,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Catálogo do que a secretaria emite — declaração de matrícula, de
+    // frequência, histórico. Não é dado pessoal: é a lista de onde a família
+    // escolhe ao fazer um pedido, e ela precisa lê-la para escolher.
+    //
+    // Inclusive o que está fora da lista: um pedido antigo aponta para um
+    // item que pode ter saído de circulação, e sem poder lê-lo a família
+    // veria o próprio pedido sem nome.
+    match /documentosSolicitaveis/{id} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
     match /alocacoes/{id} {
       allow read: if autenticado();
       allow write: if false;

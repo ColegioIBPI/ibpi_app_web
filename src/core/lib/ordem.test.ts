@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { ordenarCards } from "@/features/informacoes/domain/ordem";
+import { ordenarPorOrdem } from "@/core/lib/ordem";
 
 const card = (ordem: number, titulo: string) => ({ ordem, titulo });
 
-describe("ordenarCards", () => {
+const ordenarCards = <T extends { ordem?: number | null; titulo: string }>(
+  cards: T[],
+) => ordenarPorOrdem(cards, (c) => c.titulo);
+
+describe("ordenarPorOrdem", () => {
   it("usa a ordem definida na publicação", () => {
     const cards = ordenarCards([
       card(30, "Eletivas"),
