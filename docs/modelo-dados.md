@@ -309,11 +309,24 @@ lê-lo a família veria o próprio pedido sem nome.
 `tipo` · `matricula` · `alunoNome` · `turmaCodigo` · `solicitanteUid` ·
 `solicitanteNome` · `situacao` · `historico[]` · `observacoes` · `abertaEm`
 
-Os pedidos da família à secretaria. Uma coleção só para os três tipos,
-discriminada por `tipo` — a secretaria atende os três no mesmo lugar, e
-separar em três coleções significaria três filas, três regras e três telas
-dizendo a mesma coisa. Hoje existe `documentacao`, que acrescenta
-`documentoId` e `documentoNome`.
+Os pedidos da família à escola. Uma coleção só para os três tipos,
+discriminada por `tipo` — a mesma fila atende todos, e separar em três
+coleções significaria três filas, três regras e três telas dizendo a mesma
+coisa.
+
+| Tipo | Campos próprios | Quem atende |
+| --- | --- | --- |
+| `documentacao` | `documentoId`, `documentoNome` | Secretaria, coordenação, administração |
+| `saida-antecipada` | `data`, `horario`, `motivo`, `acompanhada`, `acompanhante` | **Coordenação e administração** |
+| `segunda-chamada` | _(próxima entrega)_ | — |
+
+**Saída antecipada não aparece para a secretaria.** Quem responde por tirar
+um aluno da aula é a coordenação, e o pedido nem chega à fila de quem não
+decide. O recorte é feito na consulta e repetido na Security Rule — filtrar
+só na tela mandaria o pedido para o navegador de quem não deve vê-lo.
+
+O `acompanhante` traz nome e CPF porque quem recebe na portaria não conhece
+a família de vista: "a tia da Maria" não é identificação.
 
 **`documentoNome` é cópia proposital.** Sem ela, renomear um item do catálogo
 reescreveria o que a família pediu no mês passado. O pedido guarda o que foi
@@ -323,6 +336,17 @@ pedido; o catálogo guarda o que se oferece hoje.
 "vencida" é conclusão sobre hoje e envelhece sozinha; aqui é o registro de um
 ato humano — alguém pegou, alguém deixou pronto, alguém entregou. Isso não se
 deduz de data nenhuma, e se não for gravado se perde.
+
+A fila muda com o tipo. Documentação vai de `aberta` a `entregue`; saída
+antecipada é `autorizada` ou `recusada` — o que a família espera não é um
+documento, é uma resposta.
+
+**De `entregue` não se sai, de `autorizada` sim.** A diferença não é de
+rigor, é de natureza: `entregue` descreve algo que já aconteceu — o documento
+saiu da mão da escola —, enquanto `autorizada` é permissão para um momento
+que ainda não chegou. Enquanto o aluno não saiu, a coordenação pode mudar de
+ideia; proibir empurraria a reversão para fora do sistema, onde não deixa
+rastro.
 
 O `historico[]` guarda cada passo com quem o deu e quando. É o que responde
 "desde quando está em andamento" e "quem recusou, e por quê" — perguntas que

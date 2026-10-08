@@ -5,7 +5,7 @@ import Link from "next/link";
 import { exigirPermissao } from "@/core/auth/guards";
 import { COLECOES, type Aluno } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
-import { NovoPedido } from "@/features/solicitacoes/components/novo-pedido";
+import { NovaSolicitacao } from "@/features/solicitacoes/components/nova-solicitacao";
 import { listarDocumentosAtivos } from "@/features/documentos/services/documentos.server";
 
 export const metadata: Metadata = { title: "Nova solicitação" };
@@ -54,11 +54,11 @@ export default async function NovaSolicitacaoPage() {
           Nova solicitação
         </h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Pedido de documentação à secretaria.
+          Documentação ou saída antecipada.
         </p>
       </div>
 
-      <NovoPedido alunos={alunos} documentos={documentos} />
+      <NovaSolicitacao alunos={alunos} documentos={documentos} />
     </div>
   );
 }

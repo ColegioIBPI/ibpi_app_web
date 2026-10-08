@@ -16,6 +16,7 @@ const CORES: Record<SituacaoDaSolicitacao, string> = {
   aberta: "bg-surface-subtle text-ink-muted",
   "em-andamento": "bg-warning-surface text-warning",
   pronta: "bg-success-surface text-success",
+  autorizada: "bg-success-surface text-success",
   entregue: "bg-surface-subtle text-ink-muted",
   recusada: "bg-danger-surface text-danger",
   cancelada: "bg-surface-subtle text-ink-muted",

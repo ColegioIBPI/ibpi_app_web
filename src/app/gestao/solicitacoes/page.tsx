@@ -10,8 +10,8 @@ import { listarFila } from "@/features/solicitacoes/services/solicitacoes.server
 export const metadata: Metadata = { title: "Solicitações" };
 
 export default async function SolicitacoesPage() {
-  await exigirPermissao("solicitacoes", "gerenciar");
-  const solicitacoes = await listarFila();
+  const sessao = await exigirPermissao("solicitacoes", "gerenciar");
+  const solicitacoes = await listarFila(sessao);
 
   const pendentes = solicitacoes.filter(
     (solicitacao) => !estaEncerrada(solicitacao.situacao),

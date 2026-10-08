@@ -4,7 +4,11 @@ import { administraEscola } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, type Solicitacao } from "@/core/modelo";
-import { ordenarFila } from "@/features/solicitacoes/domain/fila";
+import {
+  ordenarFila,
+  podeAtender,
+  tiposQueAtende,
+} from "@/features/solicitacoes/domain/fila";
 
 /**
  * Leitura dos pedidos.
@@ -14,18 +18,36 @@ import { ordenarFila } from "@/features/solicitacoes/domain/fila";
  * inteira.
  */
 
-export interface SolicitacaoComId extends Solicitacao {
-  id: string;
-}
+/**
+ * Interseção, e não `interface extends`: `Solicitacao` é uma união, e uma
+ * interface não estende união — o resultado seria um tipo sem campo nenhum.
+ */
+export type SolicitacaoComId = Solicitacao & { id: string };
 
 const paraLista = (docs: FirebaseFirestore.QuerySnapshot): SolicitacaoComId[] =>
   ordenarFila(
     docs.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Solicitacao) })),
   );
 
-/** A fila inteira — visão da secretaria e da coordenação. */
-export async function listarFila(): Promise<SolicitacaoComId[]> {
-  return paraLista(await getAdminDb().collection(COLECOES.solicitacoes).get());
+/**
+ * A fila, recortada pelo que o perfil atende.
+ *
+ * Saída antecipada é decisão da coordenação e não aparece para a
+ * secretaria. O recorte acontece na consulta, e não na tela: filtrar só na
+ * renderização mandaria o pedido para o navegador de quem não deve vê-lo.
+ */
+export async function listarFila(
+  sessao: SessionUser,
+): Promise<SolicitacaoComId[]> {
+  const tipos = tiposQueAtende(sessao.role);
+  if (tipos.length === 0) return [];
+
+  const docs = await getAdminDb()
+    .collection(COLECOES.solicitacoes)
+    .where("tipo", "in", tipos)
+    .get();
+
+  return paraLista(docs);
 }
 
 /**
@@ -71,7 +93,10 @@ export async function obterSolicitacaoVisivel(
 
   const solicitacao = { id: doc.id, ...(doc.data() as Solicitacao) };
 
-  if (administraEscola(sessao.role)) return solicitacao;
+  // A escola abre o que atende; saída antecipada não é da secretaria.
+  if (administraEscola(sessao.role)) {
+    return podeAtender(sessao.role, solicitacao.tipo) ? solicitacao : null;
+  }
 
   return sessao.alunosVinculados.includes(solicitacao.matricula)
     ? solicitacao

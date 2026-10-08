@@ -8,6 +8,10 @@ import { ROTULOS_DE_TIPO_DE_SOLICITACAO } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { mudarSituacao } from "@/features/solicitacoes/actions/solicitacoes";
 import { podeMover } from "@/features/solicitacoes/domain/fila";
+import {
+  DetalheDaSolicitacao,
+  tituloDaSolicitacao,
+} from "@/features/solicitacoes/components/detalhe";
 import { Situacao } from "@/features/solicitacoes/components/situacao";
 import type { SolicitacaoComId } from "@/features/solicitacoes/services/solicitacoes.server";
 
@@ -63,6 +67,7 @@ export function ListaDaFamilia({
         {solicitacoes.map((solicitacao) => {
           const ultimo = solicitacao.historico?.at(-1);
           const podeCancelar = podeMover(
+            solicitacao.tipo,
             solicitacao.situacao,
             "cancelada",
             "familia",
@@ -75,10 +80,11 @@ export function ListaDaFamilia({
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                  <p className="text-ink-muted text-xs">
+                    {ROTULOS_DE_TIPO_DE_SOLICITACAO[solicitacao.tipo]}
+                  </p>
                   <p className="text-ink font-medium">
-                    {solicitacao.tipo === "documentacao"
-                      ? solicitacao.documentoNome
-                      : ROTULOS_DE_TIPO_DE_SOLICITACAO[solicitacao.tipo]}
+                    {tituloDaSolicitacao(solicitacao)}
                   </p>
                   <p className="text-ink-muted mt-0.5 text-sm">
                     {solicitacao.alunoNome}
@@ -104,6 +110,8 @@ export function ListaDaFamilia({
                   )}
                 </div>
               </div>
+
+              <DetalheDaSolicitacao solicitacao={solicitacao} />
 
               {solicitacao.observacoes && (
                 <p className="text-ink-muted mt-2 text-sm">

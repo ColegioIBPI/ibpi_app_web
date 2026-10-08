@@ -74,7 +74,7 @@ inteira.
 | --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
 | **Administração** | Lê e **gerencia**    | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia**   |
 
-> A coluna **Solicitações** não cabe na tabela acima: atendem a fila a secretaria, a coordenação e a administração; o **responsável abre o próprio pedido** — a única escrita da família no sistema —; aluno, professor e financeiro não participam.
+> A coluna **Solicitações** não cabe na tabela acima: o **responsável abre o próprio pedido** — a única escrita da família no sistema — e atende a fila a secretaria, a coordenação e a administração. Com uma exceção: **saída antecipada é só da coordenação e da administração**, porque quem responde por tirar um aluno da aula é a coordenação. Aluno, professor e financeiro não participam.
 | **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |

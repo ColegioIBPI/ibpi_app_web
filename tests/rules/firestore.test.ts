@@ -232,6 +232,14 @@ beforeEach(async () => {
       documentoNome: "Declaração de matrícula",
       situacao: "aberta",
     });
+    await setDoc(doc(db, "solicitacoes/saida-do-filho"), {
+      tipo: "saida-antecipada",
+      matricula: FILHO,
+      data: "2026-10-20",
+      horario: "14:00",
+      motivo: "Consulta médica",
+      situacao: "aberta",
+    });
     await setDoc(doc(db, "solicitacoes/de-outra-familia"), {
       tipo: "documentacao",
       matricula: "26031",
@@ -650,6 +658,27 @@ describe("solicitações da família", () => {
       await assertSucceeds(ler(contexto, "solicitacoes/do-filho"));
       await assertSucceeds(ler(contexto, "solicitacoes/de-outra-familia"));
     }
+  });
+
+  it("saída antecipada é da coordenação — a secretaria não vê", async () => {
+    // Quem responde por tirar um aluno da aula é a coordenação, e o pedido
+    // nem aparece na fila de quem não decide.
+    const { secretaria, coordenacao, admin } = contextos();
+
+    await assertFails(ler(secretaria, "solicitacoes/saida-do-filho"));
+    await assertSucceeds(ler(coordenacao, "solicitacoes/saida-do-filho"));
+    await assertSucceeds(ler(admin, "solicitacoes/saida-do-filho"));
+
+    // E a secretaria continua vendo a documentação normalmente.
+    await assertSucceeds(ler(secretaria, "solicitacoes/do-filho"));
+  });
+
+  it("o responsável lê a saída antecipada do próprio filho", async () => {
+    // O recorte por tipo vale para a escola, não para quem pediu.
+    const { responsavel, outroResponsavel } = contextos();
+
+    await assertSucceeds(ler(responsavel, "solicitacoes/saida-do-filho"));
+    await assertFails(ler(outroResponsavel, "solicitacoes/saida-do-filho"));
   });
 
   it("professor e financeiro não leem pedido", async () => {

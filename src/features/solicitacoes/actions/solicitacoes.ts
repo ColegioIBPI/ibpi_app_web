@@ -8,15 +8,23 @@ import { exigirPermissao } from "@/core/auth/guards";
 import { administraEscola } from "@/core/auth/roles";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
+  acompanhanteSchema,
   COLECOES,
+  faltaAcompanhante,
   situacaoDaSolicitacaoSchema,
   solicitacaoDeDocumentacaoSchema,
+  solicitacaoDeSaidaAntecipadaSchema,
+  dataSchema,
   type Aluno,
   type DocumentoSolicitavel,
   type PassoDaSolicitacao,
   type Solicitacao,
 } from "@/core/modelo";
-import { exigeMotivo, podeMover } from "@/features/solicitacoes/domain/fila";
+import {
+  exigeMotivo,
+  podeAtender,
+  podeMover,
+} from "@/features/solicitacoes/domain/fila";
 
 /**
  * Escrita dos pedidos.
@@ -128,6 +136,98 @@ export async function abrirPedidoDeDocumentacao(
   return { ok: true, id: referencia.id };
 }
 
+const pedidoDeSaidaSchema = z.object({
+  matricula: z.string().min(1, "Escolha o aluno."),
+  data: dataSchema,
+  horario: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Informe o horário como HH:MM."),
+  motivo: z.string().trim().min(3, "Informe o motivo da saída."),
+  acompanhada: z.boolean(),
+  acompanhante: acompanhanteSchema.nullable().default(null),
+  observacoes: z.string().trim().nullable().default(null),
+});
+
+export type PedidoDeSaida = z.infer<typeof pedidoDeSaidaSchema>;
+
+export async function abrirPedidoDeSaida(
+  dados: PedidoDeSaida,
+): Promise<ResultadoDaSolicitacao> {
+  const entrada = pedidoDeSaidaSchema.safeParse(dados);
+  if (!entrada.success) {
+    return { ok: false, erro: entrada.error.issues[0]?.message };
+  }
+
+  // Dizer que alguém vem buscar sem dizer quem deixa a portaria sem saber a
+  // quem entregar o aluno.
+  if (faltaAcompanhante(entrada.data)) {
+    return { ok: false, erro: "Informe quem vem buscar o aluno." };
+  }
+
+  const sessao = await exigirPermissao("solicitacoes", "lancar");
+  const db = getAdminDb();
+
+  if (!sessao.alunosVinculados.includes(entrada.data.matricula)) {
+    return { ok: false, erro: "Aluno não encontrado." };
+  }
+
+  const alunoDoc = await db
+    .collection(COLECOES.alunos)
+    .doc(entrada.data.matricula)
+    .get();
+
+  if (!alunoDoc.exists) return { ok: false, erro: "Aluno não encontrado." };
+
+  const aluno = alunoDoc.data() as Aluno;
+  const agora = new Date().toISOString();
+
+  const solicitacao = solicitacaoDeSaidaAntecipadaSchema.safeParse({
+    tipo: "saida-antecipada",
+    matricula: entrada.data.matricula,
+    alunoNome: aluno.nome,
+    turmaCodigo: aluno.turmaCodigo ?? null,
+    solicitanteUid: sessao.uid,
+    solicitanteNome: sessao.nome,
+    data: entrada.data.data,
+    horario: entrada.data.horario,
+    motivo: entrada.data.motivo,
+    acompanhada: entrada.data.acompanhada,
+    // Sem acompanhante, o par de campos fica limpo: guardar um nome de uma
+    // escolha desfeita é como ele reaparece numa tela depois.
+    acompanhante: entrada.data.acompanhada ? entrada.data.acompanhante : null,
+    observacoes: entrada.data.observacoes,
+    situacao: "aberta",
+    historico: [
+      {
+        situacao: "aberta",
+        em: agora,
+        porUid: sessao.uid,
+        porNome: sessao.nome,
+      },
+    ],
+    abertaEm: agora,
+    origem: "portal",
+  });
+
+  if (!solicitacao.success) {
+    return { ok: false, erro: solicitacao.error.issues[0]?.message };
+  }
+
+  const referencia = db.collection(COLECOES.solicitacoes).doc();
+
+  await gravarComAuditoria({
+    colecao: COLECOES.solicitacoes,
+    documentoId: referencia.id,
+    antes: null,
+    depois: solicitacao.data,
+    autor: sessao,
+  });
+
+  revalidar(referencia.id);
+
+  return { ok: true, id: referencia.id };
+}
+
 const mudancaSchema = z.object({
   id: z.string().min(1),
   situacao: situacaoDaSolicitacaoSchema,
@@ -165,9 +265,22 @@ export async function mudarSituacao(
     return { ok: false, erro: "Pedido não encontrado." };
   }
 
+  // Quem não atende este tipo não o move — e recebe a mesma resposta de um
+  // pedido inexistente, para a negativa não revelar que ele existe.
+  if (daEscola && !podeAtender(sessao.role, solicitacao.tipo)) {
+    return { ok: false, erro: "Pedido não encontrado." };
+  }
+
   const quem = daEscola ? "escola" : "familia";
 
-  if (!podeMover(solicitacao.situacao, entrada.data.situacao, quem)) {
+  if (
+    !podeMover(
+      solicitacao.tipo,
+      solicitacao.situacao,
+      entrada.data.situacao,
+      quem,
+    )
+  ) {
     return {
       ok: false,
       erro: `Um pedido ${solicitacao.situacao} não pode passar para ${entrada.data.situacao}.`,

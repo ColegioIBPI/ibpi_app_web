@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   auditoriaDoDocumentoSchema,
+  dataSchema,
   origemSchema,
   textoOpcional,
 } from "@/core/modelo/comum";
@@ -31,6 +32,7 @@ export const situacaoDaSolicitacaoSchema = z.enum([
   "em-andamento",
   "pronta",
   "entregue",
+  "autorizada",
   "recusada",
   "cancelada",
 ]);
@@ -42,6 +44,7 @@ export const ROTULOS_DE_SOLICITACAO: Record<SituacaoDaSolicitacao, string> = {
   "em-andamento": "Em andamento",
   pronta: "Pronta para retirada",
   entregue: "Entregue",
+  autorizada: "Autorizada",
   recusada: "Recusada",
   cancelada: "Cancelada",
 };
@@ -123,12 +126,67 @@ export type SolicitacaoDeDocumentacao = z.infer<
 >;
 
 /**
- * Saída antecipada e 2ª chamada entram aqui nas próximas entregas, como
- * novos membros da união — a fila, a regra e a tela já ficam prontas para
- * eles.
+ * Quem vem buscar o aluno.
+ *
+ * O CPF é pedido porque quem recebe na portaria não conhece a família de
+ * vista, e "a tia da Maria" não é identificação. Mesmo formato de onze
+ * dígitos do resto do sistema.
+ */
+export const acompanhanteSchema = z.object({
+  nome: z.string().trim().min(3, "Informe o nome de quem vem buscar"),
+  cpf: z.string().regex(/^\d{11}$/, "CPF tem 11 dígitos"),
+});
+
+export type Acompanhante = z.infer<typeof acompanhanteSchema>;
+
+export const solicitacaoDeSaidaAntecipadaSchema = z.object({
+  tipo: z.literal("saida-antecipada"),
+  ...baseDaSolicitacao,
+
+  data: dataSchema,
+  /** Hora da saída, `HH:MM` em 24 horas. */
+  horario: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use o formato HH:MM"),
+
+  /**
+   * Obrigatório, ao contrário das observações dos outros tipos: a
+   * coordenação autoriza ou não **com base nele**, e "motivo: —" devolve a
+   * decisão para um telefonema.
+   */
+  motivo: z.string().trim().min(3, "Informe o motivo da saída"),
+
+  acompanhada: z.boolean(),
+  acompanhante: acompanhanteSchema.nullable().default(null),
+});
+
+/**
+ * A regra que dá sentido ao par de campos.
+ *
+ * Dizer que alguém vem buscar sem dizer quem deixa a portaria sem saber a
+ * quem entregar o aluno — que é exatamente o risco que o campo existe para
+ * cobrir.
+ *
+ * Mora fora do schema, como função, porque `superRefine` devolve um
+ * `ZodEffects` e tiraria o tipo da união discriminada. Quem valida o
+ * formulário chama esta função; o documento gravado passa pelo schema puro.
+ */
+export function faltaAcompanhante(dados: {
+  acompanhada: boolean;
+  acompanhante?: Acompanhante | null;
+}): boolean {
+  return dados.acompanhada && !dados.acompanhante;
+}
+
+export type SolicitacaoDeSaidaAntecipada = z.infer<
+  typeof solicitacaoDeSaidaAntecipadaSchema
+>;
+
+/**
+ * A 2ª chamada entra aqui na próxima entrega, como mais um membro da
+ * união — a fila, a regra e as telas já ficam prontas para ela.
  */
 export const solicitacaoSchema = z.discriminatedUnion("tipo", [
   solicitacaoDeDocumentacaoSchema,
+  solicitacaoDeSaidaAntecipadaSchema,
 ]);
 
 export type Solicitacao = z.infer<typeof solicitacaoSchema>;

@@ -284,10 +284,12 @@ Referência de requisitos: [README.md](README.md).
 
 **Solicitação de saída antecipada**:
 
-- [ ] Data, horário e motivo
-- [ ] Quando acompanhada, nome e CPF de quem busca o aluno
+- [x] Data, horário e motivo
+- [x] Quando acompanhada, nome e CPF de quem busca o aluno
 - [x] Definido: **quem autoriza é a coordenação**
-- [ ] Definir se a portaria precisa de uma lista do dia
+- [x] Definido: a portaria **não** precisa de lista do dia — a coordenação vê na fila
+- [x] Recortar a fila por tipo: saída antecipada não aparece para a secretaria
+- [x] Permitir voltar atrás de `autorizada`, ao contrário de `entregue`
 
 **Solicitação de 2ª chamada**:
 

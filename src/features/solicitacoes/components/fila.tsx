@@ -17,6 +17,10 @@ import {
   exigeMotivo,
   proximasSituacoes,
 } from "@/features/solicitacoes/domain/fila";
+import {
+  DetalheDaSolicitacao,
+  tituloDaSolicitacao,
+} from "@/features/solicitacoes/components/detalhe";
 import { Situacao } from "@/features/solicitacoes/components/situacao";
 import type { SolicitacaoComId } from "@/features/solicitacoes/services/solicitacoes.server";
 
@@ -73,7 +77,11 @@ export function FilaDeSolicitacoes({
 
       <ul className="flex flex-col gap-3">
         {solicitacoes.map((solicitacao) => {
-          const passos = proximasSituacoes(solicitacao.situacao, "escola");
+          const passos = proximasSituacoes(
+            solicitacao.tipo,
+            solicitacao.situacao,
+            "escola",
+          );
           const ultimo = solicitacao.historico?.at(-1);
 
           return (
@@ -90,9 +98,7 @@ export function FilaDeSolicitacoes({
                       de documentação, "Documentação" em toda linha não
                       distingue nada. */}
                   <p className="text-ink font-medium">
-                    {solicitacao.tipo === "documentacao"
-                      ? solicitacao.documentoNome
-                      : ROTULOS_DE_TIPO_DE_SOLICITACAO[solicitacao.tipo]}
+                    {tituloDaSolicitacao(solicitacao)}
                   </p>
                   <p className="text-ink-muted mt-0.5 text-sm">
                     {solicitacao.alunoNome}
@@ -108,6 +114,8 @@ export function FilaDeSolicitacoes({
 
                 <Situacao situacao={solicitacao.situacao} />
               </div>
+
+              <DetalheDaSolicitacao solicitacao={solicitacao} />
 
               {solicitacao.observacoes && (
                 <p className="text-ink-muted mt-2 text-sm">

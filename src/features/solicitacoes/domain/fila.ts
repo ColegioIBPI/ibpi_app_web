@@ -1,4 +1,5 @@
-import type { SituacaoDaSolicitacao } from "@/core/modelo";
+import type { Role } from "@/core/auth/roles";
+import type { SituacaoDaSolicitacao, TipoDeSolicitacao } from "@/core/modelo";
 
 /**
  * A fila de atendimento: para onde um pedido pode ir, e quem pode levá-lo.
@@ -23,19 +24,70 @@ export type QuemMove = "familia" | "escola";
  *   alguém já gastou trabalho, e sumir com o pedido faria esse trabalho
  *   desaparecer da fila sem explicação.
  */
-const TRANSICOES: Record<
-  QuemMove,
-  Partial<Record<SituacaoDaSolicitacao, SituacaoDaSolicitacao[]>>
-> = {
-  escola: {
-    aberta: ["em-andamento", "pronta", "recusada"],
-    "em-andamento": ["pronta", "recusada"],
-    pronta: ["entregue", "em-andamento"],
+type Transicoes = Partial<
+  Record<SituacaoDaSolicitacao, SituacaoDaSolicitacao[]>
+>;
+
+const TRANSICOES: Record<TipoDeSolicitacao, Record<QuemMove, Transicoes>> = {
+  documentacao: {
+    escola: {
+      aberta: ["em-andamento", "pronta", "recusada"],
+      "em-andamento": ["pronta", "recusada"],
+      pronta: ["entregue", "em-andamento"],
+    },
+    familia: { aberta: ["cancelada"] },
   },
-  familia: {
-    aberta: ["cancelada"],
+
+  /**
+   * Saída antecipada não tem "pronta" nem "entregue": o que a família
+   * espera é um sim ou um não.
+   *
+   * E **de `autorizada` se pode voltar**, ao contrário de `entregue`. A
+   * diferença não é de rigor, é de natureza: `entregue` descreve algo que
+   * já aconteceu — o documento saiu da mão da escola —, enquanto
+   * `autorizada` é permissão para um momento que ainda não chegou. Enquanto
+   * o aluno não saiu, a coordenação pode mudar de ideia; proibir isso
+   * empurraria a reversão para fora do sistema, onde não deixa rastro.
+   */
+  "saida-antecipada": {
+    escola: {
+      aberta: ["autorizada", "recusada"],
+      autorizada: ["recusada"],
+    },
+    familia: { aberta: ["cancelada"] },
+  },
+
+  // Entra na próxima entrega.
+  "segunda-chamada": {
+    escola: {},
+    familia: { aberta: ["cancelada"] },
   },
 };
+
+/**
+ * Quem atende cada tipo de pedido.
+ *
+ * Documentação é trabalho de secretaria; **saída antecipada é decisão da
+ * coordenação** — é ela que responde por tirar um aluno da aula, e por isso
+ * o pedido nem aparece na fila de quem não decide. A administração vê tudo,
+ * como em todo o resto do sistema.
+ */
+const ATENDEM: Record<TipoDeSolicitacao, Role[]> = {
+  documentacao: ["secretaria", "coordenacao", "admin"],
+  "saida-antecipada": ["coordenacao", "admin"],
+  "segunda-chamada": ["secretaria", "coordenacao", "admin"],
+};
+
+export function podeAtender(role: Role, tipo: TipoDeSolicitacao): boolean {
+  return ATENDEM[tipo].includes(role);
+}
+
+/** Os tipos que este perfil enxerga na fila. */
+export function tiposQueAtende(role: Role): TipoDeSolicitacao[] {
+  return (Object.keys(ATENDEM) as TipoDeSolicitacao[]).filter((tipo) =>
+    podeAtender(role, tipo),
+  );
+}
 
 /** As situações finais: de nenhuma delas se sai. */
 export const ENCERRADAS: SituacaoDaSolicitacao[] = [
@@ -50,18 +102,20 @@ export function estaEncerrada(situacao: SituacaoDaSolicitacao): boolean {
 
 /** Para onde este pedido pode ir, nas mãos de quem está pedindo. */
 export function proximasSituacoes(
+  tipo: TipoDeSolicitacao,
   atual: SituacaoDaSolicitacao,
   quem: QuemMove,
 ): SituacaoDaSolicitacao[] {
-  return TRANSICOES[quem][atual] ?? [];
+  return TRANSICOES[tipo][quem][atual] ?? [];
 }
 
 export function podeMover(
+  tipo: TipoDeSolicitacao,
   de: SituacaoDaSolicitacao,
   para: SituacaoDaSolicitacao,
   quem: QuemMove,
 ): boolean {
-  return proximasSituacoes(de, quem).includes(para);
+  return proximasSituacoes(tipo, de, quem).includes(para);
 }
 
 /**

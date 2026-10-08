@@ -272,9 +272,18 @@ service cloud.firestore {
     // `allow write: if false` como em toda coleção, inclusive aqui, onde a
     // família **escreve** pela primeira vez no sistema: ela escreve pela
     // Server Action, que confere o vínculo com o aluno antes de gravar.
+    // Saída antecipada é decisão da coordenação: quem responde por tirar um
+    // aluno da aula é ela, e o pedido não aparece para a secretaria. A
+    // verificação é por tipo, dentro da mesma coleção — `admin` passa pelo
+    // `temPerfil`, como em todo o resto.
+    function atendeOTipo() {
+      return resource.data.tipo == 'saida-antecipada'
+        ? temPerfil(['coordenacao'])
+        : secretariaOuCoordenacao();
+    }
+
     match /solicitacoes/{id} {
-      allow read: if secretariaOuCoordenacao()
-                  || ehFilho(resource.data.matricula);
+      allow read: if atendeOTipo() || ehFilho(resource.data.matricula);
       allow write: if false;
     }
 
