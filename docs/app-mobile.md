@@ -499,7 +499,212 @@ db.collection("planosDePagamento").document(matricula).get()
 
 ---
 
-## 9. Recuperação de senha
+## 9. Solicitações — a aba de pedidos
+
+A família pede à escola: declaração, saída antecipada e, em breve, 2ª
+chamada. **Quem abre é o responsável** — o aluno não participa, porque é
+menor de idade e o pedido é um ato do adulto por ele. As regras negam para
+o perfil `aluno`.
+
+Esta é a única parte do sistema em que o app **escreve**. E escreve por uma
+rota HTTP, não pelo Firestore.
+
+### 9.1 Ler o catálogo
+
+```
+documentosSolicitaveis/{id} = {
+  nome: string,                  // "Declaração de matrícula"
+  descricao: string | null,
+  prazoEmDiasUteis: number | null,
+  valor: number | null,          // em reais; null = gratuito
+  exigeComprovante: boolean,
+  ordem: number,
+  ativo: boolean
+}
+```
+
+```kotlin
+db.collection("documentosSolicitaveis")
+  .whereEqualTo("ativo", true)
+  .get()
+```
+
+- **Ordene por `ordem`, e por `nome` no empate.** O Firestore não promete
+  ordem estável.
+- **`prazoEmDiasUteis` nulo ≠ zero.** Nulo é "prazo a combinar"; zero é
+  "pronto no mesmo dia". São promessas diferentes e a tela deve dizer
+  coisas diferentes.
+- **Mostre prazo e valor antes de o pedido ser enviado.** É a informação que
+  faz a família decidir se pede; deixá-la para depois só gera pedido que
+  será cancelado.
+- Leia também os `ativo: false` quando precisar — um pedido antigo aponta
+  para um item que pode ter saído do catálogo, e sem lê-lo o pedido aparece
+  sem nome. A regra permite.
+
+### 9.2 Ler os pedidos da família
+
+```
+solicitacoes/{id} = {
+  tipo: "documentacao" | "saida-antecipada" | "segunda-chamada",
+  matricula: string,
+  alunoNome: string,
+  turmaCodigo: string | null,
+  solicitanteUid: string,
+  solicitanteNome: string,
+  situacao: "aberta" | "em-andamento" | "pronta" | "entregue"
+          | "autorizada" | "recusada" | "cancelada",
+  historico: [
+    { situacao, em, porUid, porNome, motivo: string | null }
+  ],
+  observacoes: string | null,
+  abertaEm: string,              // ISO
+  origem: "portal" | "app",
+
+  // tipo = documentacao
+  documentoId: string,
+  documentoNome: string,         // nome no momento do pedido
+
+  // tipo = saida-antecipada
+  data: "2026-10-20",
+  horario: "14:00",
+  motivo: string,
+  acompanhada: boolean,
+  acompanhante: { nome: string, cpf: string } | null
+}
+```
+
+```kotlin
+// alunosVinculados vem de users/{uid}
+db.collection("solicitacoes")
+  .whereIn("matricula", alunosVinculados.take(30))
+  .get()
+```
+
+**A consulta é por `matricula`, não por `solicitanteUid`.** Dois
+responsáveis acompanham o mesmo aluno e os dois precisam ver o pedido que
+qualquer um deles fez — senão um liga para a secretaria perguntando por um
+documento que o outro já pediu.
+
+`documentoNome` é cópia do catálogo no momento do pedido: **mostre esse
+campo**, não vá buscar o nome atual em `documentosSolicitaveis`. Renomear um
+item não pode reescrever o que a família pediu no mês passado.
+
+O `motivo` do último passo do `historico` é o que explica uma recusa. Mostre
+em destaque: recusa sem explicação vira telefonema para a secretaria.
+
+### 9.3 Abrir um pedido — `POST /api/solicitacoes`
+
+**O app não grava em `solicitacoes`.** A Security Rule nega, e é o que
+impede alguém de abrir um pedido em nome de outra família trocando a
+matrícula no corpo da requisição. O servidor confere o vínculo antes de
+gravar.
+
+```
+POST https://ibpi-app-web.vercel.app/api/solicitacoes
+Authorization: Bearer <idToken>
+Content-Type: application/json
+```
+
+O `idToken` é o do próprio SDK — `FirebaseAuth.getInstance().currentUser
+?.getIdToken(false)`. Ele dura uma hora; o SDK renova sozinho, então
+**peça um novo a cada chamada** em vez de guardar.
+
+Documentação:
+
+```json
+{
+  "tipo": "documentacao",
+  "matricula": "26029",
+  "documentoId": "aBc123",
+  "observacoes": "Para o estágio"
+}
+```
+
+Saída antecipada:
+
+```json
+{
+  "tipo": "saida-antecipada",
+  "matricula": "26029",
+  "data": "2026-10-20",
+  "horario": "14:00",
+  "motivo": "Consulta médica",
+  "acompanhada": true,
+  "acompanhante": { "nome": "Ana Souza", "cpf": "01719425078" },
+  "observacoes": null
+}
+```
+
+- `horario` é `HH:MM` em 24 horas.
+- `cpf` são **onze dígitos, sem ponto nem traço** — tire a máscara antes de
+  enviar.
+- `acompanhada: true` **exige** `acompanhante`. Dizer que alguém vem buscar
+  sem dizer quem deixa a portaria sem saber a quem entregar o aluno, e o
+  servidor recusa.
+- `acompanhada: false` ⇒ mande `acompanhante: null`.
+
+Respostas:
+
+| Código | Significa | O que o app faz |
+| --- | --- | --- |
+| `201` | Criado. Corpo: `{ "id": "..." }` | Volta para a lista |
+| `400` | JSON malformado ou campo fora do formato | Erro de programação; não mostre à família |
+| `401` | Token ausente, expirado ou conta revogada | Renove o token; se persistir, mande para o login |
+| `422` | Regra de negócio recusou | **Mostre `erro` à família** — é texto escrito para ela |
+
+O `422` cobre: aluno sem vínculo, documento fora do catálogo, acompanhante
+faltando. A mensagem vem pronta em português.
+
+### 9.4 Cancelar — `PATCH /api/solicitacoes/{id}`
+
+```
+PATCH https://ibpi-app-web.vercel.app/api/solicitacoes/{id}
+Authorization: Bearer <idToken>
+
+{ "situacao": "cancelada" }
+```
+
+**A família só cancela, e só enquanto `situacao == "aberta"`.** Depois que a
+escola pegou o pedido, alguém já gastou trabalho e sumir com ele faria esse
+trabalho desaparecer da fila sem explicação. Esconda o botão fora desse
+estado; o servidor recusa com `422` de qualquer forma.
+
+`404` para pedido inexistente **e** para pedido de outra família — a
+negativa não revela que ele existe.
+
+### 9.5 A fila, do lado da família
+
+Quem move o pedido é a escola. O app mostra, e só oferece "cancelar".
+
+```
+documentação:     aberta → em-andamento → pronta → entregue
+saída antecipada: aberta → autorizada | recusada
+ambos:            aberta → cancelada  (pela família)
+                  → recusada          (pela escola, sempre com motivo)
+```
+
+Sugestão de cor, a mesma do Portal: `pronta` e `autorizada` em verde,
+`em-andamento` em âmbar, `recusada` em vermelho, e **`cancelada` em
+neutro** — recusa é a escola dizendo não, cancelamento é a própria família
+desistindo, e a mesma cor faria a segunda parecer uma reprovação.
+
+Saída antecipada pode sair de `autorizada` e voltar para `recusada`: é
+permissão para um momento que ainda não chegou, e a coordenação pode mudar
+de ideia enquanto o aluno não saiu. **Não trate `autorizada` como final** —
+releia antes de mostrar na portaria.
+
+### 9.6 O que ainda não existe
+
+- **2ª chamada.** O tipo está no modelo e a fila já o aceita, mas o pedido
+  ainda não pode ser aberto: ele leva comprovante de pagamento, que é
+  arquivo, e o Storage nega todo acesso de cliente. Vai precisar de uma
+  rota de upload.
+- **Aviso de pedido pronto.** Não há push. Hoje a família descobre abrindo
+  a aba.
+
+---
+
+## 10. Recuperação de senha
 
 O Portal usa o fluxo do próprio Firebase Auth, sem nada por cima:
 
@@ -522,7 +727,7 @@ Duas coisas aprendidas na prática aqui:
 
 ---
 
-## 10. O que o app não deve fazer
+## 11. O que o app não deve fazer
 
 **Nenhuma escrita.** As regras negam escrita de cliente em **todas** as
 coleções (`allow write: if false`). Todo lançamento passa por Server Action
@@ -532,9 +737,16 @@ Se o app precisar escrever alguma coisa — confirmar leitura de aviso, por
 exemplo —, isso precisa de um endpoint no Portal. Não adianta afrouxar a
 regra: a auditoria é obrigatória em nota, frequência e financeiro.
 
+**A exceção que confirma a forma:** as solicitações (seção 9) são a única
+coisa que a família grava, e mesmo assim a regra do Firestore continua
+negando. O app chama `/api/solicitacoes` com o token de ID, e é o servidor
+que confere o vínculo com o aluno antes de gravar. Sem essa conferência,
+bastaria trocar a matrícula no corpo da requisição para pedir o histórico
+de outro aluno — e é exatamente isso que a rota existe para impedir.
+
 ---
 
-## 11. Sobre mandar "print" de coleção
+## 12. Sobre mandar "print" de coleção
 
 A coleção `alunos` tem nome, data de nascimento, CPF, telefone, e-mail e
 filiação de **menores de idade**. O que este documento traz é a **forma**
@@ -558,3 +770,5 @@ teste.
 | Informações úteis| ✅ livre — texto no documento; ver seção 7           |
 | Anexos           | ⚠️ sem caminho de leitura para o app                 |
 | Senha            | ✅ livre — SDK do Firebase, sem endpoint nosso       |
+| Solicitações     | ✅ livre — leitura no Firestore, escrita por `/api/solicitacoes`; ver seção 9 |
+| 2ª chamada       | ⚠️ depende de upload de comprovante                  |

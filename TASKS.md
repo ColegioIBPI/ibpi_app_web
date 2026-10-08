@@ -297,8 +297,14 @@ Referência de requisitos: [README.md](README.md).
 - [ ] Servir o anexo por rota autenticada (o Storage nega todo acesso de cliente)
 - [ ] Definir o prazo em que o pedido é aceito após a falta
 
-> O contrato do app (`docs/app-mobile.md`) entra junto com a segunda entrega:
-> o catálogo sozinho não serve para nada no aplicativo.
+**Contrato do aplicativo MyIBPI:**
+
+- [x] Documentar leitura do catálogo e dos pedidos (`docs/app-mobile.md`, seção 9)
+- [x] Abrir `POST /api/solicitacoes` — o app não grava no Firestore
+- [x] Abrir `PATCH /api/solicitacoes/{id}` — cancelamento pela família
+- [x] Autenticar por token de ID no cabeçalho `Authorization`
+- [x] Gravar a origem do pedido (`portal` ou `app`)
+- [ ] Rota de upload do comprovante, para a 2ª chamada
 
 ### 3.10 Auditoria
 

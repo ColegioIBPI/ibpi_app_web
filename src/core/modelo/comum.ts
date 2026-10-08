@@ -63,7 +63,19 @@ export const textoOpcional = z
  * De onde o registro veio. `access` marca o que foi migrado do sistema
  * antigo — útil para saber o que ainda não passou por revisão humana.
  */
-export const origemSchema = z.enum(["access", "portal"]).default("portal");
+/**
+ * De onde o registro veio.
+ *
+ * `access` é o sistema antigo; `portal` é a web; `app` é o MyIBPI. Saber a
+ * origem de um pedido importa na hora de entender um relato — "a família
+ * diz que pediu e não aparece" se investiga de um jeito se veio do celular
+ * e de outro se veio do computador da secretaria.
+ */
+export const origemSchema = z
+  .enum(["access", "portal", "app"])
+  .default("portal");
+
+export type Origem = z.infer<typeof origemSchema>;
 
 /** Metadados de auditoria gravados pelo servidor, nunca pelo formulário. */
 export const auditoriaDoDocumentoSchema = z.object({
