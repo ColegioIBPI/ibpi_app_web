@@ -1,16 +1,74 @@
 # Contrato de dados para o app MyIBPI
 
-O que o aplicativo Android precisa saber do Firestore para as abas
-**Frequência, Boletim, Avisos e Financeiro**.
+O que o aplicativo Android precisa saber para as abas **Frequência,
+Boletim, Ocorrências, Avisos, Informações úteis, Financeiro e
+Solicitações**.
 
 O Portal e o app falam com o **mesmo projeto Firebase** (`colegioibpi`) e as
 **mesmas coleções**. Quem define a forma dos dados é o Portal — este
-documento é o retrato dela, e é atualizado junto do código.
+documento é o retrato dela, e é atualizado junto do código. Quando os dois
+discordarem, o código do Portal é que está certo; avise para corrigirmos
+aqui.
 
-> O app lê o Firestore **direto**, com o SDK cliente. Isso significa que as
-> `firestore.rules` valem para ele — não há servidor intermediário
-> aplicando escopo. Ver a seção 6, que tem uma pendência bloqueante para a
-> aba Avisos.
+**Duas formas de acesso, e a distinção organiza o documento inteiro:**
+
+| | Como | Onde está |
+| --- | --- | --- |
+| **Ler** | SDK do Firestore, direto | seções 1 a 9 |
+| **Escrever** | HTTP no Portal, com token | seção 9.3 |
+
+O app lê o Firestore direto, então as `firestore.rules` valem para ele: não
+há servidor intermediário aplicando escopo, e uma consulta fora do que a
+pessoa pode ver **falha**, não devolve vazio. Já escrever é sempre por rota
+HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
+única escrita que existe é a abertura de solicitações.
+
+---
+
+## 0. Para começar
+
+**Projeto Firebase:** `colegioibpi`, região `southamerica-east1`.
+
+**`google-services.json`:** peça ao Jorge. Ele **não** está no repositório e
+não deve entrar em nenhum — é a configuração do app no projeto.
+
+**Login:** e-mail e senha pelo SDK, `signInWithEmailAndPassword`. Não há
+cadastro pelo app: as contas são criadas pela secretaria no Portal. Quem
+tentar entrar sem conta recebe erro de credencial, e é o comportamento
+correto.
+
+```kotlin
+FirebaseAuth.getInstance()
+  .signInWithEmailAndPassword(email, senha)
+```
+
+**Perfil e vínculos** vêm de `users/{uid}` — leia logo após o login:
+
+```
+users/{uid} = {
+  role: "responsavel" | "aluno" | ...,
+  nome: string,
+  email: string,
+  ativo: boolean,                  // false = conta desativada
+  matricula: string | null,        // quando role = aluno
+  alunosVinculados: string[],      // quando role = responsavel
+  chavesDeAlcance: string[]        // usado por avisos e informações úteis
+}
+```
+
+Quase tudo no app parte de `alunosVinculados`: é por ele que se monta o
+seletor de filhos e se filtram boletim, frequência, financeiro e
+solicitações.
+
+> ⚠️ Alguns documentos ainda têm um campo **`chavesDeAviso`**, nome antigo
+> do mesmo dado. Ele está congelado: o servidor só atualiza
+> `chavesDeAlcance`. Usar o antigo funciona hoje e para de funcionar no dia
+> em que um aluno mudar de turma — **use `chavesDeAlcance`**.
+
+**Base das rotas HTTP:** `https://ibpi-app-web.vercel.app`
+
+**Fuso:** o colégio é São Paulo. Ver a seção 5 antes de converter qualquer
+data — a armadilha de meia-noite UTC já quebrou boletim e financeiro aqui.
 
 ---
 
