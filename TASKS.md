@@ -300,6 +300,7 @@ Referência de requisitos: [README.md](README.md).
 **Contrato do aplicativo MyIBPI:**
 
 - [x] Documentar leitura do catálogo e dos pedidos (`docs/app-mobile.md`, seção 9)
+- [x] Especificar as telas do app para a equipe Android (`docs/app-telas.md`)
 - [x] Abrir `POST /api/solicitacoes` — o app não grava no Firestore
 - [x] Abrir `PATCH /api/solicitacoes/{id}` — cancelamento pela família
 - [x] Autenticar por token de ID no cabeçalho `Authorization`

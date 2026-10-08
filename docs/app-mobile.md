@@ -10,6 +10,11 @@ documento é o retrato dela, e é atualizado junto do código. Quando os dois
 discordarem, o código do Portal é que está certo; avise para corrigirmos
 aqui.
 
+> **Procurando telas?** Este documento é o contrato de **dados**. O que cada
+> tela mostra, com que palavras e em que estados está em
+> [`app-telas.md`](app-telas.md). Os dois se leem juntos: aqui não se
+> discute tela, lá não se repete campo de coleção.
+
 **Duas formas de acesso, e a distinção organiza o documento inteiro:**
 
 | | Como | Onde está |
