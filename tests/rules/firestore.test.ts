@@ -240,6 +240,12 @@ beforeEach(async () => {
       motivo: "Consulta médica",
       situacao: "aberta",
     });
+    await setDoc(doc(db, "solicitacoes/segunda-chamada-do-filho"), {
+      tipo: "segunda-chamada",
+      matricula: FILHO,
+      disciplinaNome: "Matemática",
+      situacao: "aberta",
+    });
     await setDoc(doc(db, "solicitacoes/de-outra-familia"), {
       tipo: "documentacao",
       matricula: "26031",
@@ -679,6 +685,17 @@ describe("solicitações da família", () => {
 
     await assertSucceeds(ler(responsavel, "solicitacoes/saida-do-filho"));
     await assertFails(ler(outroResponsavel, "solicitacoes/saida-do-filho"));
+  });
+
+  it("2ª chamada segue a regra da documentação, não a da saída", async () => {
+    // Quem confere o comprovante é a secretaria; não é decisão de tirar
+    // aluno da aula.
+    const { secretaria, coordenacao, responsavel, aluno } = contextos();
+
+    await assertSucceeds(ler(secretaria, "solicitacoes/segunda-chamada-do-filho"));
+    await assertSucceeds(ler(coordenacao, "solicitacoes/segunda-chamada-do-filho"));
+    await assertSucceeds(ler(responsavel, "solicitacoes/segunda-chamada-do-filho"));
+    await assertFails(ler(aluno, "solicitacoes/segunda-chamada-do-filho"));
   });
 
   it("professor e financeiro não leem pedido", async () => {

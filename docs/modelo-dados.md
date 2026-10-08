@@ -318,7 +318,7 @@ coisa.
 | --- | --- | --- |
 | `documentacao` | `documentoId`, `documentoNome` | Secretaria, coordenação, administração |
 | `saida-antecipada` | `data`, `horario`, `motivo`, `acompanhada`, `acompanhante` | **Coordenação e administração** |
-| `segunda-chamada` | _(próxima entrega)_ | — |
+| `segunda-chamada` | `disciplinaId`, `disciplinaNome`, `dataDaAvaliacao`, `comprovante` | Secretaria, coordenação, administração |
 
 **Saída antecipada não aparece para a secretaria.** Quem responde por tirar
 um aluno da aula é a coordenação, e o pedido nem chega à fila de quem não
@@ -327,6 +327,10 @@ só na tela mandaria o pedido para o navegador de quem não deve vê-lo.
 
 O `acompanhante` traz nome e CPF porque quem recebe na portaria não conhece
 a família de vista: "a tia da Maria" não é identificação.
+
+O `comprovante` da 2ª chamada é um anexo como o do aviso: `path` no Storage,
+**sem URL pública**. Ele traz nome, valor e muitas vezes a conta de quem
+pagou — sai por rota que confere quem está pedindo.
 
 **`documentoNome` é cópia proposital.** Sem ela, renomear um item do catálogo
 reescreveria o que a família pediu no mês passado. O pedido guarda o que foi

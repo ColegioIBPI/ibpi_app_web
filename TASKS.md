@@ -147,7 +147,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Implementar despublicar sem apagar
 - [x] Escrever e publicar as Security Rules de `avisos`
 - [x] Reescrever a regra de leitura de `avisos` para o app MyIBPI ler direto do Firestore (`users/{uid}.chavesDeAlcance`)
-- [ ] Servir anexo de aviso para o app (hoje o Storage nega todo acesso de cliente)
+- [x] Servir anexo de aviso para o app — a rota passou a aceitar o token
 - [ ] Disparar notificação push ao publicar _(canal do app)_
 
 ### 3.4c Informações úteis
@@ -293,8 +293,9 @@ Referência de requisitos: [README.md](README.md).
 
 **Solicitação de 2ª chamada**:
 
-- [ ] Disciplina e comprovante de pagamento anexado
-- [ ] Servir o anexo por rota autenticada (o Storage nega todo acesso de cliente)
+- [x] Disciplina e comprovante de pagamento anexado
+- [x] Servir o comprovante por rota autenticada (o Storage nega todo acesso de cliente)
+- [x] Aceitar o token do app nas rotas de arquivo — destrava também foto e anexo de aviso
 - [ ] Definir o prazo em que o pedido é aceito após a falta
 
 **Contrato do aplicativo MyIBPI:**
@@ -305,7 +306,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Abrir `PATCH /api/solicitacoes/{id}` — cancelamento pela família
 - [x] Autenticar por token de ID no cabeçalho `Authorization`
 - [x] Gravar a origem do pedido (`portal` ou `app`)
-- [ ] Rota de upload do comprovante, para a 2ª chamada
+- [x] Rota de upload do comprovante, para a 2ª chamada
 
 ### 3.10 Auditoria
 

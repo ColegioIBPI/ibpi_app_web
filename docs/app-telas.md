@@ -236,9 +236,9 @@ Guarde no dispositivo a data do aviso mais recente já visto.
 Vazio: **"Nenhum aviso por enquanto"** / "Os comunicados do colégio aparecem
 aqui."
 
-> Anexo de aviso ainda **não tem caminho de leitura** para o app. Se houver
-> anexo, diga que ele está disponível no Portal, em vez de mostrar um botão
-> que não funciona.
+Anexo de aviso **já pode ser aberto pelo app**: `GET
+/api/avisos/{id}/anexo/{indice}`, com o cabeçalho `Authorization`. Mostre
+nome e tamanho antes de baixar — parte das famílias está no 4G.
 
 ---
 
@@ -291,6 +291,10 @@ Por pedido: tipo, o que foi pedido, aluno, data de abertura e situação.
   família ligar para perguntar. Use o último passo do `historico`.
 - **O motivo da recusa em destaque.** É a única coisa que explica o "não".
   Sem ele, a resposta vira um enigma que volta como telefonema.
+- **Na 2ª chamada, link para o comprovante** — `GET
+/api/solicitacoes/{id}/comprovante`, com o mesmo cabeçalho de
+  autorização. Abra no visualizador do aparelho; não tente o bucket, que
+  nega.
 - **"Cancelar"** só quando `situacao == "aberta"`. Fora disso o servidor
   recusa; esconda o botão.
 
@@ -299,7 +303,7 @@ acompanhe o andamento."
 
 ### 12.2 Novo pedido
 
-Primeiro o **tipo**: Documentação ou Saída antecipada. Depois o aluno
+Primeiro o **tipo**: Documentação, Saída antecipada ou 2ª chamada. Depois o aluno
 (seletor só com dois ou mais filhos). Os campos mudam com o tipo.
 
 **Documentação** — escolha do catálogo (`documentosSolicitaveis`, ativos).
@@ -331,7 +335,23 @@ gera pedido que será cancelado.
 antes de enviar. Explique por que é pedido: "Quem recebe na portaria não
 conhece a família de vista."
 
-Observações é opcional nos dois tipos.
+**2ª chamada** — disciplina, data da prova perdida e o comprovante.
+
+| Campo             | Tipo               | Regra                                     |
+| ----------------- | ------------------ | ----------------------------------------- |
+| Disciplina        | seletor            | obrigatório, da coleção `disciplinas`     |
+| Data da avaliação | seletor de data    | opcional — "se você souber"               |
+| Comprovante       | seletor de arquivo | **obrigatório**; PDF ou imagem, até 10 MB |
+
+Diga por que o comprovante é pedido: "A secretaria confere antes de liberar
+a prova." Valide tipo e tamanho **antes de enviar** — subir 10 MB no 4G para
+receber uma recusa é a pior forma de descobrir que o arquivo era `.docx`.
+
+Mostre o nome do arquivo escolhido e deixe trocar. E **avise do progresso**:
+num upload de celular, um botão que não responde por quinze segundos parece
+travado, e a pessoa toca de novo.
+
+Observações é opcional nos três tipos.
 
 ### 12.3 Enviar
 
@@ -351,9 +371,9 @@ fila da secretaria.
 
 ## 13. O que não construir agora
 
-- **2ª chamada.** O tipo existe no modelo, mas o pedido ainda não pode ser
-  aberto: leva comprovante de pagamento, e não há rota de upload.
 - **Push.** Não existe canal. A família descobre abrindo o app.
+- **Prazo para pedir 2ª chamada.** O sistema não recusa pedido feito tarde
+  demais; a secretaria decide caso a caso.
 - **Qualquer escrita fora das solicitações.** Confirmar leitura de aviso,
   editar cadastro, anexar documento — nada disso tem rota. As regras negam
   escrita de cliente em todas as coleções.

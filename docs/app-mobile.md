@@ -17,10 +17,10 @@ aqui.
 
 **Duas formas de acesso, e a distinção organiza o documento inteiro:**
 
-| | Como | Onde está |
-| --- | --- | --- |
-| **Ler** | SDK do Firestore, direto | seções 1 a 9 |
-| **Escrever** | HTTP no Portal, com token | seção 9.3 |
+|              | Como                      | Onde está    |
+| ------------ | ------------------------- | ------------ |
+| **Ler**      | SDK do Firestore, direto  | seções 1 a 9 |
+| **Escrever** | HTTP no Portal, com token | seção 9.3    |
 
 O app lê o Firestore direto, então as `firestore.rules` valem para ele: não
 há servidor intermediário aplicando escopo, e uma consulta fora do que a
@@ -72,6 +72,10 @@ solicitações.
 
 **Base das rotas HTTP:** `https://ibpi-app-web.vercel.app`
 
+**Arquivo nunca vem do bucket.** Foto, anexo e comprovante saem por rota do
+Portal, com o mesmo cabeçalho `Authorization` — o SDK do Storage falaria
+direto com o bucket, que nega.
+
 **Fuso:** o colégio é São Paulo. Ver a seção 5 antes de converter qualquer
 data — a armadilha de meia-noite UTC já quebrou boletim e financeiro aqui.
 
@@ -96,16 +100,16 @@ Não é preciso o caminho alternativo por `where("matricula", ==, …)`.
 
 Campos que o app usa:
 
-| Campo         | Tipo     | Observação                                |
-| ------------- | -------- | ----------------------------------------- |
-| `matricula`   | string   | Igual ao id do documento                  |
-| `nome`        | string   | Nome completo, como a escola escreve      |
-| `turmaId`     | string   | `2026-EM1A` — **o ano faz parte da chave** |
-| `turmaCodigo` | string   | `EM1A`, `E.J.A. EF` — o que se mostra     |
-| `segmento`    | string   | Ver seção 5                               |
-| `serie`       | string   | `"1"`, `"2"` — número, não por extenso    |
-| `turno`       | string   | `manha` · `tarde` · `flex`                |
-| `ativo`       | boolean  | `false` é ex-aluno; some das listagens    |
+| Campo         | Tipo    | Observação                                 |
+| ------------- | ------- | ------------------------------------------ |
+| `matricula`   | string  | Igual ao id do documento                   |
+| `nome`        | string  | Nome completo, como a escola escreve       |
+| `turmaId`     | string  | `2026-EM1A` — **o ano faz parte da chave** |
+| `turmaCodigo` | string  | `EM1A`, `E.J.A. EF` — o que se mostra      |
+| `segmento`    | string  | Ver seção 5                                |
+| `serie`       | string  | `"1"`, `"2"` — número, não por extenso     |
+| `turno`       | string  | `manha` · `tarde` · `flex`                 |
+| `ativo`       | boolean | `false` é ex-aluno; some das listagens     |
 
 De quais alunos o responsável dispõe: `users/{uid}.alunosVinculados`, uma
 lista de matrículas.
@@ -138,17 +142,17 @@ disciplinar ou administrativo.
 Os nove valores, exatamente como gravados, com o rótulo que o Portal
 mostra:
 
-| Valor no banco              | Rótulo                     | Natureza       |
-| --------------------------- | -------------------------- | -------------- |
-| `uniforme`                  | Uniforme                   | disciplinar    |
-| `comportamento-inadequado`  | Comportamento inadequado   | disciplinar    |
-| `saida-antecipada`          | Saída antecipada           | administrativa |
-| `porte-indevido-de-celular` | Porte indevido de celular  | disciplinar    |
-| `entrada-atrasada`          | Entrada atrasada           | administrativa |
-| `atestado-medico`           | Atestado médico            | justificativa  |
-| `falta-justificada`         | Falta justificada          | justificativa  |
-| `academica`                 | Ocorrência acadêmica       | **acadêmica**  |
-| `outros`                    | Outros                     | —              |
+| Valor no banco              | Rótulo                    | Natureza       |
+| --------------------------- | ------------------------- | -------------- |
+| `uniforme`                  | Uniforme                  | disciplinar    |
+| `comportamento-inadequado`  | Comportamento inadequado  | disciplinar    |
+| `saida-antecipada`          | Saída antecipada          | administrativa |
+| `porte-indevido-de-celular` | Porte indevido de celular | disciplinar    |
+| `entrada-atrasada`          | Entrada atrasada          | administrativa |
+| `atestado-medico`           | Atestado médico           | justificativa  |
+| `falta-justificada`         | Falta justificada         | justificativa  |
+| `academica`                 | Ocorrência acadêmica      | **acadêmica**  |
+| `outros`                    | Outros                    | —              |
 
 A lista saiu da própria planilha do colégio (aba RD, "Tipos de
 ocorrência"). A coluna "Natureza" acima é leitura minha para a aba do app —
@@ -190,10 +194,10 @@ ocorrencias/{id} = {
 
 São **duas contagens diferentes**, e elas não se somam:
 
-| Coleção          | Conta   | Papel                                             |
-| ---------------- | ------- | ------------------------------------------------- |
-| `frequenciaDiaria` | **dias** | Oficial: decide reprovação por falta (25%)      |
-| `diarioClasse`     | **aulas** | Por disciplina; alimenta as faltas do boletim  |
+| Coleção            | Conta     | Papel                                         |
+| ------------------ | --------- | --------------------------------------------- |
+| `frequenciaDiaria` | **dias**  | Oficial: decide reprovação por falta (25%)    |
+| `diarioClasse`     | **aulas** | Por disciplina; alimenta as faltas do boletim |
 
 Um aluno pode faltar à aula de Física do terceiro tempo e ter estado na
 escola o dia inteiro. Somar as duas inventaria uma falta.
@@ -254,17 +258,17 @@ Duas regras que o app precisa respeitar para chegar no mesmo número:
 
 **O sistema é trimestral**, não bimestral. Confirmado com a direção.
 
-| Item                     | Regra                                         |
-| ------------------------ | --------------------------------------------- |
-| Períodos                 | **3 trimestres**                              |
-| Avaliações por trimestre | **Projeto**, **Tarefas**, **AV**              |
-| Escala                   | 0 a 10, **duas casas decimais**               |
-| Média do trimestre       | `(Projeto + Tarefas + AV) ÷ 3`                |
-| Média anual              | média dos três trimestres                     |
-| Aprovação                | média ≥ **5,0** **e** frequência ≥ **75%**    |
-| Recuperação              | apenas **final**, no fim do ano               |
-| Média final              | `(média anual + recuperação) ÷ 2`             |
-| **EF, EM, EJA e Cursos Livres** | **mesma regra, sem diferença**         |
+| Item                            | Regra                                      |
+| ------------------------------- | ------------------------------------------ |
+| Períodos                        | **3 trimestres**                           |
+| Avaliações por trimestre        | **Projeto**, **Tarefas**, **AV**           |
+| Escala                          | 0 a 10, **duas casas decimais**            |
+| Média do trimestre              | `(Projeto + Tarefas + AV) ÷ 3`             |
+| Média anual                     | média dos três trimestres                  |
+| Aprovação                       | média ≥ **5,0** **e** frequência ≥ **75%** |
+| Recuperação                     | apenas **final**, no fim do ano            |
+| Média final                     | `(média anual + recuperação) ÷ 2`          |
+| **EF, EM, EJA e Cursos Livres** | **mesma regra, sem diferença**             |
 
 Quatro decisões que mudam o número na tela:
 
@@ -385,10 +389,26 @@ família é negado.
 
 ### Anexos
 
-`anexos[].path` é caminho no **Cloud Storage**, não URL. As regras do
-Storage **negam todo acesso do cliente** — foto de aluno e anexo de aviso
-são servidos por rota autenticada no Portal. O app precisará de um caminho
-equivalente; hoje não existe.
+`anexos[].path` é caminho no **Cloud Storage**, não URL, e as regras do
+Storage **negam todo acesso do cliente**. Nenhum arquivo do sistema tem
+endereço público: foto de aluno, anexo de aviso e comprovante de 2ª chamada
+saem por rota autenticada no Portal.
+
+**Essas rotas aceitam o token do app**, com o mesmo cabeçalho das demais:
+
+```
+GET /api/avisos/{id}/anexo/{indice}
+GET /api/alunos/{matricula}/foto
+Authorization: Bearer <idToken>
+```
+
+Cada uma aplica o **mesmo escopo** do dado que protege — o anexo confere o
+alcance do aviso, a foto confere o escopo do cadastro. Quem não tem direito
+recebe `404`, nunca `403`: "existe, mas você não pode ver" já confirma que
+a pessoa estuda aqui.
+
+Baixe com `okhttp` em vez do SDK do Storage — o SDK falaria direto com o
+bucket, que nega.
 
 ---
 
@@ -489,12 +509,12 @@ contratos/{id} = {
 
 **A situação da parcela não está gravada** — e isso é de propósito:
 
-| Situação        | Quando                                                   |
-| --------------- | -------------------------------------------------------- |
-| **Paga**        | existe `dataPagamento` e `confirmado !== false`           |
-| **A confirmar** | existe `dataPagamento` e `confirmado === false`           |
-| **Vencida**     | sem pagamento e `vencimento` já passou                    |
-| **Em aberto**   | sem pagamento e `vencimento` ainda não chegou             |
+| Situação        | Quando                                          |
+| --------------- | ----------------------------------------------- |
+| **Paga**        | existe `dataPagamento` e `confirmado !== false` |
+| **A confirmar** | existe `dataPagamento` e `confirmado === false` |
+| **Vencida**     | sem pagamento e `vencimento` já passou          |
+| **Em aberto**   | sem pagamento e `vencimento` ainda não chegou   |
 
 "Vencida" é uma conclusão sobre hoje. Uma parcela gravada como "em aberto"
 em abril continuaria assim em dezembro. **O app conclui na leitura**, com a
@@ -698,6 +718,28 @@ Saída antecipada:
 }
 ```
 
+2ª chamada — **leva arquivo**, então vai em `multipart/form-data` no mesmo
+endereço: um campo `comprovante` com o arquivo e um campo `dados` com o
+mesmo JSON de sempre.
+
+```
+POST https://ibpi-app-web.vercel.app/api/solicitacoes
+Authorization: Bearer <idToken>
+Content-Type: multipart/form-data
+
+dados        = {"matricula":"26029","disciplinaId":"matematica",
+                "dataDaAvaliacao":"2026-10-01","observacoes":null}
+comprovante  = <arquivo>
+```
+
+- `disciplinaId` vem da coleção `disciplinas`.
+- `dataDaAvaliacao` é opcional — mande `null` quando a família não souber.
+- `comprovante` é **obrigatório**: PDF, JPEG, PNG ou WebP, até **10 MB**.
+  Outro tipo responde `422` com a mensagem pronta.
+
+O que o app manda muda; **para onde manda, não**. Misturar as duas formas no
+mesmo endereço evita descobrir um segundo endpoint.
+
 - `horario` é `HH:MM` em 24 horas.
 - `cpf` são **onze dígitos, sem ponto nem traço** — tire a máscara antes de
   enviar.
@@ -708,17 +750,31 @@ Saída antecipada:
 
 Respostas:
 
-| Código | Significa | O que o app faz |
-| --- | --- | --- |
-| `201` | Criado. Corpo: `{ "id": "..." }` | Volta para a lista |
-| `400` | JSON malformado ou campo fora do formato | Erro de programação; não mostre à família |
-| `401` | Token ausente, expirado ou conta revogada | Renove o token; se persistir, mande para o login |
-| `422` | Regra de negócio recusou | **Mostre `erro` à família** — é texto escrito para ela |
+| Código | Significa                                 | O que o app faz                                        |
+| ------ | ----------------------------------------- | ------------------------------------------------------ |
+| `201`  | Criado. Corpo: `{ "id": "..." }`          | Volta para a lista                                     |
+| `400`  | JSON malformado ou campo fora do formato  | Erro de programação; não mostre à família              |
+| `401`  | Token ausente, expirado ou conta revogada | Renove o token; se persistir, mande para o login       |
+| `422`  | Regra de negócio recusou                  | **Mostre `erro` à família** — é texto escrito para ela |
 
 O `422` cobre: aluno sem vínculo, documento fora do catálogo, acompanhante
 faltando. A mensagem vem pronta em português.
 
-### 9.4 Cancelar — `PATCH /api/solicitacoes/{id}`
+### 9.4 Ver o comprovante
+
+```
+GET https://ibpi-app-web.vercel.app/api/solicitacoes/{id}/comprovante
+Authorization: Bearer <idToken>
+```
+
+Devolve o arquivo com o `Content-Type` original. A família vê o do próprio
+filho; a escola, o que atende. `404` para quem não tem direito e para pedido
+que não é de 2ª chamada.
+
+Um comprovante traz nome, valor e muitas vezes a conta de quem pagou — por
+isso não existe URL de bucket para ele.
+
+### 9.5 Cancelar — `PATCH /api/solicitacoes/{id}`
 
 ```
 PATCH https://ibpi-app-web.vercel.app/api/solicitacoes/{id}
@@ -735,7 +791,7 @@ estado; o servidor recusa com `422` de qualquer forma.
 `404` para pedido inexistente **e** para pedido de outra família — a
 negativa não revela que ele existe.
 
-### 9.5 A fila, do lado da família
+### 9.6 A fila, do lado da família
 
 Quem move o pedido é a escola. O app mostra, e só oferece "cancelar".
 
@@ -756,14 +812,12 @@ permissão para um momento que ainda não chegou, e a coordenação pode mudar
 de ideia enquanto o aluno não saiu. **Não trate `autorizada` como final** —
 releia antes de mostrar na portaria.
 
-### 9.6 O que ainda não existe
+### 9.7 O que ainda não existe
 
-- **2ª chamada.** O tipo está no modelo e a fila já o aceita, mas o pedido
-  ainda não pode ser aberto: ele leva comprovante de pagamento, que é
-  arquivo, e o Storage nega todo acesso de cliente. Vai precisar de uma
-  rota de upload.
 - **Aviso de pedido pronto.** Não há push. Hoje a família descobre abrindo
   a aba.
+- **Prazo para pedir 2ª chamada.** O sistema não recusa um pedido feito
+  tarde demais depois da falta; a secretaria decide caso a caso.
 
 ---
 
@@ -823,15 +877,15 @@ teste.
 
 ## Resumo do que está livre e do que trava
 
-| Aba              | Situação                                             |
-| ---------------- | ---------------------------------------------------- |
-| Frequência       | ✅ livre                                             |
-| Financeiro       | ✅ livre — inclui o plano acordado; ver seção 8      |
-| Boletim          | ✅ livre — regras definidas nesta página, seção 4    |
-| Ocorrências      | ✅ livre — sem campo de natureza; ver seção 2        |
-| Avisos           | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`  |
-| Informações úteis| ✅ livre — texto no documento; ver seção 7           |
-| Anexos           | ⚠️ sem caminho de leitura para o app                 |
-| Senha            | ✅ livre — SDK do Firebase, sem endpoint nosso       |
-| Solicitações     | ✅ livre — leitura no Firestore, escrita por `/api/solicitacoes`; ver seção 9 |
-| 2ª chamada       | ⚠️ depende de upload de comprovante                  |
+| Aba               | Situação                                                                      |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Frequência        | ✅ livre                                                                      |
+| Financeiro        | ✅ livre — inclui o plano acordado; ver seção 8                               |
+| Boletim           | ✅ livre — regras definidas nesta página, seção 4                             |
+| Ocorrências       | ✅ livre — sem campo de natureza; ver seção 2                                 |
+| Avisos            | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`                           |
+| Informações úteis | ✅ livre — texto no documento; ver seção 7                                    |
+| Anexos            | ✅ livre — rota autenticada aceita o token; ver seção 6                       |
+| Senha             | ✅ livre — SDK do Firebase, sem endpoint nosso                                |
+| Solicitações      | ✅ livre — leitura no Firestore, escrita por `/api/solicitacoes`; ver seção 9 |
+| 2ª chamada        | ✅ livre — `multipart/form-data`; ver seção 9.3                               |

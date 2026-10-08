@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import {
+  pedidoDeSegundaChamadaSchema,
   registrarMudancaDeSituacao,
   registrarPedidoDeDocumentacao,
   registrarPedidoDeSaida,
+  registrarPedidoDeSegundaChamada,
   type MudancaDeSituacao,
   type PedidoDeDocumentacao,
   type PedidoDeSaida,
@@ -50,6 +52,45 @@ export async function abrirPedidoDeSaida(
 ): Promise<ResultadoDaSolicitacao> {
   const sessao = await exigirPermissao("solicitacoes", "lancar");
   const resultado = await registrarPedidoDeSaida(sessao, dados, "portal");
+
+  if (resultado.ok) revalidar(resultado.id);
+
+  return resultado;
+}
+
+/**
+ * 2ª chamada — recebe `FormData` porque leva arquivo.
+ *
+ * Server Action com arquivo não aceita objeto comum: o `File` precisa
+ * atravessar como parte de um formulário.
+ */
+export async function abrirPedidoDeSegundaChamada(
+  formulario: FormData,
+): Promise<ResultadoDaSolicitacao> {
+  const sessao = await exigirPermissao("solicitacoes", "lancar");
+
+  const arquivo = formulario.get("comprovante");
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    return { ok: false, erro: "Anexe o comprovante de pagamento." };
+  }
+
+  const dados = pedidoDeSegundaChamadaSchema.safeParse({
+    matricula: formulario.get("matricula"),
+    disciplinaId: formulario.get("disciplinaId"),
+    dataDaAvaliacao: formulario.get("dataDaAvaliacao") || null,
+    observacoes: formulario.get("observacoes") || null,
+  });
+
+  if (!dados.success) {
+    return { ok: false, erro: dados.error.issues[0]?.message };
+  }
+
+  const resultado = await registrarPedidoDeSegundaChamada(
+    sessao,
+    dados.data,
+    arquivo,
+    "portal",
+  );
 
   if (resultado.ok) revalidar(resultado.id);
 

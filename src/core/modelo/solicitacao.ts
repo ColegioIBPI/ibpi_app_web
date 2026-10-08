@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { anexoSchema } from "@/core/modelo/aviso";
 import {
   auditoriaDoDocumentoSchema,
   dataSchema,
@@ -180,13 +181,44 @@ export type SolicitacaoDeSaidaAntecipada = z.infer<
   typeof solicitacaoDeSaidaAntecipadaSchema
 >;
 
-/**
- * A 2ª chamada entra aqui na próxima entrega, como mais um membro da
- * união — a fila, a regra e as telas já ficam prontas para ela.
- */
+export const solicitacaoDeSegundaChamadaSchema = z.object({
+  tipo: z.literal("segunda-chamada"),
+  ...baseDaSolicitacao,
+
+  /** A disciplina da prova perdida. */
+  disciplinaId: z.string().min(1),
+  /**
+   * O nome da disciplina no momento do pedido, copiado do cadastro — pela
+   * mesma razão que o nome do documento: renomear "Matemática" não pode
+   * reescrever o que a família pediu no mês passado.
+   */
+  disciplinaNome: z.string().min(1),
+
+  /** Dia da avaliação perdida, quando a família sabe informar. */
+  dataDaAvaliacao: dataSchema.nullable().default(null),
+
+  /**
+   * O comprovante de pagamento da taxa.
+   *
+   * Obrigatório: é o que a secretaria confere antes de liberar a prova, e
+   * um pedido sem ele só gera a ida da família ao balcão que o pedido
+   * existia para evitar.
+   *
+   * Como a foto do aluno e o anexo de aviso, `path` é caminho no Storage e
+   * **não URL pública** — o arquivo é servido por rota que confere quem
+   * está pedindo.
+   */
+  comprovante: anexoSchema,
+});
+
+export type SolicitacaoDeSegundaChamada = z.infer<
+  typeof solicitacaoDeSegundaChamadaSchema
+>;
+
 export const solicitacaoSchema = z.discriminatedUnion("tipo", [
   solicitacaoDeDocumentacaoSchema,
   solicitacaoDeSaidaAntecipadaSchema,
+  solicitacaoDeSegundaChamadaSchema,
 ]);
 
 export type Solicitacao = z.infer<typeof solicitacaoSchema>;

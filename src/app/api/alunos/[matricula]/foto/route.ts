@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { lerSessao } from "@/core/auth/session";
+import { sessaoDaRequisicao } from "@/core/auth/requisicao";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 import { lerFoto } from "@/features/alunos/services/foto.server";
 
@@ -17,10 +17,10 @@ import { lerFoto } from "@/features/alunos/services/foto.server";
  * já confirma que a pessoa estuda aqui.
  */
 export async function GET(
-  _requisicao: Request,
+  requisicao: Request,
   { params }: { params: Promise<{ matricula: string }> },
 ) {
-  const sessao = await lerSessao();
+  const sessao = await sessaoDaRequisicao(requisicao);
   if (!sessao) return new NextResponse(null, { status: 401 });
 
   const { matricula } = await params;

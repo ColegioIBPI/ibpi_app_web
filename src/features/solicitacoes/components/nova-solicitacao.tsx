@@ -14,10 +14,16 @@ import { SelectField, TextField } from "@/core/ui/field";
 import {
   abrirPedidoDeDocumentacao,
   abrirPedidoDeSaida,
+  abrirPedidoDeSegundaChamada,
 } from "@/features/solicitacoes/actions/solicitacoes";
 
 export interface OpcaoDeAluno {
   matricula: string;
+  nome: string;
+}
+
+export interface OpcaoDeDisciplina {
+  id: string;
   nome: string;
 }
 
@@ -30,8 +36,11 @@ export interface OpcaoDeDocumento {
   exigeComprovante: boolean;
 }
 
-/** Os tipos que a família pode abrir hoje. A 2ª chamada entra depois. */
-const TIPOS: TipoDeSolicitacao[] = ["documentacao", "saida-antecipada"];
+const TIPOS: TipoDeSolicitacao[] = [
+  "documentacao",
+  "saida-antecipada",
+  "segunda-chamada",
+];
 
 /**
  * Abertura de um pedido pela família.
@@ -44,9 +53,11 @@ const TIPOS: TipoDeSolicitacao[] = ["documentacao", "saida-antecipada"];
 export function NovaSolicitacao({
   alunos,
   documentos,
+  disciplinas,
 }: {
   alunos: OpcaoDeAluno[];
   documentos: OpcaoDeDocumento[];
+  disciplinas: OpcaoDeDisciplina[];
 }) {
   const router = useRouter();
 
@@ -63,6 +74,10 @@ export function NovaSolicitacao({
   const [nomeDeQuemBusca, setNomeDeQuemBusca] = useState("");
   const [cpfDeQuemBusca, setCpfDeQuemBusca] = useState("");
 
+  const [disciplinaId, setDisciplinaId] = useState("");
+  const [dataDaAvaliacao, setDataDaAvaliacao] = useState("");
+  const [comprovante, setComprovante] = useState<File | null>(null);
+
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -71,13 +86,36 @@ export function NovaSolicitacao({
   const pronto =
     tipo === "documentacao"
       ? Boolean(documentoId)
-      : Boolean(data && horario && motivo.trim());
+      : tipo === "saida-antecipada"
+        ? Boolean(data && horario && motivo.trim())
+        : Boolean(disciplinaId && comprovante);
 
   async function enviar() {
     setErro(null);
     setEnviando(true);
 
     try {
+      if (tipo === "segunda-chamada") {
+        // Arquivo não atravessa Server Action como objeto comum.
+        const formulario = new FormData();
+        formulario.set("matricula", matricula);
+        formulario.set("disciplinaId", disciplinaId);
+        formulario.set("dataDaAvaliacao", dataDaAvaliacao);
+        formulario.set("observacoes", observacoes.trim());
+        formulario.set("comprovante", comprovante!);
+
+        const resultado = await abrirPedidoDeSegundaChamada(formulario);
+
+        if (!resultado.ok) {
+          setErro(resultado.erro ?? "Não foi possível enviar o pedido.");
+          return;
+        }
+
+        router.push("/portal/solicitacoes");
+        router.refresh();
+        return;
+      }
+
       const resultado =
         tipo === "documentacao"
           ? await abrirPedidoDeDocumentacao({
@@ -214,6 +252,54 @@ export function NovaSolicitacao({
                   )}
                 </div>
               )}
+            </>
+          ) : tipo === "segunda-chamada" ? (
+            <>
+              <SelectField
+                label="Disciplina"
+                value={disciplinaId}
+                onChange={(evento) => setDisciplinaId(evento.target.value)}
+              >
+                <option value="">Selecione…</option>
+                {disciplinas.map((disciplina) => (
+                  <option key={disciplina.id} value={disciplina.id}>
+                    {disciplina.nome}
+                  </option>
+                ))}
+              </SelectField>
+
+              <TextField
+                label="Data da avaliação perdida"
+                type="date"
+                hint="Opcional, se você souber."
+                value={dataDaAvaliacao}
+                onChange={(evento) => setDataDaAvaliacao(evento.target.value)}
+              />
+
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="comprovante"
+                  className="text-ink text-sm font-medium"
+                >
+                  Comprovante de pagamento
+                  <span className="text-danger" aria-hidden>
+                    {" *"}
+                  </span>
+                </label>
+                <input
+                  id="comprovante"
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  className="text-ink text-sm"
+                  onChange={(evento) =>
+                    setComprovante(evento.target.files?.[0] ?? null)
+                  }
+                />
+                <p className="text-ink-muted text-xs">
+                  PDF ou imagem, até 10 MB. A secretaria confere antes de
+                  liberar a prova.
+                </p>
+              </div>
             </>
           ) : (
             <>

@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
+import { getAdminStorage } from "@/core/firebase/admin";
 import { administraEscola, pode } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -15,12 +16,15 @@ import {
   situacaoDaSolicitacaoSchema,
   solicitacaoDeDocumentacaoSchema,
   solicitacaoDeSaidaAntecipadaSchema,
+  solicitacaoDeSegundaChamadaSchema,
+  type Anexo,
   type Aluno,
   type DocumentoSolicitavel,
   type Origem,
   type PassoDaSolicitacao,
   type Solicitacao,
 } from "@/core/modelo";
+import { validarAnexo } from "@/features/avisos/domain/anexo";
 import {
   exigeMotivo,
   podeAtender,
@@ -69,6 +73,127 @@ export const pedidoDeSaidaSchema = z.object({
 });
 
 export type PedidoDeSaida = z.infer<typeof pedidoDeSaidaSchema>;
+
+export const pedidoDeSegundaChamadaSchema = z.object({
+  matricula: z.string().min(1, "Escolha o aluno."),
+  disciplinaId: z.string().min(1, "Escolha a disciplina."),
+  dataDaAvaliacao: dataSchema.nullable().default(null),
+  observacoes: z.string().trim().nullable().default(null),
+});
+
+export type PedidoDeSegundaChamada = z.infer<
+  typeof pedidoDeSegundaChamadaSchema
+>;
+
+/**
+ * A 2ª chamada, com o comprovante de pagamento.
+ *
+ * O arquivo chega como `File` — do formulário do Portal ou do
+ * `multipart/form-data` do aplicativo — e é gravado **antes** do documento.
+ * A ordem importa: gravar o documento primeiro deixaria, numa falha de
+ * upload, um pedido na fila da secretaria apontando para um comprovante que
+ * não existe, e ela só descobriria ao tentar abrir.
+ *
+ * O caminho no Storage usa o id do pedido, reservado antes de tudo. O
+ * arquivo **não tem URL pública**: é servido por rota que confere quem pede.
+ */
+export async function registrarPedidoDeSegundaChamada(
+  sessao: SessionUser,
+  dados: PedidoDeSegundaChamada,
+  arquivo: File,
+  origem: Origem = "portal",
+): Promise<ResultadoDaSolicitacao> {
+  if (!podeLancar(sessao)) {
+    return { ok: false, erro: "Seu perfil não abre solicitações." };
+  }
+
+  const entrada = pedidoDeSegundaChamadaSchema.safeParse(dados);
+  if (!entrada.success) {
+    return { ok: false, erro: entrada.error.issues[0]?.message };
+  }
+
+  const validacao = validarAnexo({
+    type: arquivo.type,
+    size: arquivo.size,
+    name: arquivo.name,
+  });
+  if (!validacao.ok) return { ok: false, erro: validacao.erro };
+
+  const vinculo = await conferirVinculo(sessao, entrada.data.matricula);
+  if ("erro" in vinculo) return { ok: false, erro: vinculo.erro };
+
+  const db = getAdminDb();
+
+  const disciplinaDoc = await db
+    .collection(COLECOES.disciplinas)
+    .doc(entrada.data.disciplinaId)
+    .get();
+
+  if (!disciplinaDoc.exists) {
+    return { ok: false, erro: "Disciplina não encontrada." };
+  }
+
+  const referencia = db.collection(COLECOES.solicitacoes).doc();
+  const comprovante = await guardarComprovante(referencia.id, arquivo);
+
+  const resultado = await gravar(
+    sessao,
+    solicitacaoDeSegundaChamadaSchema.safeParse({
+      tipo: "segunda-chamada",
+      ...dadosComuns(sessao, vinculo.aluno, entrada.data.matricula, origem),
+      disciplinaId: entrada.data.disciplinaId,
+      disciplinaNome: (disciplinaDoc.data()?.nome as string) ?? "Disciplina",
+      dataDaAvaliacao: entrada.data.dataDaAvaliacao,
+      comprovante,
+      observacoes: entrada.data.observacoes,
+    }),
+    referencia,
+  );
+
+  // Documento recusado pelo schema deixaria o arquivo órfão no bucket.
+  if (!resultado.ok) await apagarComprovante(comprovante.path);
+
+  return resultado;
+}
+
+async function guardarComprovante(
+  solicitacaoId: string,
+  arquivo: File,
+): Promise<Anexo> {
+  const nome = arquivo.name || "comprovante";
+  const path = `solicitacoes/${solicitacaoId}/${Date.now()}-${nome}`;
+
+  await getAdminStorage()
+    .bucket()
+    .file(path)
+    .save(Buffer.from(await arquivo.arrayBuffer()), {
+      contentType: arquivo.type,
+    });
+
+  return { path, nome, tipo: arquivo.type, tamanho: arquivo.size };
+}
+
+async function apagarComprovante(path: string) {
+  await getAdminStorage()
+    .bucket()
+    .file(path)
+    .delete()
+    .catch(() => {
+      // Falhar aqui não pode derrubar a resposta: o pedido não foi gravado,
+      // e um arquivo órfão é um problema de limpeza, não de correção.
+    });
+}
+
+/** O comprovante, para a rota que o serve. */
+export async function lerComprovante(path: string): Promise<Buffer | null> {
+  const arquivo = getAdminStorage().bucket().file(path);
+
+  const [existe] = await arquivo.exists();
+  if (!existe) return null;
+
+  const [conteudo] = await arquivo.download();
+  return conteudo;
+}
 
 export const mudancaSchema = z.object({
   id: z.string().min(1),
@@ -318,12 +443,14 @@ type Validacao =
 async function gravar(
   sessao: SessionUser,
   validacao: Validacao,
+  referenciaReservada?: FirebaseFirestore.DocumentReference,
 ): Promise<ResultadoDaSolicitacao> {
   if (!validacao.success) {
     return { ok: false, erro: validacao.error.issues[0]?.message };
   }
 
-  const referencia = getAdminDb().collection(COLECOES.solicitacoes).doc();
+  const referencia =
+    referenciaReservada ?? getAdminDb().collection(COLECOES.solicitacoes).doc();
 
   await gravarComAuditoria({
     colecao: COLECOES.solicitacoes,

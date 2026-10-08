@@ -1,4 +1,7 @@
+import { Paperclip } from "lucide-react";
+
 import { formatDate } from "@/core/lib/format";
+import { formatar } from "@/features/avisos/domain/anexo";
 import type { SolicitacaoComId } from "@/features/solicitacoes/services/solicitacoes.server";
 
 /**
@@ -23,6 +26,8 @@ export function tituloDaSolicitacao(solicitacao: SolicitacaoComId): string {
       return solicitacao.documentoNome;
     case "saida-antecipada":
       return `Saída às ${solicitacao.horario} de ${formatDate(solicitacao.data)}`;
+    case "segunda-chamada":
+      return `2ª chamada de ${solicitacao.disciplinaNome}`;
   }
 }
 
@@ -31,6 +36,34 @@ export function DetalheDaSolicitacao({
 }: {
   solicitacao: SolicitacaoComId;
 }) {
+  if (solicitacao.tipo === "segunda-chamada") {
+    return (
+      <div className="mt-2 text-sm">
+        {solicitacao.dataDaAvaliacao && (
+          <p className="text-ink">
+            <span className="text-ink-muted">Avaliação em: </span>
+            {formatDate(solicitacao.dataDaAvaliacao)}
+          </p>
+        )}
+
+        {/* O comprovante abre pela rota autenticada, nunca pelo bucket: ele
+            traz nome, valor e muitas vezes a conta de quem pagou. */}
+        <a
+          href={`/api/solicitacoes/${solicitacao.id}/comprovante`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-600 mt-1 inline-flex items-center gap-1.5 hover:underline"
+        >
+          <Paperclip className="size-4" aria-hidden />
+          Comprovante de pagamento
+          <span className="text-ink-muted">
+            ({formatar(solicitacao.comprovante.tamanho)})
+          </span>
+        </a>
+      </div>
+    );
+  }
+
   if (solicitacao.tipo !== "saida-antecipada") return null;
 
   return (

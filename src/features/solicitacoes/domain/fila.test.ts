@@ -89,6 +89,40 @@ describe("saída antecipada — é sim ou não", () => {
   });
 });
 
+describe("2ª chamada — o dinheiro muda a regra", () => {
+  it("a secretaria confere e libera, ou recusa", () => {
+    expect(proximasSituacoes("segunda-chamada", "aberta", "escola")).toEqual([
+      "em-andamento",
+      "autorizada",
+      "recusada",
+    ]);
+  });
+
+  it("de autorizada NÃO se volta, ao contrário da saída antecipada", () => {
+    // A taxa foi paga e aceita; voltar atrás significaria devolver, e isso
+    // não cabe num botão de fila.
+    for (const destino of TODAS) {
+      expect(
+        podeMover("segunda-chamada", "autorizada", destino, "escola"),
+      ).toBe(false);
+    }
+
+    // A mesma situação, no outro tipo, continua reversível.
+    expect(
+      podeMover("saida-antecipada", "autorizada", "recusada", "escola"),
+    ).toBe(true);
+  });
+
+  it("a família cancela enquanto ninguém pegou", () => {
+    expect(podeMover("segunda-chamada", "aberta", "cancelada", "familia")).toBe(
+      true,
+    );
+    expect(
+      podeMover("segunda-chamada", "em-andamento", "cancelada", "familia"),
+    ).toBe(false);
+  });
+});
+
 describe("quem atende cada tipo", () => {
   it("saída antecipada é decisão da coordenação", () => {
     // Quem responde por tirar um aluno da aula é a coordenação; o pedido

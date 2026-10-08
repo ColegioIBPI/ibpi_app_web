@@ -57,9 +57,20 @@ const TRANSICOES: Record<TipoDeSolicitacao, Record<QuemMove, Transicoes>> = {
     familia: { aberta: ["cancelada"] },
   },
 
-  // Entra na próxima entrega.
+  /**
+   * 2ª chamada: a secretaria confere o comprovante e libera, ou recusa.
+   *
+   * `autorizada` é final aqui, ao contrário da saída antecipada. A
+   * diferença é o dinheiro: a taxa foi paga e aceita, e voltar atrás
+   * significaria devolver — decisão que não cabe num botão de fila. Se
+   * precisar desfazer, é conversa com a família, e o registro deste pedido
+   * continua dizendo o que foi autorizado.
+   */
   "segunda-chamada": {
-    escola: {},
+    escola: {
+      aberta: ["em-andamento", "autorizada", "recusada"],
+      "em-andamento": ["autorizada", "recusada"],
+    },
     familia: { aberta: ["cancelada"] },
   },
 };

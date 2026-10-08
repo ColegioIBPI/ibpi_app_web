@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { lerSessao } from "@/core/auth/session";
+import { sessaoDaRequisicao } from "@/core/auth/requisicao";
 import {
   lerAnexo,
   obterAvisoVisivel,
@@ -14,10 +14,10 @@ import {
  * ser uma circular endereçada a uma única família.
  */
 export async function GET(
-  _requisicao: Request,
+  requisicao: Request,
   { params }: { params: Promise<{ id: string; indice: string }> },
 ) {
-  const sessao = await lerSessao();
+  const sessao = await sessaoDaRequisicao(requisicao);
   if (!sessao) return new NextResponse(null, { status: 401 });
 
   const { id, indice } = await params;

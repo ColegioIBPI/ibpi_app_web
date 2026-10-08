@@ -30,6 +30,11 @@ export default async function NovaSolicitacaoPage() {
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
+  const disciplinasDocs = await db.collection(COLECOES.disciplinas).get();
+  const disciplinas = disciplinasDocs.docs
+    .map((doc) => ({ id: doc.id, nome: (doc.data().nome as string) ?? doc.id }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+
   const documentos = (await listarDocumentosAtivos()).map((documento) => ({
     id: documento.id,
     nome: documento.nome,
@@ -54,11 +59,15 @@ export default async function NovaSolicitacaoPage() {
           Nova solicitação
         </h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Documentação ou saída antecipada.
+          Documentação, saída antecipada ou 2ª chamada.
         </p>
       </div>
 
-      <NovaSolicitacao alunos={alunos} documentos={documentos} />
+      <NovaSolicitacao
+        alunos={alunos}
+        documentos={documentos}
+        disciplinas={disciplinas}
+      />
     </div>
   );
 }
