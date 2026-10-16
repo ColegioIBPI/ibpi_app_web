@@ -113,6 +113,36 @@ oferece copiar, mas guardar a cópia é o que permite ao responsável mudar de
 casa sem mexer no cadastro do filho. Tem `default` porque os 118
 responsáveis vindos do Access não têm o campo.
 
+### `credenciais/{matricula}`
+
+`matricula` · `ibpiOnline{usuario,senha}` · `plural{usuario,senha}` ·
+`observacoes` · `atualizadoPorNome`
+
+Os acessos do aluno às plataformas do colégio. O colégio cria essas contas
+e a família as esquece; hoje a resposta é um telefonema para a secretaria.
+
+**A senha fica em texto, por decisão do colégio.** Quem obtiver acesso
+indevido ao banco obtém as credenciais de todos os alunos de uma vez. O que
+limita o estrago é a regra de leitura — família daquele aluno, secretaria,
+coordenação e administração. **Professor e financeiro não leem**: são
+equipe, mas senha de plataforma não é assunto de quem dá aula nem de quem
+cuida do caixa.
+
+É coleção separada de `alunos` por causa disso: a regra decide por documento
+e nunca por campo, e juntos seria preciso escolher entre o professor ler a
+senha ou não ler a turma.
+
+> A lista de quem lê existe em dois lugares — `firestore.rules` e
+> `features/alunos/services/credenciais.server.ts`. Elas **têm de bater**;
+> uma verificação contra o banco já pegou as duas divergindo.
+
+**A senha do Meu IBPI não está aqui, e não é omissão.** Ela é a senha do
+Firebase Auth, que guarda só um hash: ninguém consegue lê-la — nem o
+colégio, nem o Google. Guardar uma cópia em texto criaria uma segunda senha
+que o sistema nunca confere e que envelhece na primeira vez que a família a
+trocar. A tela mostra o **e-mail de acesso** e aponta para "Esqueci minha
+senha".
+
 ### `turmas/{ano-codigo}`
 
 `codigo` (`EM1A`, `E.J.A. EM`) · `anoLetivo` · `segmento` · `turno` ·

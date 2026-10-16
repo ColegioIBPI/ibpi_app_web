@@ -257,6 +257,28 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ----------------------------------------------------- credenciais
+
+    // Acessos do aluno às plataformas do colégio (Classroom, Plural).
+    //
+    // **A senha fica em texto, por decisão do colégio.** É esta regra que
+    // limita o estrago: lê quem é da família daquele aluno e quem é da
+    // secretaria, coordenação ou administração.
+    //
+    // O **professor não lê**, embora seja equipe — por isso a lista é
+    // escrita por extenso em vez de reusar `temPerfil` com a equipe
+    // inteira. Senha de plataforma não é assunto de quem dá aula.
+    //
+    // Coleção separada de `alunos` justamente por causa disto: a regra
+    // decide por documento e nunca por campo, e juntos seria preciso
+    // escolher entre o professor ler a senha ou não ler a turma.
+    match /credenciais/{matricula} {
+      allow read: if temPerfil(['secretaria', 'coordenacao'])
+                  || ehFilho(matricula)
+                  || ehProprioAluno(matricula);
+      allow write: if false;
+    }
+
     // --------------------------------------------------- solicitações
 
     // Os pedidos que a família faz à secretaria.
