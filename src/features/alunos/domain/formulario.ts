@@ -110,7 +110,6 @@ export type AlunoDoFormulario = Omit<
   | "turmaId"
   | "segmento"
   | "turno"
-  | "statusOriginal"
   | "fotoPath"
   | "fotoAtualizadaEm"
 > & { nomeParaBusca: string };

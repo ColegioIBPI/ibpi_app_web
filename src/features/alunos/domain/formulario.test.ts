@@ -82,7 +82,6 @@ describe("paraAluno", () => {
     expect(aluno).not.toHaveProperty("turmaId");
     expect(aluno).not.toHaveProperty("segmento");
     expect(aluno).not.toHaveProperty("turno");
-    expect(aluno).not.toHaveProperty("statusOriginal");
     // A foto tem ação própria, com upload e processamento.
     expect(aluno).not.toHaveProperty("fotoPath");
   });

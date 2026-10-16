@@ -22,7 +22,8 @@
     "test:rules": "firebase emulators:exec --only firestore --project ibpi-regras-teste \"vitest run --config vitest.rules.config.mts\"",
     "migrar:extrair": "python scripts/migrate-access/extrair.py",
     "migrar": "tsx --env-file=.env.local scripts/migrate-access/carregar.mts",
-    "migrar:validar": "tsx --env-file=.env.local scripts/migrate-access/validar.mts"
+    "migrar:validar": "tsx --env-file=.env.local scripts/migrate-access/validar.mts",
+    "alunos:situacao": "tsx --conditions=react-server --env-file=.env.local scripts/migrar-situacao.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.3",

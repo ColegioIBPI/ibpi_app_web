@@ -270,7 +270,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Responsáveis acima da ficha, com telefone na linha do nome
 - [x] Cadastro dos acessos do aluno (IBPI Online e Plural)
 - [x] Atualizar o contrato do app com situação e credenciais
-- [ ] Conferir os 73 `statusOriginal` e decidir se o campo pode sair
+- [x] Conferir os 73 `statusOriginal` e remover o campo — só dizia Ativo/Cancelado
 
 > A senha do Meu IBPI **não é armazenada**: o Firebase guarda só o hash.
 > A tela mostra o e-mail de acesso e aponta para "Esqueci minha senha".

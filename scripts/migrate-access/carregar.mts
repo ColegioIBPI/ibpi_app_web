@@ -137,7 +137,9 @@ for (const bruto of alunosBrutos) {
     cpf: normalizarCpf(bruto.CPF),
     // A situação do Access é vazia em toda a base; o que vale é o Status.
     ativo: chaveDeComparacao(bruto.Status) !== "CANCELADO",
-    statusOriginal: limparTexto(bruto.Status),
+    // `Status` do Access não é gravado: ele só dizia Ativo ou Cancelado,
+    // a mesma informação de `ativo`, e um campo que repete outro é um
+    // campo que um dia diverge dele.
     turmaId: turma ? idDaTurma(ANO_LETIVO, turma.codigo) : null,
     turmaCodigo: turma?.codigo ?? null,
     segmento: turma?.segmento ?? null,

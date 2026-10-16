@@ -85,8 +85,15 @@ pedir para digitar a mesma data duas vezes é pedir para as duas divergirem.
 Encerrada sem data informada, fica nula: inventar a data do cancelamento é
 inventar um fato sobre o aluno.
 
-Cadastro migrado não tem o campo; a situação é deduzida de `ativo`, e um
-ex-aluno vira **cancelada** — entre as opções, é a que afirma menos.
+Os 73 cadastros migrados foram convertidos (`npm run alunos:situacao`): 62
+ativas e 11 canceladas. A dedução de `ativo` continua no código para o caso
+de um cadastro antigo reaparecer, mas no banco todos já têm o campo.
+
+> O campo `statusOriginal`, com o texto livre do Access, **foi removido**.
+> Conferidos os 73, ele só dizia "Ativo" ou "Cancelado" — a mesma
+> informação de `ativo`, e um campo que repete outro é um campo que um dia
+> diverge dele. A conferência achou exatamente uma divergência, e ela era
+> uma edição feita no Portal **depois** da carga: ali quem vale é a edição.
 
 ### `responsaveis/{id}`
 

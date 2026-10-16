@@ -80,10 +80,14 @@ export const documentosSchema = z.object({
 /**
  * Situação da matrícula.
  *
- * O Access guardava só um texto livre (`statusOriginal`), e por isso o
- * sistema sabia dizer que o aluno não estava mais ativo sem saber **por
- * quê** nem **desde quando** — que é exatamente o que a secretaria precisa
- * ao emitir uma declaração ou responder ao Censo.
+ * O Access guardava só um texto livre, e por isso o sistema sabia dizer que
+ * o aluno não estava mais ativo sem saber **por quê** nem **desde quando** —
+ * que é exatamente o que a secretaria precisa ao emitir uma declaração ou
+ * responder ao Censo.
+ *
+ * Aquele texto (`statusOriginal`) foi removido depois de conferido: nos 73
+ * cadastros ele só dizia "Ativo" ou "Cancelado", a mesma informação de
+ * `ativo`. Campo que repete outro é campo que um dia diverge dele.
  */
 export const situacaoDaMatriculaSchema = z.enum([
   "ativa",
@@ -133,7 +137,6 @@ export const alunoSchema = z.object({
    * conclusão —, e é essa diferença que faz o campo existir.
    */
   dataDaSituacao: dataSchema.nullish(),
-  statusOriginal: textoOpcional,
 
   turmaId: z.string().nullish(),
   turmaCodigo: z.string().nullish(),
