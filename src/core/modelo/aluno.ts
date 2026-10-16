@@ -33,6 +33,21 @@ export const enderecoSchema = z.object({
   cep: textoOpcional,
 });
 
+/**
+ * Endereço em branco — todos os campos nulos.
+ *
+ * Existe porque o Zod 4 exige que o `default` de um objeto seja o valor de
+ * **saída**, já com os nulos, e não um `{}`.
+ */
+export const ENDERECO_VAZIO = {
+  logradouro: null,
+  complemento: null,
+  bairro: null,
+  cidade: null,
+  uf: null,
+  cep: null,
+} as const;
+
 export const contatoSchema = z.object({
   emails: z.array(z.string().email()).default([]),
   /** Telefones em E.164 (`+5521999998888`). */
@@ -62,6 +77,35 @@ export const documentosSchema = z.object({
   ufNaturalidade: textoOpcional,
 });
 
+/**
+ * Situação da matrícula.
+ *
+ * O Access guardava só um texto livre (`statusOriginal`), e por isso o
+ * sistema sabia dizer que o aluno não estava mais ativo sem saber **por
+ * quê** nem **desde quando** — que é exatamente o que a secretaria precisa
+ * ao emitir uma declaração ou responder ao Censo.
+ */
+export const situacaoDaMatriculaSchema = z.enum([
+  "ativa",
+  "cancelada",
+  "concluida",
+  "transferida",
+  "abandono",
+]);
+
+export type SituacaoDaMatricula = z.infer<typeof situacaoDaMatriculaSchema>;
+
+export const ROTULOS_DE_SITUACAO_DA_MATRICULA: Record<
+  SituacaoDaMatricula,
+  string
+> = {
+  ativa: "Ativa",
+  cancelada: "Cancelada",
+  concluida: "Concluída",
+  transferida: "Transferida",
+  abandono: "Abandono",
+};
+
 export const alunoSchema = z.object({
   matricula: z.string().trim().min(1, "Informe a matrícula"),
   nome: z.string().trim().min(3, "Informe o nome completo"),
@@ -72,8 +116,23 @@ export const alunoSchema = z.object({
     .string()
     .regex(/^\d{11}$/, "CPF tem 11 dígitos")
     .nullish(),
-  /** Inativo é o ex-aluno: sai das listagens, mas o histórico permanece. */
+  /**
+   * Inativo é o ex-aluno: sai das listagens, mas o histórico permanece.
+   *
+   * **Derivado de `situacaoMatricula`** na gravação, nunca editado à mão —
+   * ver `ehMatriculaAtiva`. Guardar os dois de forma independente é como um
+   * aluno transferido continua aparecendo na chamada.
+   */
   ativo: z.boolean().default(true),
+  situacaoMatricula: situacaoDaMatriculaSchema.default("ativa"),
+  /**
+   * Quando a situação passou a valer.
+   *
+   * Com matrícula **ativa**, é a própria data de matrícula. Nos demais
+   * casos é outra data — o dia do cancelamento, da transferência, da
+   * conclusão —, e é essa diferença que faz o campo existir.
+   */
+  dataDaSituacao: dataSchema.nullish(),
   statusOriginal: textoOpcional,
 
   turmaId: z.string().nullish(),

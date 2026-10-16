@@ -119,6 +119,40 @@ describe("ida e volta entre formulário e modelo", () => {
   it("aluno vazio não vira formulário com 'null' escrito nos campos", () => {
     const formulario = paraFormulario(null);
     expect(Object.values(formulario).every((v) => v !== "null")).toBe(true);
-    expect(formulario.ativo).toBe(true);
+    expect(formulario.situacaoMatricula).toBe("ativa");
+  });
+
+  it("cadastro migrado deduz a situação a partir de `ativo`", () => {
+    // O Access não tinha situação: tinha um booleano e um texto livre.
+    expect(paraFormulario({ ativo: true }).situacaoMatricula).toBe("ativa");
+    expect(paraFormulario({ ativo: false }).situacaoMatricula).toBe(
+      "cancelada",
+    );
+  });
+
+  it("gravar com matrícula ativa mantém o aluno nas listagens", () => {
+    const aluno = paraAluno({
+      ...paraFormulario(null),
+      nome: "Alice Vianna",
+      situacaoMatricula: "ativa",
+      dataMatricula: "2026-02-03",
+      dataDaSituacao: "",
+    });
+
+    expect(aluno.ativo).toBe(true);
+    expect(aluno.dataDaSituacao).toBe("2026-02-03");
+  });
+
+  it("gravar como transferida tira o aluno das listagens", () => {
+    const aluno = paraAluno({
+      ...paraFormulario(null),
+      nome: "Alice Vianna",
+      situacaoMatricula: "transferida",
+      dataMatricula: "2026-02-03",
+      dataDaSituacao: "2026-07-15",
+    });
+
+    expect(aluno.ativo).toBe(false);
+    expect(aluno.dataDaSituacao).toBe("2026-07-15");
   });
 });

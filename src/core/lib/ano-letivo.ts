@@ -14,7 +14,9 @@ import type { Trimestre } from "@/core/modelo";
  */
 
 /** Divisão aproximada do ano letivo brasileiro (fev–dez). */
-export function trimestreSugerido(valor: Date | string = new Date()): Trimestre {
+export function trimestreSugerido(
+  valor: Date | string = new Date(),
+): Trimestre {
   const mes = paraData(valor).getMonth() + 1;
 
   if (mes <= 5) return 1;

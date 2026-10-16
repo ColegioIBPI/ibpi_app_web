@@ -13,31 +13,31 @@ import { alunoSchema, COLECOES, type Aluno } from "@/core/modelo";
 
 ## Situação das coleções
 
-| Coleção              | Registros | Origem                             |
-| -------------------- | --------- | ---------------------------------- |
-| `users`              | 1         | Criada pelo sistema                |
-| `alunos`             | 73        | `Tabela_Aluno`                     |
-| `responsaveis`       | 118       | Colunas de responsável do aluno    |
-| `turmas`             | 10        | Derivada do cadastro + planilha    |
-| `matriculas`         | 73        | Derivada do cadastro               |
-| `disciplinas`        | 46        | `Disciplina` + 3 do boletim        |
-| `salas`              | 10        | `Salas`                            |
-| `cobrancas`          | 847       | `Tabela_pagamento`                 |
-| `contratos`          | 274       | `Fatos`                            |
-| `professores`        | —         | `Professores` (vazia no Access)    |
-| `alocacoes`          | —         | Não existia; só no diário impresso |
-| `diasDeAula`         | —         | `Dias de Aulas` (vazia)            |
-| `frequenciaDiaria`   | —         | `CONTROLE DE FALTAS.xlsx`          |
-| `diarioClasse`       | —         | `PAUTA DE CONTEÚDO` (PDF)          |
-| `ocorrencias`        | —         | `CONTROLE DE FALTAS.xlsx`          |
-| `notas` · `boletins` | —         | `MODELO DE BOLETIM.xlsx`           |
-| `planosDePagamento`  | —         | Não existia; criada no Portal      |
-| `documentosSolicitaveis` | —     | Não existia; criada no Portal      |
-| `solicitacoes`       | —         | Não existia; criada no Portal      |
-| `anotacoesFinanceiras` | —       | Não existia; criada no Portal      |
-| `avisos`             | —         | Não existia; criada no Portal      |
-| `informacoes`        | —         | Não existia; criada no Portal      |
-| `auditoria`          | —         | `log` do Access (vazia)            |
+| Coleção                  | Registros | Origem                             |
+| ------------------------ | --------- | ---------------------------------- |
+| `users`                  | 1         | Criada pelo sistema                |
+| `alunos`                 | 73        | `Tabela_Aluno`                     |
+| `responsaveis`           | 118       | Colunas de responsável do aluno    |
+| `turmas`                 | 10        | Derivada do cadastro + planilha    |
+| `matriculas`             | 73        | Derivada do cadastro               |
+| `disciplinas`            | 46        | `Disciplina` + 3 do boletim        |
+| `salas`                  | 10        | `Salas`                            |
+| `cobrancas`              | 847       | `Tabela_pagamento`                 |
+| `contratos`              | 274       | `Fatos`                            |
+| `professores`            | —         | `Professores` (vazia no Access)    |
+| `alocacoes`              | —         | Não existia; só no diário impresso |
+| `diasDeAula`             | —         | `Dias de Aulas` (vazia)            |
+| `frequenciaDiaria`       | —         | `CONTROLE DE FALTAS.xlsx`          |
+| `diarioClasse`           | —         | `PAUTA DE CONTEÚDO` (PDF)          |
+| `ocorrencias`            | —         | `CONTROLE DE FALTAS.xlsx`          |
+| `notas` · `boletins`     | —         | `MODELO DE BOLETIM.xlsx`           |
+| `planosDePagamento`      | —         | Não existia; criada no Portal      |
+| `documentosSolicitaveis` | —         | Não existia; criada no Portal      |
+| `solicitacoes`           | —         | Não existia; criada no Portal      |
+| `anotacoesFinanceiras`   | —         | Não existia; criada no Portal      |
+| `avisos`                 | —         | Não existia; criada no Portal      |
+| `informacoes`            | —         | Não existia; criada no Portal      |
+| `auditoria`              | —         | `log` do Access (vazia)            |
 
 As coleções sem registro **já estão modeladas**, com os campos espelhando a
 tabela ou planilha de origem. Firestore não tem esquema no servidor: a
@@ -67,6 +67,27 @@ busca textual, e é esse campo que permite achar "Cauã" digitando "caua".
 `ativo: false` é o ex-aluno: sai das listagens, mas o histórico permanece —
 documento escolar não se apaga.
 
+**Situação da matrícula.** `situacaoMatricula` (ativa · cancelada ·
+concluída · transferida · abandono) e `dataDaSituacao`.
+
+O Access guardava só `ativo` e um texto livre, e por isso o sistema sabia
+que o aluno não estava mais na escola sem saber **por quê** nem **desde
+quando** — que é o que a secretaria precisa ao emitir declaração ou
+responder ao Censo.
+
+`ativo` continua existindo porque metade do sistema consulta
+`where("ativo", "==", true)`, mas **deriva da situação** na gravação, nunca
+é editado à mão. Guardar os dois independentes é como um aluno transferido
+continua aparecendo na chamada.
+
+Com matrícula **ativa**, `dataDaSituacao` é a própria data de matrícula —
+pedir para digitar a mesma data duas vezes é pedir para as duas divergirem.
+Encerrada sem data informada, fica nula: inventar a data do cancelamento é
+inventar um fato sobre o aluno.
+
+Cadastro migrado não tem o campo; a situação é deduzida de `ativo`, e um
+ex-aluno vira **cancelada** — entre as opções, é a que afirma menos.
+
 ### `responsaveis/{id}`
 
 No Access o responsável vivia em colunas do aluno, o que duplicava a mesma
@@ -78,6 +99,19 @@ relação muitos-para-muitos.
 
 O `uid` só é preenchido quando a secretaria cria a conta de acesso. E é o
 `alunosVinculados` que define o escopo do responsável nas Security Rules.
+
+**Tipo e endereço.** `tipo` (acadêmico · financeiro · ambos) e `endereco`.
+
+A distinção de tipo existe porque as duas conversas são diferentes: boletim
+e ocorrência vão para quem acompanha o estudo; mensalidade vai para quem
+paga. Numa família separada muitas vezes não é a mesma pessoa, e mandar
+cobrança para quem não paga é o tipo de erro que a escola leva meses para
+descobrir.
+
+O endereço é **cópia**, e não ponteiro para o do aluno — o formulário
+oferece copiar, mas guardar a cópia é o que permite ao responsável mudar de
+casa sem mexer no cadastro do filho. Tem `default` porque os 118
+responsáveis vindos do Access não têm o campo.
 
 ### `turmas/{ano-codigo}`
 
@@ -314,11 +348,11 @@ discriminada por `tipo` — a mesma fila atende todos, e separar em três
 coleções significaria três filas, três regras e três telas dizendo a mesma
 coisa.
 
-| Tipo | Campos próprios | Quem atende |
-| --- | --- | --- |
-| `documentacao` | `documentoId`, `documentoNome` | Secretaria, coordenação, administração |
-| `saida-antecipada` | `data`, `horario`, `motivo`, `acompanhada`, `acompanhante` | **Coordenação e administração** |
-| `segunda-chamada` | `disciplinaId`, `disciplinaNome`, `dataDaAvaliacao`, `comprovante` | Secretaria, coordenação, administração |
+| Tipo               | Campos próprios                                                    | Quem atende                            |
+| ------------------ | ------------------------------------------------------------------ | -------------------------------------- |
+| `documentacao`     | `documentoId`, `documentoNome`                                     | Secretaria, coordenação, administração |
+| `saida-antecipada` | `data`, `horario`, `motivo`, `acompanhada`, `acompanhante`         | **Coordenação e administração**        |
+| `segunda-chamada`  | `disciplinaId`, `disciplinaNome`, `dataDaAvaliacao`, `comprovante` | Secretaria, coordenação, administração |
 
 **Saída antecipada não aparece para a secretaria.** Quem responde por tirar
 um aluno da aula é a coordenação, e o pedido nem chega à fila de quem não

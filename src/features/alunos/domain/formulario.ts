@@ -5,7 +5,11 @@ import {
   normalizarTelefone,
 } from "@/features/migracao/domain/texto";
 import { chaveDeComparacao } from "@/features/migracao/domain/texto";
-import type { AlunoEditavel } from "@/core/modelo";
+import { situacaoDaMatriculaSchema, type AlunoEditavel } from "@/core/modelo";
+import {
+  normalizarSituacao,
+  situacaoDoMigrado,
+} from "@/features/alunos/domain/situacao";
 
 /**
  * Conversão entre o formulário e o modelo.
@@ -24,7 +28,14 @@ export const formularioDoAlunoSchema = z.object({
   nome: z.string().trim().min(3, "Informe o nome completo"),
   dataNascimento: z.string().trim(),
   cpf: z.string().trim(),
-  ativo: z.boolean(),
+
+  /**
+   * `ativo` não está aqui de propósito: ele é derivado da situação na
+   * gravação. Dois campos independentes para o mesmo fato é como um aluno
+   * transferido continua aparecendo na chamada.
+   */
+  situacaoMatricula: situacaoDaMatriculaSchema,
+  dataDaSituacao: z.string().trim(),
 
   turmaCodigo: z.string().trim(),
   serie: z.string().trim(),
@@ -110,7 +121,12 @@ export function paraAluno(formulario: FormularioDoAluno): AlunoDoFormulario {
     nomeParaBusca: chaveDeComparacao(formulario.nome),
     dataNascimento: vazioParaNulo(formulario.dataNascimento),
     cpf: normalizarCpf(formulario.cpf),
-    ativo: formulario.ativo,
+
+    ...normalizarSituacao({
+      situacaoMatricula: formulario.situacaoMatricula,
+      dataDaSituacao: vazioParaNulo(formulario.dataDaSituacao),
+      dataMatricula: vazioParaNulo(formulario.dataMatricula),
+    }),
 
     turmaCodigo: vazioParaNulo(formulario.turmaCodigo),
     serie: vazioParaNulo(formulario.serie),
@@ -166,7 +182,12 @@ export function paraFormulario(
     nome: aluno?.nome ?? "",
     dataNascimento: aluno?.dataNascimento ?? "",
     cpf: aluno?.cpf ?? "",
-    ativo: aluno?.ativo ?? true,
+
+    // Cadastro migrado não tem `situacaoMatricula`: `ativo` é o que existe
+    // nele, e é de onde a situação é deduzida até alguém editar.
+    situacaoMatricula:
+      aluno?.situacaoMatricula ?? situacaoDoMigrado(aluno?.ativo ?? true),
+    dataDaSituacao: aluno?.dataDaSituacao ?? "",
 
     turmaCodigo: aluno?.turmaCodigo ?? "",
     serie: aluno?.serie ?? "",

@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
+import { formatarTelefone } from "@/core/lib/format";
+import { ROTULOS_DE_TIPO_DE_RESPONSAVEL } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
 import { FotoDoAluno } from "@/features/alunos/components/foto-do-aluno";
@@ -73,16 +75,20 @@ export default async function AlunoPage({
         )}
       </div>
 
-      <FichaDoAluno aluno={aluno} />
-
       {/*
-        A visão inversa do vínculo. Secretaria e coordenação gerenciam a
-        família; professor e financeiro não têm por que ver o cadastro dos
-        responsáveis a partir daqui.
+        Os responsáveis vêm **antes** da ficha, e não no fim: quem abre o
+        cadastro de um aluno costuma estar prestes a falar com a família, e
+        rolar a página inteira para achar um telefone é o atrito que faz a
+        pessoa voltar a procurar no caderno.
+
+        Secretaria e coordenação gerenciam a família; professor e financeiro
+        não têm por que ver o cadastro dos responsáveis a partir daqui.
       */}
       {pode(sessao.role, "cadastros", "gerenciar") && (
         <ResponsaveisDoAluno matricula={aluno.matricula} />
       )}
+
+      <FichaDoAluno aluno={aluno} />
     </div>
   );
 }
@@ -116,10 +122,34 @@ async function ResponsaveisDoAluno({ matricula }: { matricula: string }) {
                 </Link>
                 <span className="text-ink-muted ml-2 text-xs">
                   {responsavel.parentesco ?? "Responsável"}
-                  {responsavel.email ? ` · ${responsavel.email}` : ""}
+                  {responsavel.tipo
+                    ? ` · ${ROTULOS_DE_TIPO_DE_RESPONSAVEL[responsavel.tipo]}`
+                    : ""}
                 </span>
+
+                {/* O telefone fica na linha do nome, e não escondido na
+                    ficha do responsável: é o motivo mais comum de alguém
+                    abrir esta tela. */}
+                <p className="text-ink mt-0.5 text-sm">
+                  {responsavel.telefone ? (
+                    <a
+                      href={`tel:${responsavel.telefone}`}
+                      className="hover:underline"
+                    >
+                      {formatarTelefone(responsavel.telefone)}
+                    </a>
+                  ) : (
+                    <span className="text-ink-muted">sem telefone</span>
+                  )}
+                  {responsavel.email && (
+                    <span className="text-ink-muted">
+                      {" · "}
+                      {responsavel.email}
+                    </span>
+                  )}
+                </p>
               </div>
-              <span className="text-ink-muted text-xs">
+              <span className="text-ink-muted text-xs whitespace-nowrap">
                 {responsavel.uid ? "com acesso" : "sem acesso"}
               </span>
             </li>

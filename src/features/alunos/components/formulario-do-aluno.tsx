@@ -3,12 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
-import { TextField } from "@/core/ui/field";
+import { SelectField, TextField } from "@/core/ui/field";
+import { ROTULOS_DE_SITUACAO_DA_MATRICULA } from "@/core/modelo";
 import { salvarAluno } from "@/features/alunos/actions/salvar-aluno";
+import { exigeDataPropria } from "@/features/alunos/domain/situacao";
 import {
   formularioDoAlunoSchema,
   paraFormulario,
@@ -34,11 +36,17 @@ export function FormularioDoAluno({ aluno }: FormularioDoAlunoProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormularioDoAluno>({
     resolver: zodResolver(formularioDoAlunoSchema),
     defaultValues: paraFormulario(aluno),
   });
+
+  // A tela muda com a situação: só a encerrada pede data própria.
+  // `useWatch` em vez de `watch()`: aquele devolve uma função nova a cada
+  // render e o compilador do React não consegue memorizá-la.
+  const situacao = useWatch({ control, name: "situacaoMatricula" });
 
   async function onSubmit(dados: FormularioDoAluno) {
     setErro(null);
@@ -92,17 +100,44 @@ export function FormularioDoAluno({ aluno }: FormularioDoAlunoProps) {
                 {...register("cpf")}
               />
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="border-line size-4 rounded"
-                {...register("ativo")}
-              />
-              <span className="text-ink">Matriculado</span>
-              <span className="text-ink-muted text-xs">
-                desmarque para ex-aluno; o histórico é preservado
-              </span>
-            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField
+                label="Situação da matrícula"
+                error={errors.situacaoMatricula?.message}
+                {...register("situacaoMatricula")}
+              >
+                {Object.entries(ROTULOS_DE_SITUACAO_DA_MATRICULA).map(
+                  ([valor, rotulo]) => (
+                    <option key={valor} value={valor}>
+                      {rotulo}
+                    </option>
+                  ),
+                )}
+              </SelectField>
+
+              {/* Com matrícula ativa a data é a própria data de matrícula,
+                  e pedir para digitá-la duas vezes é pedir para as duas
+                  divergirem. */}
+              {exigeDataPropria(situacao) ? (
+                <TextField
+                  label={`Data — ${ROTULOS_DE_SITUACAO_DA_MATRICULA[situacao].toLowerCase()}`}
+                  type="date"
+                  hint="O dia em que a matrícula foi encerrada."
+                  error={errors.dataDaSituacao?.message}
+                  {...register("dataDaSituacao")}
+                />
+              ) : (
+                <p className="text-ink-muted self-end pb-2 text-xs">
+                  Matrícula ativa: a data da situação é a própria data de
+                  matrícula.
+                </p>
+              )}
+            </div>
+
+            <p className="text-ink-muted text-xs">
+              Só a situação <strong>Ativa</strong> mantém o aluno nas listagens
+              e na chamada. O histórico é preservado em todas.
+            </p>
           </div>
         </Card>
 

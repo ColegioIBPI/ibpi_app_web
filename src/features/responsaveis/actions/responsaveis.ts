@@ -12,7 +12,12 @@ import {
   sincronizarVinculosDaConta,
 } from "@/core/auth/contas";
 import { getAdminDb } from "@/core/firebase/admin";
-import { COLECOES, responsavelSchema, type Responsavel } from "@/core/modelo";
+import {
+  COLECOES,
+  responsavelSchema,
+  tipoDeResponsavelSchema,
+  type Responsavel,
+} from "@/core/modelo";
 import {
   normalizarCpf,
   normalizarTelefone,
@@ -44,6 +49,14 @@ const formularioSchema = z.object({
   telefone: z.string().trim(),
   cpf: z.string().trim(),
   ativo: z.boolean(),
+  tipo: tipoDeResponsavelSchema,
+
+  logradouro: z.string().trim(),
+  complemento: z.string().trim(),
+  bairro: z.string().trim(),
+  cidade: z.string().trim(),
+  uf: z.string().trim(),
+  cep: z.string().trim(),
 });
 
 export type FormularioDeResponsavel = z.infer<typeof formularioSchema>;
@@ -59,7 +72,8 @@ export async function salvarResponsavel(
     return { ok: false, erro: formulario.error.issues[0]?.message };
   }
 
-  const { nome, parentesco, email, telefone, cpf, ativo } = formulario.data;
+  const { nome, parentesco, email, telefone, cpf, ativo, tipo } =
+    formulario.data;
   const emailLimpo = email ? email.toLowerCase() : null;
 
   if (emailLimpo && !z.string().email().safeParse(emailLimpo).success) {
@@ -109,6 +123,15 @@ export async function salvarResponsavel(
     alunosVinculados: anterior?.alunosVinculados ?? [],
     uid: anterior?.uid ?? null,
     ativo,
+    tipo,
+    endereco: {
+      logradouro: formulario.data.logradouro || null,
+      complemento: formulario.data.complemento || null,
+      bairro: formulario.data.bairro || null,
+      cidade: formulario.data.cidade || null,
+      uf: formulario.data.uf || null,
+      cep: formulario.data.cep || null,
+    },
     origem: anterior?.origem ?? "portal",
   });
 
@@ -148,13 +171,17 @@ export async function reenviarAcessoDoResponsavel(
 ): Promise<Resultado & { email?: string }> {
   await exigirPermissao("cadastros", "gerenciar");
 
-  const doc = await getAdminDb().collection(COLECOES.responsaveis).doc(id).get();
+  const doc = await getAdminDb()
+    .collection(COLECOES.responsaveis)
+    .doc(id)
+    .get();
 
   if (!doc.exists) return { ok: false, erro: "Responsável não encontrado." };
 
   const dados = doc.data() as Responsavel;
 
-  if (!dados.uid) return { ok: false, erro: "Este responsável ainda não tem acesso." };
+  if (!dados.uid)
+    return { ok: false, erro: "Este responsável ainda não tem acesso." };
   if (!dados.email) return { ok: false, erro: "Cadastre um e-mail primeiro." };
 
   return {

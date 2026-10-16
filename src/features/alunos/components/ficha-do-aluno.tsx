@@ -1,11 +1,16 @@
 import {
   ROTULOS_DE_SEGMENTO,
+  ROTULOS_DE_SITUACAO_DA_MATRICULA,
   ROTULOS_DE_TURNO,
   type Segmento,
   type Turno,
 } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
 import { formatDate } from "@/core/lib/format";
+import {
+  exigeDataPropria,
+  situacaoDoMigrado,
+} from "@/features/alunos/domain/situacao";
 import type { AlunoComId } from "@/features/alunos/services/alunos.server";
 
 /**
@@ -60,7 +65,21 @@ export function FichaDoAluno({ aluno }: { aluno: AlunoComId }) {
           { rotulo: "Data da matrícula", valor: data(aluno.dataMatricula) },
           {
             rotulo: "Situação",
-            valor: aluno.ativo ? "Matriculado" : "Ex-aluno",
+            // Cadastro migrado não tem situação; `ativo` é o que existe nele.
+            valor:
+              ROTULOS_DE_SITUACAO_DA_MATRICULA[
+                aluno.situacaoMatricula ?? situacaoDoMigrado(aluno.ativo)
+              ],
+          },
+          {
+            // Com matrícula ativa a data é a da matrícula, e repeti-la aqui
+            // só ocuparia uma linha. O campo serve para o que encerrou.
+            rotulo: "Data da situação",
+            valor: exigeDataPropria(
+              aluno.situacaoMatricula ?? situacaoDoMigrado(aluno.ativo),
+            )
+              ? (data(aluno.dataDaSituacao) ?? "não informada")
+              : null,
           },
         ]}
       />

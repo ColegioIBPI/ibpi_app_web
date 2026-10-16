@@ -61,3 +61,31 @@ export function formatGrade(value: number | null | undefined): string {
 export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
 }
+
+/**
+ * `+5521999998888` → `(21) 99999-8888`.
+ *
+ * O banco guarda E.164 porque é o único formato em que o mesmo número é
+ * sempre a mesma string — sem isso, `(21) 99999-8888` e `21999998888` são
+ * dois cadastros diferentes. Para ler, ninguém quer o `+55`.
+ *
+ * Número que não casa com o padrão brasileiro **sai como veio**: cadastro
+ * migrado tem telefone incompleto, e mostrar o que está lá é melhor do que
+ * esconder atrás de um traço.
+ */
+export function formatarTelefone(valor: string | null | undefined): string {
+  if (!valor) return "—";
+
+  const digitos = valor.replace(/\D/g, "");
+  const nacional = digitos.startsWith("55") ? digitos.slice(2) : digitos;
+
+  if (nacional.length === 11) {
+    return `(${nacional.slice(0, 2)}) ${nacional.slice(2, 7)}-${nacional.slice(7)}`;
+  }
+
+  if (nacional.length === 10) {
+    return `(${nacional.slice(0, 2)}) ${nacional.slice(2, 6)}-${nacional.slice(6)}`;
+  }
+
+  return valor;
+}
