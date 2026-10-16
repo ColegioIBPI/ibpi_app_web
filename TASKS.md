@@ -261,6 +261,20 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.13 Correções do cadastro de alunos
+
+- [x] Situação da matrícula com as cinco opções e a data do fato
+- [x] Derivar `ativo` da situação, em vez de editar os dois
+- [x] Tipo do responsável: acadêmico, financeiro ou ambos
+- [x] Endereço do responsável, com cópia do endereço do aluno
+- [x] Responsáveis acima da ficha, com telefone na linha do nome
+- [x] Cadastro dos acessos do aluno (IBPI Online e Plural)
+- [x] Atualizar o contrato do app com situação e credenciais
+- [ ] Conferir os 73 `statusOriginal` e decidir se o campo pode sair
+
+> A senha do Meu IBPI **não é armazenada**: o Firebase guarda só o hash.
+> A tela mostra o e-mail de acesso e aponta para "Esqueci minha senha".
+
 ### 3.12 Solicitações da família
 
 > Quatro entregas. A primeira é pré-requisito da segunda: não dá para a

@@ -100,16 +100,41 @@ Não é preciso o caminho alternativo por `where("matricula", ==, …)`.
 
 Campos que o app usa:
 
-| Campo         | Tipo    | Observação                                 |
-| ------------- | ------- | ------------------------------------------ |
-| `matricula`   | string  | Igual ao id do documento                   |
-| `nome`        | string  | Nome completo, como a escola escreve       |
-| `turmaId`     | string  | `2026-EM1A` — **o ano faz parte da chave** |
-| `turmaCodigo` | string  | `EM1A`, `E.J.A. EF` — o que se mostra      |
-| `segmento`    | string  | Ver seção 5                                |
-| `serie`       | string  | `"1"`, `"2"` — número, não por extenso     |
-| `turno`       | string  | `manha` · `tarde` · `flex`                 |
-| `ativo`       | boolean | `false` é ex-aluno; some das listagens     |
+| Campo               | Tipo           | Observação                                                       |
+| ------------------- | -------------- | ---------------------------------------------------------------- |
+| `matricula`         | string         | Igual ao id do documento                                         |
+| `nome`              | string         | Nome completo, como a escola escreve                             |
+| `turmaId`           | string         | `2026-EM1A` — **o ano faz parte da chave**                       |
+| `turmaCodigo`       | string         | `EM1A`, `E.J.A. EF` — o que se mostra                            |
+| `segmento`          | string         | Ver seção 5                                                      |
+| `serie`             | string         | `"1"`, `"2"` — número, não por extenso                           |
+| `turno`             | string         | `manha` · `tarde` · `flex`                                       |
+| `ativo`             | boolean        | `false` é ex-aluno; some das listagens                           |
+| `situacaoMatricula` | string         | `ativa` · `cancelada` · `concluida` · `transferida` · `abandono` |
+| `dataDaSituacao`    | string \| null | Desde quando a situação vale                                     |
+
+### Situação da matrícula
+
+`ativo` continua sendo o que separa aluno de ex-aluno — metade do sistema
+consulta por ele —, mas agora **deriva** de `situacaoMatricula` e não é
+editado à mão. Para o app:
+
+- **Para filtrar, use `ativo`.** É booleano e indexado.
+- **Para mostrar, use `situacaoMatricula`.** "Transferida" diz à família
+  algo que "ex-aluno" não diz.
+- **`situacaoMatricula` pode faltar.** Os 73 cadastros migrados do Access
+  não têm o campo; deduza de `ativo` — `true` é `ativa`, `false` é
+  `cancelada`.
+- **`dataDaSituacao` com matrícula ativa é a própria data de matrícula.**
+  Não a mostre duas vezes. Com a matrícula encerrada ela é outra data — o
+  dia do cancelamento, da transferência, da conclusão — e pode ser `null`
+  quando a secretaria ainda não informou.
+
+Rótulos, iguais aos do Portal: Ativa · Cancelada · Concluída · Transferida ·
+Abandono.
+
+> Existe também `statusOriginal`, texto livre que veio do Access. É
+> histórico da migração; **não mostre**.
 
 De quais alunos o responsável dispõe: `users/{uid}.alunosVinculados`, uma
 lista de matrículas.
@@ -130,6 +155,62 @@ users/{uid} = {
 > **Persistir a escolha do aluno vale a pena.** Perder a seleção ao fechar o
 > app obriga a família com dois filhos a trocar toda vez que abre — e a
 > segunda criança some da vista no uso diário.
+
+---
+
+## 1b. `credenciais` — os acessos às plataformas
+
+O colégio cria as contas do aluno no **IBPI Online** (Google Classroom) e no
+**Plural** (material didático). A família esquece, e hoje liga para a
+secretaria. Esta coleção existe para ela consultar sozinha.
+
+```
+credenciais/{matricula} = {
+  matricula: string,
+  ibpiOnline: { usuario: string | null, senha: string | null },
+  plural:     { usuario: string | null, senha: string | null },
+  observacoes: string | null,
+  atualizadoPorNome: string
+}
+```
+
+```kotlin
+db.collection("credenciais").document(matricula).get()
+```
+
+**O id é a matrícula**, como em `alunos`. Pode não existir: a secretaria
+ainda não cadastrou. Trate a ausência como "nada cadastrado", não como erro.
+
+### Quem lê
+
+O responsável daquele aluno, o próprio aluno, e secretaria, coordenação e
+administração. **Professor e financeiro não.** Como em todo o resto, a
+consulta de quem não tem direito **falha** — não devolve vazio.
+
+### A senha do Meu IBPI não está aqui
+
+E não é omissão. A senha do próprio aplicativo é a do Firebase Auth, que
+guarda só um hash: ninguém consegue lê-la, nem o colégio nem o Google.
+
+O que o app deve mostrar nesse lugar é o **e-mail de acesso**
+(`users/{uid}.email`) e um caminho para redefinir:
+
+```kotlin
+FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+```
+
+### Na tela
+
+- **Senha escondida por padrão**, com botão de revelar. A família abre isto
+  com o celular na mão, muitas vezes perto de outras pessoas.
+- **Botão de copiar.** O uso real é colar na outra plataforma.
+- Mostre só a plataforma que tem algo cadastrado — bloco vazio com dois
+  travessões não ajuda ninguém.
+- `observacoes` é texto escrito pela secretaria **para a família ler**.
+
+> Estas senhas ficam **em texto** no banco, por decisão do colégio. Para o
+> app isso significa uma coisa prática: **não as guarde em cache no
+> aparelho** e não as registre em log. Leia quando a tela abrir.
 
 ---
 

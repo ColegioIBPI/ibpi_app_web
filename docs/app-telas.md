@@ -28,6 +28,9 @@ O app é da **família**. Dois perfis entram:
 O aluno **não** tem Ocorrências, Financeiro nem Solicitações. Não é tela
 escondida: as regras negam, e uma consulta dessas falha para ele.
 
+Os **acessos às plataformas** (seção 12b) não são aba: ficam no início,
+junto do seletor de aluno, e valem para os dois perfis.
+
 - **Ocorrência** é tratada com o responsável e a equipe.
 - **Mensalidade** é assunto de quem paga.
 - **Pedido** é ato do adulto por um menor de idade.
@@ -120,6 +123,11 @@ trimestres**.
 
 Por disciplina: as notas de cada trimestre, a média de cada um, a média
 anual, a recuperação quando houver, a média final, as faltas e a situação.
+
+> **No cabeçalho, a situação da matrícula.** Aluno transferido ou com
+> matrícula cancelada precisa ver isso ao abrir o boletim, e não descobrir
+> pela ausência de notas novas. Use `situacaoMatricula` — o campo pode
+> faltar em cadastro migrado; ver `app-mobile.md`, seção 1.
 
 | Situação              | Rótulo              | Cor      |
 | --------------------- | ------------------- | -------- |
@@ -366,6 +374,56 @@ Observações é opcional nos três tipos.
 
 Desabilite o botão enquanto envia. Dois toques = dois pedidos iguais na
 fila da secretaria.
+
+---
+
+## 12b. Acessos às plataformas
+
+Tela nova. O colégio cria as contas do aluno no **IBPI Online** (Classroom)
+e no **Plural** (material didático); a família esquece e liga para a
+secretaria. Aqui ela consulta sozinha.
+
+Fica no **início do app**, junto do seletor de aluno — não enterrada numa
+aba. É consulta rápida, feita em pé na porta da escola.
+
+Um bloco por plataforma:
+
+```
+┌──────────────────────────────────────┐
+│ Meu IBPI                             │
+│ Este aplicativo                      │
+│ E-mail: maria@gmail.com      [copiar]│
+│                                      │
+│ Esqueceu a senha? Toque em           │
+│ "Esqueci minha senha" na entrada.    │
+└──────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ IBPI Online                          │
+│ Plataforma de aula                   │
+│ Usuário: aluno.maria         [copiar]│
+│ Senha:   ••••••••     [olho][copiar] │
+└──────────────────────────────────────┘
+```
+
+Regras da tela:
+
+- **Senha escondida por padrão**, com botão de revelar. A família abre isto
+  com o celular na mão, muitas vezes perto de outras pessoas.
+- **Botão de copiar em usuário e senha.** O uso real é colar na outra
+  plataforma. Confirme visualmente que copiou e volte ao normal em uns dois
+  segundos — um "copiado" permanente deixa de informar.
+- **Só mostre a plataforma que tem algo cadastrado.** Bloco vazio com dois
+  travessões não ajuda ninguém.
+- **Nada cadastrado:** "A secretaria ainda não cadastrou os acessos às
+  plataformas. Fale com ela."
+- `observacoes` é texto da secretaria **para a família ler** — mostre.
+
+**A senha do Meu IBPI não existe para ser mostrada.** É a do Firebase Auth,
+guardada como hash: nem o colégio consegue lê-la. Esse bloco mostra o
+e-mail de acesso e aponta para a redefinição.
+
+> **Não guarde essas senhas em cache no aparelho** e não as registre em
+> log. Leia quando a tela abrir.
 
 ---
 
