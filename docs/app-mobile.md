@@ -65,10 +65,10 @@ Quase tudo no app parte de `alunosVinculados`: é por ele que se monta o
 seletor de filhos e se filtram boletim, frequência, financeiro e
 solicitações.
 
-> ⚠️ Alguns documentos ainda têm um campo **`chavesDeAviso`**, nome antigo
-> do mesmo dado. Ele está congelado: o servidor só atualiza
-> `chavesDeAlcance`. Usar o antigo funciona hoje e para de funcionar no dia
-> em que um aluno mudar de turma — **use `chavesDeAlcance`**.
+> Se você viu um campo `chavesDeAviso` numa versão anterior deste
+> documento, ele **não existe mais**: era o nome antigo do mesmo dado,
+> ficou congelado quando o nome mudou e foi removido do banco. Use
+> `chavesDeAlcance`.
 
 **Base das rotas HTTP:** `https://ibpi-app-web.vercel.app`
 
