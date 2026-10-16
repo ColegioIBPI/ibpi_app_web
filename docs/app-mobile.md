@@ -70,7 +70,12 @@ solicitações.
 > ficou congelado quando o nome mudou e foi removido do banco. Use
 > `chavesDeAlcance`.
 
-**Base das rotas HTTP:** `https://ibpi-app-web.vercel.app`
+**Base das rotas HTTP:** `https://conecta.colegioibpi.com.br`
+
+> O endereço `ibpi-app-web.vercel.app` ainda responde, mas é o domínio
+> interno da hospedagem. **Não o use**: ele muda se o projeto for
+> renomeado ou migrado, e o aplicativo publicado na loja não acompanha. O
+> domínio do colégio é o contrato.
 
 **Arquivo nunca vem do bucket.** Foto, anexo e comprovante saem por rota do
 Portal, com o mesmo cabeçalho `Authorization` — o SDK do Storage falaria
@@ -626,6 +631,45 @@ preenchido. Mostre o saldo, não uma situação própria.
 - **`formaDePagamento`**: `pix` · `dinheiro` · `boleto` ·
   `link-de-pagamento` · `cartao-de-debito` · `cartao-de-credito`.
 
+### O boleto
+
+```
+boletos/{matricula} = {
+  matricula: string,
+  arquivo: { path, nome, tipo, tamanho },
+  observacoes: string | null,
+  atualizadoPorNome: string
+}
+```
+
+```kotlin
+db.collection("boletos").document(matricula).get()
+```
+
+**Um por aluno**, e o id é a matrícula. Pode não existir — a secretaria
+ainda não enviou. Trate a ausência como "nenhum boleto disponível" e
+**esconda o botão**, em vez de mostrar um que dá erro.
+
+Para baixar:
+
+```
+GET https://conecta.colegioibpi.com.br/api/alunos/{matricula}/boleto
+Authorization: Bearer <idToken>
+```
+
+Volta o PDF com `Content-Disposition: attachment` — é para **baixar**, não
+abrir num visualizador: a família leva o arquivo ao banco ou ao
+aplicativo bancário, e no celular o `inline` abre onde nem sempre dá para
+salvar.
+
+- **Não guarde em cache.** O boleto é substituído quando o colégio emite
+  outro, e um PDF velho no aparelho faz a família pagar o valor errado. A
+  rota já responde `no-store`.
+- `observacoes` é recado da secretaria — "vencimento prorrogado para o dia
+  15". Mostre junto do botão.
+- O **aluno não vê**: a consulta falha para ele, como no resto do
+  financeiro.
+
 > O **aluno não vê financeiro** — mensalidade é assunto de quem paga. As
 > regras barram; a aba não deve aparecer para esse perfil.
 
@@ -764,7 +808,7 @@ matrícula no corpo da requisição. O servidor confere o vínculo antes de
 gravar.
 
 ```
-POST https://ibpi-app-web.vercel.app/api/solicitacoes
+POST https://conecta.colegioibpi.com.br/api/solicitacoes
 Authorization: Bearer <idToken>
 Content-Type: application/json
 ```
@@ -804,7 +848,7 @@ endereço: um campo `comprovante` com o arquivo e um campo `dados` com o
 mesmo JSON de sempre.
 
 ```
-POST https://ibpi-app-web.vercel.app/api/solicitacoes
+POST https://conecta.colegioibpi.com.br/api/solicitacoes
 Authorization: Bearer <idToken>
 Content-Type: multipart/form-data
 
@@ -844,7 +888,7 @@ faltando. A mensagem vem pronta em português.
 ### 9.4 Ver o comprovante
 
 ```
-GET https://ibpi-app-web.vercel.app/api/solicitacoes/{id}/comprovante
+GET https://conecta.colegioibpi.com.br/api/solicitacoes/{id}/comprovante
 Authorization: Bearer <idToken>
 ```
 
@@ -858,7 +902,7 @@ isso não existe URL de bucket para ele.
 ### 9.5 Cancelar — `PATCH /api/solicitacoes/{id}`
 
 ```
-PATCH https://ibpi-app-web.vercel.app/api/solicitacoes/{id}
+PATCH https://conecta.colegioibpi.com.br/api/solicitacoes/{id}
 Authorization: Bearer <idToken>
 
 { "situacao": "cancelada" }

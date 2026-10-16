@@ -247,6 +247,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // O boleto do aluno — um por matrícula.
+    //
+    // Mesmo escopo do extrato: a família vê o dos filhos, a equipe vê o de
+    // todos. **O aluno não** — mensalidade é assunto de quem paga.
+    //
+    // O que está aqui é a ficha do arquivo (nome, tamanho, caminho); o PDF
+    // sai por `/api/alunos/{matricula}/boleto`, que repete esta mesma
+    // verificação. O bucket nega todo acesso de cliente.
+    match /boletos/{matricula} {
+      allow read: if secretariaOuCoordenacao()
+                  || temPerfil(['financeiro'])
+                  || ehFilho(matricula);
+      allow write: if false;
+    }
+
     // Itens contratados do ano: anuidade, matrícula, taxa de material,
     // dependência. Vieram da tabela `Fatos` do Access, cujo nome sugere
     // ocorrência disciplinar mas guarda financeiro.

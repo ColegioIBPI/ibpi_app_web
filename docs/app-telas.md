@@ -223,6 +223,10 @@ Três coisas que a tela precisa acertar:
 Mostre também o **plano de pagamento acordado**, quando existir: texto
 livre, com as quebras de linha preservadas.
 
+**E o boleto**, quando houver: um botão de baixar, com o recado da
+secretaria acima. Sem boleto enviado, **não mostre o botão** — melhor
+nenhum botão que um que falha. Ver `app-mobile.md`, seção 8.
+
 Vazio: **"Nada registrado"** / "Nenhuma parcela foi lançada para os seus
 filhos."
 

@@ -64,12 +64,12 @@ uma lista impede a matriz ficar incoerente — alguém com "gerenciar" mas sem
 
 Permissão diz **o quê**; escopo diz **de quem**:
 
-| Perfil                              | Enxerga os alunos      |
-| ----------------------------------- | ---------------------- |
-| Administração, secretaria, coordenação, financeiro | todos   |
-| Professor                           | das turmas que leciona |
-| Responsável                         | dos filhos vinculados  |
-| Aluno                               | apenas ele mesmo       |
+| Perfil                                             | Enxerga os alunos      |
+| -------------------------------------------------- | ---------------------- |
+| Administração, secretaria, coordenação, financeiro | todos                  |
+| Professor                                          | das turmas que leciona |
+| Responsável                                        | dos filhos vinculados  |
+| Aluno                                              | apenas ele mesmo       |
 
 Sem o escopo, "professor lê frequência" viraria acesso à escola inteira.
 

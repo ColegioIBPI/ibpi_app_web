@@ -2,14 +2,14 @@
 
 Duas saídas, cada uma com o formato que serve ao seu uso:
 
-| Saída                        | Formato | Onde                                     |
-| ---------------------------- | ------- | ---------------------------------------- |
-| Lista de alunos              | `.xlsx` | `/gestao/alunos`                         |
-| Relatório de inadimplência   | `.xlsx` | `/gestao/financeiro`                     |
-| Relatório de inadimplência   | PDF     | `/gestao/financeiro/relatorio`           |
-| Frequência por turma e período | `.xlsx` | `/gestao/frequencia/relatorio`          |
-| Frequência por turma e período | PDF   | `/gestao/frequencia/relatorio`           |
-| Boletim individual           | PDF     | `/gestao/boletins/[matricula]` e `/portal/boletim` |
+| Saída                          | Formato | Onde                                               |
+| ------------------------------ | ------- | -------------------------------------------------- |
+| Lista de alunos                | `.xlsx` | `/gestao/alunos`                                   |
+| Relatório de inadimplência     | `.xlsx` | `/gestao/financeiro`                               |
+| Relatório de inadimplência     | PDF     | `/gestao/financeiro/relatorio`                     |
+| Frequência por turma e período | `.xlsx` | `/gestao/frequencia/relatorio`                     |
+| Frequência por turma e período | PDF     | `/gestao/frequencia/relatorio`                     |
+| Boletim individual             | PDF     | `/gestao/boletins/[matricula]` e `/portal/boletim` |
 
 ---
 

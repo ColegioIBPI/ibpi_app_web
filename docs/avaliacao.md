@@ -9,15 +9,15 @@ no banco, e tem teste para cada caso.
 
 ## 1. Estrutura
 
-| Item                     | Regra                                           |
-| ------------------------ | ----------------------------------------------- |
-| Períodos                 | **3 trimestres**                                |
-| Avaliações por trimestre | **Projeto**, **Tarefas**, **AV**                |
-| Escala                   | 0 a 10, com **duas** casas decimais             |
-| Média mínima             | **5,0**                                         |
-| Frequência mínima        | **75%** (mais de 25% de faltas reprova)         |
-| Recuperação              | apenas **final**, no fim do ano                 |
-| Abrangência              | mesma regra para EF, EM, EJA e Cursos Livres    |
+| Item                     | Regra                                        |
+| ------------------------ | -------------------------------------------- |
+| Períodos                 | **3 trimestres**                             |
+| Avaliações por trimestre | **Projeto**, **Tarefas**, **AV**             |
+| Escala                   | 0 a 10, com **duas** casas decimais          |
+| Média mínima             | **5,0**                                      |
+| Frequência mínima        | **75%** (mais de 25% de faltas reprova)      |
+| Recuperação              | apenas **final**, no fim do ano              |
+| Abrangência              | mesma regra para EF, EM, EJA e Cursos Livres |
 
 ---
 
@@ -111,13 +111,13 @@ ou `reprovado`.
 
 ### Situação do ano
 
-| Se alguma disciplina está… | O ano fica…             |
-| -------------------------- | ----------------------- |
-| reprovado por falta        | reprovado por falta     |
-| cursando                   | cursando                |
-| em recuperação             | em recuperação          |
-| reprovado                  | reprovado               |
-| _todas aprovadas_          | aprovado                |
+| Se alguma disciplina está… | O ano fica…         |
+| -------------------------- | ------------------- |
+| reprovado por falta        | reprovado por falta |
+| cursando                   | cursando            |
+| em recuperação             | em recuperação      |
+| reprovado                  | reprovado           |
+| _todas aprovadas_          | aprovado            |
 
 A **dependência** é de um ano anterior e aparece no boletim como pendência —
 ela não entra no cálculo da situação do ano corrente.
@@ -126,11 +126,11 @@ ela não entra no cálculo da situação do ano corrente.
 
 ## 4. Onde cada coisa fica
 
-| Dado                                    | Onde                                    |
-| --------------------------------------- | --------------------------------------- |
-| Projeto, Tarefas, AV e faltas           | `notas/{ano}-t{trimestre}-{matrícula}-{disciplina}` |
-| Recuperação final, eletivas, dependências, Projeto Bilíngue, observações | `boletins/{ano}-{matrícula}` |
-| Médias, média anual, média final, situação | **calculadas na leitura**            |
+| Dado                                                                     | Onde                                                |
+| ------------------------------------------------------------------------ | --------------------------------------------------- |
+| Projeto, Tarefas, AV e faltas                                            | `notas/{ano}-t{trimestre}-{matrícula}-{disciplina}` |
+| Recuperação final, eletivas, dependências, Projeto Bilíngue, observações | `boletins/{ano}-{matrícula}`                        |
+| Médias, média anual, média final, situação                               | **calculadas na leitura**                           |
 
 As linhas de disciplina do boletim **não são gravadas**. Guardar o boletim
 pronto significaria que corrigir uma nota deixa o consolidado velho no banco
@@ -145,12 +145,12 @@ ele fica vazio, e a gravação dos blocos o deixa intacto de propósito.
 
 ## 5. Quem faz o quê
 
-| Ação                                      | Perfil                          |
-| ----------------------------------------- | ------------------------------- |
-| Lançar Projeto, Tarefas, AV e faltas      | Professor, nas disciplinas em que está alocado |
-| Corrigir nota de qualquer disciplina      | Secretaria e coordenação        |
-| Lançar recuperação, eletiva, dependência, observação | Secretaria e coordenação |
-| Ver o boletim                             | O aluno (o dele), o responsável (dos filhos), a equipe |
+| Ação                                                 | Perfil                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------ |
+| Lançar Projeto, Tarefas, AV e faltas                 | Professor, nas disciplinas em que está alocado         |
+| Corrigir nota de qualquer disciplina                 | Secretaria e coordenação                               |
+| Lançar recuperação, eletiva, dependência, observação | Secretaria e coordenação                               |
+| Ver o boletim                                        | O aluno (o dele), o responsável (dos filhos), a equipe |
 
 O escopo do professor vem da **alocação** (professor × turma × disciplina ×
 ano), verificado no servidor em `core/escola/alocacoes.server.ts`. Disciplina
@@ -190,6 +190,7 @@ Decisões de layout que têm razão de ser:
   ```bash
   npm run disciplinas:ordenar
   ```
+
 - **Célula sem nota fica vazia**, sem travessão: um travessão na grade
   inteira de um aluno do 1º trimestre polui o documento.
 - **O Projeto Bilíngue aparece duas vezes**: como bloco próprio, com STEAM,
@@ -228,7 +229,7 @@ segmento ou por disciplina.
 - **Avaliações de trabalho (PL)** no diário de classe: o campo
   `diarioClasse.avaliacoesDeTrabalho` existe e é preservado, mas a tela ainda
   não foi feita.
-- **Confirmar com a coordenação** o arredondamento *antes* da comparação
+- **Confirmar com a coordenação** o arredondamento _antes_ da comparação
   (seção 3). O número de casas já está confirmado pelo documento real; o
   momento do arredondamento, não.
 - **Tela para a secretaria ordenar as disciplinas.** Hoje a ordem é gravada

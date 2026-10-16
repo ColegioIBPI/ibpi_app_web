@@ -252,6 +252,10 @@ beforeEach(async () => {
       documentoNome: "Histórico escolar",
       situacao: "aberta",
     });
+    await setDoc(doc(db, `boletos/${FILHO}`), {
+      matricula: FILHO,
+      arquivo: { path: "boletos/x.pdf", nome: "boleto.pdf", tipo: "application/pdf", tamanho: 1234 },
+    });
     await setDoc(doc(db, `credenciais/${FILHO}`), {
       matricula: FILHO,
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
@@ -724,6 +728,40 @@ describe("solicitações da família", () => {
   });
 });
 
+describe("boleto do aluno", () => {
+  it("a família e a equipe do financeiro leem", async () => {
+    const { responsavel, financeiro, secretaria, coordenacao, admin } =
+      contextos();
+
+    for (const contexto of [responsavel, financeiro, secretaria, coordenacao, admin]) {
+      await assertSucceeds(ler(contexto, `boletos/${FILHO}`));
+    }
+  });
+
+  it("o aluno não lê o próprio boleto", async () => {
+    // Mensalidade é assunto de quem paga — a mesma regra do extrato.
+    const { aluno } = contextos();
+    await assertFails(ler(aluno, `boletos/${FILHO}`));
+  });
+
+  it("uma família não lê o boleto da outra", async () => {
+    const { outroResponsavel } = contextos();
+    await assertFails(ler(outroResponsavel, `boletos/${FILHO}`));
+  });
+
+  it("professor não lê boleto", async () => {
+    const { professor } = contextos();
+    await assertFails(ler(professor, `boletos/${FILHO}`));
+  });
+
+  it("ninguém envia pelo cliente", async () => {
+    const { financeiro } = contextos();
+    await assertFails(
+      setDoc(doc(financeiro.firestore(), `boletos/${FILHO}`), { matricula: FILHO }),
+    );
+  });
+});
+
 describe("acessos às plataformas", () => {
   it("a família lê os acessos do próprio aluno", async () => {
     const { responsavel, aluno } = contextos();
@@ -833,6 +871,7 @@ describe("administração — a chave mestra", () => {
       `anotacoesFinanceiras/${FILHO}`,
       "avisos/individual",
       "avisos/despublicado",
+      `boletos/${FILHO}`,
       `credenciais/${FILHO}`,
       "documentosSolicitaveis/declaracao",
       "solicitacoes/do-filho",

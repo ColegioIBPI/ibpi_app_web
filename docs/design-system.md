@@ -47,17 +47,17 @@ WCAG, não estimados.
 
 ## Componentes
 
-| Componente                                                   | Arquivo              | Observação                                                                                                       |
-| ------------------------------------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `Button`                                                     | `core/ui/button.tsx` | Variações primary, secondary, ghost, danger. `type="button"` por padrão, para não submeter formulário sem querer |
-| `TextField` / `SelectField`                                  | `core/ui/field.tsx`  | Rótulo associado, `aria-invalid` e mensagem de erro com `role="alert"`                                           |
-| `Card`                                                       | `core/ui/card.tsx`   | Bloco de conteúdo com título e ação                                                                              |
-| `Table` e primitivas                                         | `core/ui/table.tsx`  | Cabeçalho fixo, rolagem horizontal no celular                                                                    |
-| `Modal`                                                      | `core/ui/modal.tsx`  | `<dialog>` nativo: foco preso e Escape vêm do navegador                                                          |
-| `ToastProvider` / `useToast`                                 | `core/ui/toast.tsx`  | Aviso passageiro, com `aria-live`                                                                                |
-| `LoadingState`, `EmptyState`, `ErrorState`, `ForbiddenState` | `core/ui/states.tsx` | Os quatro estados que toda tela precisa tratar                                                                   |
-| `AppShell`                                                   | `core/ui/app-shell.tsx` | Moldura das áreas autenticadas: menu lateral e conteúdo                                                       |
-| `MenuLateral`                                                | `core/ui/menu-lateral.tsx` | Menu por perfil, com ícone e marcação da página atual                                                       |
+| Componente                                                   | Arquivo                    | Observação                                                                                                       |
+| ------------------------------------------------------------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `Button`                                                     | `core/ui/button.tsx`       | Variações primary, secondary, ghost, danger. `type="button"` por padrão, para não submeter formulário sem querer |
+| `TextField` / `SelectField`                                  | `core/ui/field.tsx`        | Rótulo associado, `aria-invalid` e mensagem de erro com `role="alert"`                                           |
+| `Card`                                                       | `core/ui/card.tsx`         | Bloco de conteúdo com título e ação                                                                              |
+| `Table` e primitivas                                         | `core/ui/table.tsx`        | Cabeçalho fixo, rolagem horizontal no celular                                                                    |
+| `Modal`                                                      | `core/ui/modal.tsx`        | `<dialog>` nativo: foco preso e Escape vêm do navegador                                                          |
+| `ToastProvider` / `useToast`                                 | `core/ui/toast.tsx`        | Aviso passageiro, com `aria-live`                                                                                |
+| `LoadingState`, `EmptyState`, `ErrorState`, `ForbiddenState` | `core/ui/states.tsx`       | Os quatro estados que toda tela precisa tratar                                                                   |
+| `AppShell`                                                   | `core/ui/app-shell.tsx`    | Moldura das áreas autenticadas: menu lateral e conteúdo                                                          |
+| `MenuLateral`                                                | `core/ui/menu-lateral.tsx` | Menu por perfil, com ícone e marcação da página atual                                                            |
 
 ## Menu lateral
 
@@ -69,10 +69,10 @@ pessoa e o botão de sair. Na lateral cada item ganha uma linha inteira, o
 ícone dá um ponto de reconhecimento mais rápido que a leitura do rótulo, e
 sobra espaço para as seções que ainda vão entrar (financeiro, relatórios).
 
-| Tela              | Comportamento                                                     |
-| ----------------- | ----------------------------------------------------------------- |
-| `lg` para cima    | Coluna fixa de `16rem`, acompanhando a rolagem (`sticky`)          |
-| Abaixo de `lg`    | Gaveta sobreposta, aberta por um botão na barra de cima            |
+| Tela           | Comportamento                                             |
+| -------------- | --------------------------------------------------------- |
+| `lg` para cima | Coluna fixa de `16rem`, acompanhando a rolagem (`sticky`) |
+| Abaixo de `lg` | Gaveta sobreposta, aberta por um botão na barra de cima   |
 
 A lateral fixa comeria metade de um celular — e é no celular que a família
 abre o boletim. Escolher um item fecha a gaveta: sem isso o menu ficaria por

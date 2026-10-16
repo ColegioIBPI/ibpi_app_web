@@ -120,6 +120,32 @@ oferece copiar, mas guardar a cópia é o que permite ao responsável mudar de
 casa sem mexer no cadastro do filho. Tem `default` porque os 118
 responsáveis vindos do Access não têm o campo.
 
+### `boletos/{matricula}`
+
+`matricula` · `arquivo{path,nome,tipo,tamanho}` · `observacoes` ·
+`atualizadoPorNome`
+
+O boleto do aluno, em PDF. **Um por aluno**: o id do documento é a
+matrícula, então enviar outro substitui. A regra é estrutural, e não uma
+validação que alguém pode esquecer — e é a certa, porque é o boleto atual
+que a família precisa; uma lista de antigos só criaria a dúvida de qual
+pagar.
+
+O arquivo novo é gravado **antes** de o antigo sair. Apagar primeiro
+deixaria a família sem boleto nenhum se o envio falhasse no meio.
+
+**Só PDF.** Foto de boleto corta a linha digitável e o código de barras
+fotografado não lê no caixa: aceitar imagem seria aceitar um arquivo que
+falha na hora de pagar.
+
+Sem URL pública, como a foto e o comprovante — um boleto traz nome, valor e
+linha digitável. Sai por `/api/alunos/{matricula}/boleto`, com
+`Content-Disposition: attachment`, porque boleto é para baixar e levar ao
+banco.
+
+Lê quem lê o extrato: a família daquele aluno, a secretaria, a coordenação
+e o financeiro. **O aluno não** — mensalidade é assunto de quem paga.
+
 ### `credenciais/{matricula}`
 
 `matricula` · `ibpiOnline{usuario,senha}` · `plural{usuario,senha}` ·

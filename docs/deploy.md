@@ -112,20 +112,20 @@ Incluir **só** o domínio de produção (`<projeto>.vercel.app` e, depois,
 
 ### 4. O que já está no código
 
-| Proteção                                   | Onde                            |
-| ------------------------------------------ | ------------------------------- |
-| Nenhuma escrita pelo cliente no Firestore  | `firestore.rules`               |
-| Storage nega todo acesso do cliente        | `storage.rules`                 |
-| Sessão em cookie `httpOnly` + `Secure`     | `core/auth/session.ts`          |
-| Sessão de 5 dias, não 14                   | `core/auth/cookie.ts`           |
-| `frame-ancestors 'none'` e `X-Frame-Options` | `next.config.ts`              |
-| HSTS de um ano                             | `next.config.ts`                |
-| `form-action 'self'` e `base-uri 'self'`   | `next.config.ts`                |
-| `Referrer-Policy` — a matrícula não vaza na URL | `next.config.ts`           |
-| `nosniff`, `Permissions-Policy`            | `next.config.ts`                |
-| Sem `X-Powered-By`                         | `next.config.ts`                |
-| `noindex` na meta e no `robots.txt`        | `app/layout.tsx`, `app/robots.ts` |
-| Fora de escopo responde 404, nunca 403     | serviços e rotas                |
+| Proteção                                        | Onde                              |
+| ----------------------------------------------- | --------------------------------- |
+| Nenhuma escrita pelo cliente no Firestore       | `firestore.rules`                 |
+| Storage nega todo acesso do cliente             | `storage.rules`                   |
+| Sessão em cookie `httpOnly` + `Secure`          | `core/auth/session.ts`            |
+| Sessão de 5 dias, não 14                        | `core/auth/cookie.ts`             |
+| `frame-ancestors 'none'` e `X-Frame-Options`    | `next.config.ts`                  |
+| HSTS de um ano                                  | `next.config.ts`                  |
+| `form-action 'self'` e `base-uri 'self'`        | `next.config.ts`                  |
+| `Referrer-Policy` — a matrícula não vaza na URL | `next.config.ts`                  |
+| `nosniff`, `Permissions-Policy`                 | `next.config.ts`                  |
+| Sem `X-Powered-By`                              | `next.config.ts`                  |
+| `noindex` na meta e no `robots.txt`             | `app/layout.tsx`, `app/robots.ts` |
+| Fora de escopo responde 404, nunca 403          | serviços e rotas                  |
 
 Os cabeçalhos têm teste de ponta a ponta em `e2e/acesso.spec.ts`: eles valem
 para toda resposta, inclusive a das exportações.

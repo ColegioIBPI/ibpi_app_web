@@ -8,12 +8,12 @@ colégio — é o mesmo papel que a `Tabela_pagamento` do Access tinha.
 
 ## 1. As coleções
 
-| Coleção              | O que é                            | Origem                   |
-| -------------------- | ---------------------------------- | ------------------------ |
-| `cobrancas`          | as **parcelas**                    | `Tabela_pagamento` (847) |
-| `contratos`          | os **itens contratados** do ano    | `Fatos` (274)            |
-| `planosDePagamento`  | o **acordado na matrícula**, em texto | criada no Portal      |
-| `anotacoesFinanceiras` | a **anotação interna** sobre o aluno | criada no Portal    |
+| Coleção                | O que é                               | Origem                   |
+| ---------------------- | ------------------------------------- | ------------------------ |
+| `cobrancas`            | as **parcelas**                       | `Tabela_pagamento` (847) |
+| `contratos`            | os **itens contratados** do ano       | `Fatos` (274)            |
+| `planosDePagamento`    | o **acordado na matrícula**, em texto | criada no Portal         |
+| `anotacoesFinanceiras` | a **anotação interna** sobre o aluno  | criada no Portal         |
 
 `contratos` é histórico do Access, mostrado no extrato com o texto original
 preservado. Quem gera parcela hoje é o plano de pagamento.
@@ -34,12 +34,12 @@ vencimento · valor · dataPagamento · valorPago · confirmado
 
 E `situacaoDaCobranca()` conclui a partir deles, em toda leitura:
 
-| Situação         | Quando                                           |
-| ---------------- | ------------------------------------------------ |
-| **Paga**         | existe data de pagamento, e o pagamento foi conferido |
-| **A confirmar**  | existe data de pagamento e `confirmado` é `false` |
-| **Vencida**      | sem pagamento e o vencimento já passou           |
-| **Em aberto**    | sem pagamento e o vencimento ainda não chegou    |
+| Situação        | Quando                                                |
+| --------------- | ----------------------------------------------------- |
+| **Paga**        | existe data de pagamento, e o pagamento foi conferido |
+| **A confirmar** | existe data de pagamento e `confirmado` é `false`     |
+| **Vencida**     | sem pagamento e o vencimento já passou                |
+| **Em aberto**   | sem pagamento e o vencimento ainda não chegou         |
 
 Parcela paga com atraso continua **paga**: atraso quitado não é
 inadimplência. O **dia do vencimento é do pagador** — quem paga nele está em
@@ -77,13 +77,13 @@ Três decisões:
 
 A parcela guarda os dois lados do carnê que a secretaria já usava no papel:
 
-| O que se cobra                              | O que se pagou                    |
-| ------------------------------------------- | --------------------------------- |
-| `vencimento`                                | `dataPagamento`                   |
-| `tipo` — a descrição do pagamento           | `valorPago`                       |
-| `parcela` / `totalDeParcelas` — `5/12`      | `formaDePagamento`                |
-| `valor`                                     | `recibo`                          |
-| `observacoes`                               | `confirmado`                      |
+| O que se cobra                         | O que se pagou     |
+| -------------------------------------- | ------------------ |
+| `vencimento`                           | `dataPagamento`    |
+| `tipo` — a descrição do pagamento      | `valorPago`        |
+| `parcela` / `totalDeParcelas` — `5/12` | `formaDePagamento` |
+| `valor`                                | `recibo`           |
+| `observacoes`                          | `confirmado`       |
 
 **Descrição do pagamento** (`tipo`): taxa de matrícula, taxa de material,
 mensalidade, reclassificação, dependências, extras, outros.
@@ -176,15 +176,15 @@ cima apagaria baixas já lançadas.
 
 ## 4. Quem faz o quê
 
-| Ação                                                     | Perfil                              |
-| -------------------------------------------------------- | ----------------------------------- |
-| Ver a lista e o extrato                                  | Financeiro, secretaria, coordenação |
-| Ler o plano acordado                                     | Financeiro, secretaria, coordenação, **responsável** (do filho) |
-| Ler a anotação interna                                   | Financeiro, secretaria, coordenação |
-| Cadastrar parcela, gerar carnê, dar baixa, confirmar, editar, apagar | **Financeiro**          |
-| Escrever o plano acordado e a anotação interna           | **Financeiro**                      |
-| Ver o extrato dos filhos                                 | Responsável (somente leitura)       |
-| —                                                        | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
+| Ação                                                                 | Perfil                                                            |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Ver a lista e o extrato                                              | Financeiro, secretaria, coordenação                               |
+| Ler o plano acordado                                                 | Financeiro, secretaria, coordenação, **responsável** (do filho)   |
+| Ler a anotação interna                                               | Financeiro, secretaria, coordenação                               |
+| Cadastrar parcela, gerar carnê, dar baixa, confirmar, editar, apagar | **Financeiro**                                                    |
+| Escrever o plano acordado e a anotação interna                       | **Financeiro**                                                    |
+| Ver o extrato dos filhos                                             | Responsável (somente leitura)                                     |
+| —                                                                    | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
 
 Secretaria e coordenação têm `ler` no recurso, e a tela não lhes mostra botão
 nenhum de lançamento. O guarda de rota confere de novo no servidor: esconder

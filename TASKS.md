@@ -261,6 +261,15 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.14 Boleto do aluno
+
+- [x] Modelar `boletos` — um documento por matrícula, com o PDF no Storage
+- [x] Envio e substituição pelo perfil financeiro, com o antigo apagado depois
+- [x] Download por rota autenticada, que aceita cookie e token do app
+- [x] Publicar a Security Rule: família, secretaria, coordenação e financeiro
+- [x] Corrigir o domínio no contrato do app — `conecta.colegioibpi.com.br`
+- [ ] Investigar a falha intermitente de `grade-de-aulas.test.tsx`
+
 ### 3.13 Correções do cadastro de alunos
 
 - [x] Situação da matrícula com as cinco opções e a data do fato

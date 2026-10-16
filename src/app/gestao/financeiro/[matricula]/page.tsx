@@ -11,6 +11,11 @@ import { Card } from "@/core/ui/card";
 import { Extrato } from "@/features/financeiro/components/extrato";
 import { NovoPlano } from "@/features/financeiro/components/novo-plano";
 import {
+  BoletoDaFamilia,
+  BoletoDoAluno,
+} from "@/features/financeiro/components/boleto";
+import { obterBoleto } from "@/features/financeiro/services/boleto.server";
+import {
   AnotacaoInterna,
   PlanoAcordado,
 } from "@/features/financeiro/components/texto-do-aluno";
@@ -107,6 +112,23 @@ export default async function ExtratoDoAlunoPage({
           />
         </Card>
       </div>
+
+      <Card
+        title="Boleto"
+        description="Um arquivo por aluno. O responsável baixa pelo Portal e pelo aplicativo."
+      >
+        {podeLancar ? (
+          <BoletoDoAluno
+            matricula={extrato.matricula}
+            boleto={await obterBoleto(sessao, extrato.matricula)}
+          />
+        ) : (
+          <BoletoDaFamilia
+            matricula={extrato.matricula}
+            boleto={await obterBoleto(sessao, extrato.matricula)}
+          />
+        )}
+      </Card>
 
       <Card title="Pagamentos">
         <Extrato

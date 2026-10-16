@@ -4,6 +4,8 @@ import { exigirArea } from "@/core/auth/guards";
 import { formatCurrency } from "@/core/lib/format";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
+import { BoletoDaFamilia } from "@/features/financeiro/components/boleto";
+import { obterBoleto } from "@/features/financeiro/services/boleto.server";
 import { Extrato } from "@/features/financeiro/components/extrato";
 import { extratoDoAluno } from "@/features/financeiro/services/financeiro.server";
 
@@ -38,6 +40,20 @@ export default async function FinanceiroDoPortalPage() {
       ),
     )
   ).filter((extrato) => extrato !== null);
+
+  // Carregado aqui, e não dentro do `map` da renderização: aquele não é
+  // assíncrono, e um `await` lá dentro nem compila.
+  const boletos = new Map(
+    await Promise.all(
+      extratos.map(
+        async (extrato) =>
+          [
+            extrato.matricula,
+            await obterBoleto(sessao, extrato.matricula),
+          ] as const,
+      ),
+    ),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,6 +101,11 @@ export default async function FinanceiroDoPortalPage() {
                 </dd>
               </div>
             </dl>
+
+            <BoletoDaFamilia
+              matricula={extrato.matricula}
+              boleto={boletos.get(extrato.matricula) ?? null}
+            />
 
             {extrato.planoAcordado && (
               <div className="border-line bg-surface-subtle mb-4 rounded-md border p-3">
