@@ -108,8 +108,8 @@ export async function frequenciaDoAluno(
 /**
  * Ocorrências que a sessão pode ver.
  *
- * O aluno não entra aqui: a ocorrência disciplinar dele é assunto do
- * responsável e da equipe (README, seção 3.2).
+ * A família lê só o que foi publicado para ela; o aluno, só o que foi
+ * marcado para ele. O recorte está em `domain/publicacao.ts`.
  */
 export async function ocorrenciasVisiveis(
   sessao: SessionUser,

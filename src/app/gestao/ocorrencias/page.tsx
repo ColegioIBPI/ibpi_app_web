@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { pode } from "@/core/auth/roles";
 import { formatDate } from "@/core/lib/format";
 import { ROTULOS_DE_OCORRENCIA, type TipoDeOcorrencia } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
@@ -14,7 +15,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/core/ui/table";
-import { resumoDaPublicacao } from "@/features/frequencia/domain/publicacao";
+import { PublicacaoDaOcorrencia } from "@/features/frequencia/components/publicacao-da-ocorrencia";
 import { ocorrenciasVisiveis } from "@/features/frequencia/services/frequencia.server";
 
 export const metadata: Metadata = { title: "Ocorrências" };
@@ -22,6 +23,10 @@ export const metadata: Metadata = { title: "Ocorrências" };
 export default async function OcorrenciasPage() {
   const sessao = await exigirPermissao("ocorrencias", "ler");
   const ocorrencias = await ocorrenciasVisiveis(sessao);
+
+  // Quem lança publica. O financeiro não chega aqui; o professor chega, e
+  // a ação confere de novo que a turma é dele.
+  const podeEditar = pode(sessao.role, "ocorrencias", "lancar");
 
   const porTipo = new Map<string, number>();
   for (const ocorrencia of ocorrencias) {
@@ -81,11 +86,15 @@ export default async function OcorrenciasPage() {
                   <TableCell className="text-ink-muted">
                     {ocorrencia.descricao}
                   </TableCell>
-                  {/* A quem o registro chega: a coordenação precisa ver
-                      isso na lista, senão só descobre abrindo um por um
-                      que metade das ocorrências está retida. */}
-                  <TableCell className="text-ink-muted text-xs whitespace-nowrap">
-                    {resumoDaPublicacao(ocorrencia)}
+                  {/* A quem o registro chega, e editável aqui: a decisão
+                      de publicar nem sempre é a do dia do registro, e até
+                      aqui mudá-la exigia reabrir a chamada daquele dia. */}
+                  <TableCell>
+                    <PublicacaoDaOcorrencia
+                      id={ocorrencia.id}
+                      ocorrencia={ocorrencia}
+                      podeEditar={podeEditar}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

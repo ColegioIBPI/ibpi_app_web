@@ -267,7 +267,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Autorização de publicação por ocorrência: responsável e/ou aluno
 - [x] Aluno passa a ler as ocorrências liberadas para ele
 - [x] Publicar a Security Rule com o recorte por documento
-- [ ] Permitir editar a publicação fora da chamada, pela lista de ocorrências
+- [x] Permitir editar a publicação fora da chamada, pela lista de ocorrências
 - [x] Atualizar o contrato do app com `visivelParaAluno` e a situação `S`
 
 ### 3.17 Configurações do ano letivo

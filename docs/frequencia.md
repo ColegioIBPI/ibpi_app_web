@@ -104,7 +104,7 @@ metade está retida.
 
 ---
 
-## 3. Onde se marca
+## 3. Onde se marca e onde se muda
 
 A publicação é definida **na chamada**, junto da ocorrência, e as caixas só
 aparecem quando há uma ocorrência escolhida: sem ela não há o que publicar,
@@ -114,6 +114,29 @@ Reabrir a chamada traz as caixas **como foram deixadas**. A autorização mora
 no documento da ocorrência, não no da frequência, então quem carrega a tela
 junta os dois — sem isso, salvar de novo republicaria em silêncio o que
 alguém tinha retido.
+
+### Depois, pela lista de ocorrências
+
+A decisão de publicar nem sempre é a do dia do registro: a coordenação
+conversa com a família depois, e o que parecia delicado deixa de ser — ou o
+contrário. Por isso as duas caixas também são editáveis em
+`/gestao/ocorrencias`, direto na linha.
+
+Cada caixa grava sozinha, sem botão de salvar: é decisão de uma tecla, quase
+sempre tomada no meio de outra conversa. E o estado só muda **quando o
+servidor confirma** — marcar na hora mostraria por um instante um
+"responsável vê" que talvez não exista, que é o que a pessoa olha antes de
+atender a família.
+
+**Cada caixa grava as duas.** O lado que não foi tocado vai como está na
+tela, e não como ausente: mandá-lo ausente faria o padrão voltar a valer e
+republicaria o que ninguém pediu. É o mesmo cuidado de `baseDaEntrega` na
+conferência de documentos.
+
+**O professor só mexe nas turmas que leciona.** Ele tem `ocorrencias:
+lancar` porque é quem registra na chamada, mas a permissão vale dentro do
+escopo dele — e a verificação é no servidor, porque a lista dele nem mostra
+a ocorrência de outra turma, então nada na tela o impediria de tentar.
 
 ---
 
