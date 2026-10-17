@@ -181,7 +181,9 @@ cima apagaria baixas já lançadas.
 | Ver a lista e o extrato                                              | Financeiro, secretaria, coordenação                               |
 | Ler o plano acordado                                                 | Financeiro, secretaria, coordenação, **responsável** (do filho)   |
 | Ler a anotação interna                                               | Financeiro, secretaria, coordenação                               |
-| Cadastrar parcela, gerar carnê, dar baixa, confirmar, editar, apagar | **Financeiro**                                                    |
+| Cadastrar parcela, gerar carnê, confirmar, editar, apagar            | **Financeiro**                                                    |
+| Dar baixa pela tela do financeiro                                    | **Financeiro**                                                    |
+| Dar baixa **emitindo recibo**                                        | **Financeiro, secretaria** — as duas recebem no balcão            |
 | Escrever o plano acordado e a anotação interna                       | **Financeiro**                                                    |
 | Ver o extrato dos filhos                                             | Responsável (somente leitura)                                     |
 | —                                                                    | O **aluno não vê financeiro**: mensalidade é assunto de quem paga |
@@ -189,6 +191,11 @@ cima apagaria baixas já lançadas.
 Secretaria e coordenação têm `ler` no recurso, e a tela não lhes mostra botão
 nenhum de lançamento. O guarda de rota confere de novo no servidor: esconder
 o botão é conveniência, não segurança.
+
+**A exceção é o recibo.** A secretaria recebe mensalidade, e emitir o recibo
+dá baixa na parcela — é o único caminho pelo qual ela escreve em
+`cobrancas`. Estreito de propósito: o pagamento entra preso ao que o recibo
+diz, sem passar pela tela que gera carnê e apaga parcela.
 
 Regras de escrita que existem por um motivo:
 
@@ -205,7 +212,10 @@ Regras de escrita que existem por um motivo:
 - **O recibo dá a baixa.** Um item de recibo pode apontar para a parcela que
   quita, e a emissão lança o pagamento no mesmo commit — ver
   [recibos.md](recibos.md), seção 4b. Cancelar o recibo devolve a parcela ao
-  aberto, desde que ela ainda aponte para ele.
+  aberto, desde que ela ainda aponte para ele. **É por aí que a secretaria
+  dá baixa** tendo só `ler` neste recurso: ela recebe mensalidade no balcão.
+  A tabela acima continua valendo para o resto — lançar parcela, gerar
+  carnê, editar e apagar seguem sendo do financeiro.
 - **Confirmar é ação à parte da baixa** porque a conferência costuma
   acontecer depois: o pagamento entra no dia em que a família avisa, e o
   extrato bancário chega no dia seguinte.

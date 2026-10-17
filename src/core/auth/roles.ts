@@ -72,19 +72,22 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     frequencia: "lancar",
     ocorrencias: "lancar",
     notas: "gerenciar",
+    /**
+     * **Lê o financeiro, mas dá baixa pelo recibo.**
+     *
+     * A secretaria recebe mensalidade no balcão, e emitir o recibo dá
+     * baixa na parcela. É o único caminho pelo qual ela escreve em
+     * `cobrancas`, e ele é estreito: o pagamento entra preso ao que o
+     * recibo diz, e não há como gerar carnê, mudar valor ou apagar
+     * parcela — isso continua exigindo `financeiro: lancar`.
+     *
+     * Subir este nível para `lancar` seria o atalho, e daria de brinde a
+     * tela inteira do financeiro.
+     */
     financeiro: "ler",
     avisos: "gerenciar",
     // Atende a fila: muda a situação do pedido e o recusa quando for o caso.
     solicitacoes: "gerenciar",
-    /**
-     * **Emite recibo sem poder lançar mensalidade.**
-     *
-     * É por isso que recibo é recurso próprio e não um nível a mais em
-     * `financeiro`: metade da lista de serviços — declaração, 2ª via de
-     * histórico, 2ª chamada — é cobrada no balcão da secretaria. Subir
-     * `financeiro` para `lancar` resolveria o recibo e daria de brinde a
-     * baixa de parcela, que não é dela.
-     */
     recibos: "gerenciar",
   },
   coordenacao: {

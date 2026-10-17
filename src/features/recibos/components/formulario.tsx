@@ -86,13 +86,10 @@ export function FormularioDeRecibo({
   alunos,
   series,
   matriculaInicial,
-  podeQuitar = false,
 }: {
   alunos: OpcaoDeAluno[];
   series: OpcaoDeSerie[];
   matriculaInicial?: string;
-  /** Quem não dá baixa emite recibo, mas não liga item a parcela. */
-  podeQuitar?: boolean;
 }) {
   const router = useRouter();
 
@@ -115,7 +112,7 @@ export function FormularioDeRecibo({
     // A limpeza acontece na troca de aluno, e não aqui: `setState` síncrono
     // dentro do efeito renderiza duas vezes à toa, e o lint do projeto o
     // proíbe por isso.
-    if (!podeQuitar || !matricula) return;
+    if (!matricula) return;
 
     let ignorar = false;
 
@@ -126,7 +123,7 @@ export function FormularioDeRecibo({
     return () => {
       ignorar = true;
     };
-  }, [matricula, podeQuitar]);
+  }, [matricula]);
 
   const ligadas = new Set(
     linhas.map((linha) => linha.cobrancaId).filter(Boolean),
@@ -264,7 +261,7 @@ export function FormularioDeRecibo({
         </p>
       </Card>
 
-      {podeQuitar && matricula && parcelas.length > 0 && (
+      {matricula && parcelas.length > 0 && (
         <Card
           title="Parcelas em aberto"
           description="Lançar a parcela no recibo dá baixa nela ao emitir — não precisa lançar a baixa de novo no financeiro."

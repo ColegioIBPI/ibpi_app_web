@@ -6,7 +6,6 @@ import { z } from "zod";
 import { corpoDaAuditoria, gravarComAuditoria } from "@/core/auditoria/registrar";
 import { calcularAlteracoes, semCamposTecnicos } from "@/core/auditoria/diferencas";
 import { exigirPermissao } from "@/core/auth/guards";
-import { pode } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
@@ -77,19 +76,15 @@ export async function emitirRecibo(
     .filter((id): id is string => Boolean(id));
 
   /**
-   * Quitar parcela é ato de caixa, e **não** vem junto com o recibo.
+   * **Emitir o recibo autoriza a baixa.** Quem recebe o dinheiro no balcão
+   * é quem dá o papel, e na secretaria do IBPI isso inclui mensalidade —
+   * então `recibos: lancar`, já exigido acima, é a permissão que vale.
    *
-   * A secretaria emite recibo de declaração e 2ª via sem ter `financeiro:
-   * lancar` — é o motivo de recibo ser recurso próprio. Se a emissão desse
-   * baixa sem conferir aqui, a mesma pessoa que não pode dar baixa daria
-   * baixa pela porta do recibo.
+   * Não se confunde com `financeiro: lancar`, que continua restrito: pela
+   * tela do financeiro se gera carnê, se edita valor e se apaga parcela.
+   * Aqui o pagamento só entra como consequência de um recibo emitido, e
+   * fica preso ao que o documento diz.
    */
-  if (quitacoes.length > 0 && !pode(sessao.role, "financeiro", "lancar")) {
-    return {
-      ok: false,
-      erro: "Seu perfil emite recibo, mas não dá baixa em parcela.",
-    };
-  }
 
   // Duas linhas apontando para a mesma parcela pagariam uma e sobrescreveriam
   // a outra, deixando o total do recibo maior que a baixa.
@@ -262,14 +257,9 @@ export async function cancelarRecibo(
     .map((item) => item.cobrancaId)
     .filter((id): id is string => Boolean(id));
 
-  // Quem emite recibo nem sempre dá baixa. Se o recibo quitou parcela,
-  // cancelá-lo desfaz pagamento — e isso é ato de caixa.
-  if (quitadas.length > 0 && !pode(sessao.role, "financeiro", "lancar")) {
-    return {
-      ok: false,
-      erro: "Este recibo quitou parcela. Só o financeiro pode cancelá-lo.",
-    };
-  }
+  // Quem emite cancela: o engano é de quem estava no balcão, e exigir
+  // outra pessoa para desfazê-lo deixaria a parcela paga por um recibo
+  // que já não vale.
 
   await gravarComAuditoria({
     colecao: COLECOES.recibos,
@@ -451,10 +441,7 @@ export interface ParcelaEmAberto {
 export async function listarParcelasEmAberto(
   matricula: string,
 ): Promise<ParcelaEmAberto[]> {
-  const sessao = await exigirPermissao("recibos", "lancar");
-
-  // Quem não dá baixa não precisa da lista — e não pode usá-la.
-  if (!pode(sessao.role, "financeiro", "lancar")) return [];
+  await exigirPermissao("recibos", "lancar");
 
   const resultado = await getAdminDb()
     .collection(COLECOES.cobrancas)

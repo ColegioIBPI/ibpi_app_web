@@ -138,13 +138,18 @@ via e taxa de formatura não nascem de carnê.
 
 ### Quem pode ligar
 
-Quitar parcela exige `financeiro: lancar`. A secretaria emite recibo de
-declaração e 2ª via sem ter esse nível — é o motivo de recibo ser recurso
-próprio —, e sem essa conferência ela daria baixa pela porta do recibo. A
-lista de parcelas em aberto nem é carregada para quem não pode usá-la.
+**Quem emite o recibo.** Quem recebe o dinheiro no balcão é quem dá o
+papel, e na secretaria do IBPI isso inclui mensalidade — então `recibos:
+lancar` é a permissão que vale, e cancelar segue a mesma regra: o engano é
+de quem estava no balcão.
 
-Cancelar um recibo que quitou parcela também é ato de caixa, pela mesma
-razão: o cancelamento desfaz pagamento.
+Isso faz da emissão **o único caminho pelo qual a secretaria escreve em
+`cobrancas`**, tendo apenas `financeiro: ler`. O caminho é estreito de
+propósito: o pagamento entra preso ao que o recibo diz. Gerar carnê, mudar
+valor de parcela e apagar parcela continuam exigindo `financeiro: lancar`,
+e nada disso tem porta aqui.
+
+A coordenação não emite (`recibos: ler`), então também não quita.
 
 ### As travas
 
