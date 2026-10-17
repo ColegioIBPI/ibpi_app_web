@@ -125,13 +125,27 @@ ali daria a impressão de que entra em alguma conta.
 
 ### Onde a família lê
 
+Em **dois lugares, com papéis diferentes**.
+
 No **boletim**, abaixo das notas, e **imprime junto**: a pergunta "como essa
 média foi calculada?" aparece com o boletim na mão, e a resposta numa outra
 tela não chega a quem imprimiu o papel.
 
+Em **Informações úteis**, como consulta de quem foi procurar — fora da época
+de boletim, ao lado do calendário e dos horários. Lá ele vem **depois** do
+material do colégio: ali é consulta, não resposta a uma pergunta recém-feita.
+
 Um critério por boletim, e não um por página: filhos em cursos diferentes
 podem ter critérios diferentes, e mostrar o de um ao lado do boletim do
 outro seria pior que não mostrar nada.
+
+Em Informações úteis não há aluno selecionado, então os critérios dos filhos
+são **agrupados**: irmãos sob a mesma regra viram um bloco só — repetir o
+texto por filho encheria a tela — e o curso só é dito quando há mais de um
+critério, porque com um só o rótulo é ruído.
+
+E o "nada publicado por enquanto" dessa tela passou a contar o critério: com
+ele visível, dizer que não há nada desmentiria o que está logo abaixo.
 
 O resumo no cabeçalho da página também sai do critério publicado. Antes era
 uma frase fixa no código, que só mudaria no dia em que alguém lembrasse de
@@ -166,6 +180,5 @@ nome do curso aparece na ficha, no boletim e no recibo.
 - **Dias e horários de aula** (`diasDeAula`) continuam sem tela.
 - **Copiar a estrutura de um ano para o seguinte** — hoje turmas e vínculos
   de janeiro são recriados à mão.
-- O critério publicado aparece no **boletim** da família; ainda não tem
-  lugar em "Informações úteis", para quem quer lê-lo fora da época de
-  boletim.
+- O critério **não aparece para o professor** em lugar nenhum: ele o lê
+  pela tela de Configurações, que é de edição.

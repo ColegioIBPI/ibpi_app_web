@@ -2,7 +2,15 @@ import "server-only";
 
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, type CriterioComId } from "@/core/modelo";
-import { criterioQueVale } from "@/features/cursos/domain/criterio";
+import type { SessionUser } from "@/core/auth/session";
+import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import {
+  agruparCriterios,
+  criterioQueVale,
+  type GrupoDeCriterio,
+} from "@/features/cursos/domain/criterio";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 
 /**
  * Leitura dos critérios de avaliação.
@@ -64,4 +72,40 @@ export async function criterioPublicado(
     .map((doc) => ({ id: doc.id, ...doc.data() }) as CriterioComId);
 
   return criterioQueVale(encontrados, anoLetivo, cursoCodigo, apenasPublicados);
+}
+
+/**
+ * Os critérios que valem para os filhos de uma família.
+ *
+ * Lido por aluno porque é o **curso do aluno** que decide qual critério
+ * vale, e o Portal de "Informações úteis" não tem um aluno selecionado.
+ */
+export async function criteriosDaFamilia(
+  sessao: SessionUser,
+  anoLetivo: number,
+): Promise<Array<GrupoDeCriterio<CriterioComId>>> {
+  const matriculas =
+    sessao.role === "aluno"
+      ? sessao.matricula
+        ? [sessao.matricula]
+        : []
+      : sessao.alunosVinculados;
+
+  if (matriculas.length === 0) return [];
+
+  const cursos = await listarCursos();
+
+  const itens = await Promise.all(
+    matriculas.map(async (matricula) => {
+      const aluno = await obterAlunoVisivel(sessao, matricula);
+      const cursoCodigo = aluno?.segmento ?? null;
+
+      return {
+        cursoRotulo: rotuloDoCurso(cursoCodigo, cursos),
+        criterio: await criterioPublicado(anoLetivo, cursoCodigo),
+      };
+    }),
+  );
+
+  return agruparCriterios(itens);
 }

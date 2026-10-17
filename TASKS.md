@@ -271,7 +271,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Publicar a Security Rule de `cursos` e `criteriosDeAvaliacao`
 - [x] Mostrar o critério publicado no boletim da família, imprimindo junto
 - [x] Atualizar o contrato do app com `criteriosDeAvaliacao`
-- [ ] Dar ao critério um lugar em "Informações úteis", fora da época de boletim
+- [x] Dar ao critério um lugar em "Informações úteis", fora da época de boletim
 - [ ] Tela de salas e de dias/horários de aula
 - [ ] Copiar a estrutura de um ano letivo para o seguinte
 

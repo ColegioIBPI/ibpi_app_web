@@ -11,20 +11,30 @@ import type { CriterioComId } from "@/core/modelo";
  */
 export function CriterioPublicado({
   criterio,
+  semSeparador = false,
 }: {
   criterio: CriterioComId | null;
+  /**
+   * Em "Informações úteis" o critério é o conteúdo do cartão, e o título
+   * já está no cabeçalho dele. No boletim ele vem **depois das notas**, e
+   * aí precisa do traço e do título para não parecer continuação da
+   * tabela.
+   */
+  semSeparador?: boolean;
 }) {
   if (!criterio) return null;
 
   const periodo = criterio.nomeDoPeriodo.toLowerCase();
 
   return (
-    <section className="border-line mt-6 border-t pt-4">
-      <h3 className="text-ink text-sm font-semibold">
-        Como o aluno é avaliado
-      </h3>
+    <section className={semSeparador ? "" : "border-line mt-6 border-t pt-4"}>
+      {!semSeparador && (
+        <h3 className="text-ink text-sm font-semibold">
+          Como o aluno é avaliado
+        </h3>
+      )}
 
-      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+      <dl className={`grid gap-3 text-sm sm:grid-cols-3 ${semSeparador ? "" : "mt-3"}`}>
         <div>
           <dt className="text-ink-muted text-xs">Períodos</dt>
           <dd className="text-ink">

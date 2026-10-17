@@ -85,3 +85,20 @@ describe("critério publicado", () => {
     ).toBeNull();
   });
 });
+
+describe("sem separador — dentro de um cartão", () => {
+  it("não repete o título, que já está no cabeçalho do cartão", () => {
+    render(<CriterioPublicado criterio={criterio()} semSeparador />);
+
+    expect(screen.queryByText("Como o aluno é avaliado")).not.toBeInTheDocument();
+    expect(screen.getByText("3 trimestres")).toBeInTheDocument();
+  });
+
+  it("com separador, o título aparece", () => {
+    // No boletim ele vem depois das notas e precisa do título para não
+    // parecer continuação da tabela.
+    render(<CriterioPublicado criterio={criterio()} />);
+
+    expect(screen.getByText("Como o aluno é avaliado")).toBeInTheDocument();
+  });
+});

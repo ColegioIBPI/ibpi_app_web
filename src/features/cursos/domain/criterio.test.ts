@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  agruparCriterios,
   criterioQueVale,
   resumoDoCriterio,
 } from "@/features/cursos/domain/criterio";
@@ -92,5 +93,47 @@ describe("resumo de uma linha", () => {
     expect(
       resumoDoCriterio({ ...base, mediaMinima: 6.5, frequenciaMinima: 72.5 }),
     ).toContain("média 6,5 e frequência de 72,5%");
+  });
+});
+
+describe("critérios de uma família", () => {
+  const geral = { id: "2026" };
+  const eja = { id: "2026-eja-medio" };
+
+  it("irmãos sob a mesma regra viram um bloco só", () => {
+    // Repetir o mesmo texto uma vez por filho encheria a tela.
+    expect(
+      agruparCriterios([
+        { cursoRotulo: "Ensino Médio", criterio: geral },
+        { cursoRotulo: "Ensino Fundamental", criterio: geral },
+      ]),
+    ).toEqual([
+      { criterio: geral, cursos: ["Ensino Médio", "Ensino Fundamental"] },
+    ]);
+  });
+
+  it("dois filhos no mesmo curso não repetem o rótulo", () => {
+    expect(
+      agruparCriterios([
+        { cursoRotulo: "Ensino Médio", criterio: geral },
+        { cursoRotulo: "Ensino Médio", criterio: geral },
+      ])[0].cursos,
+    ).toEqual(["Ensino Médio"]);
+  });
+
+  it("critérios diferentes aparecem os dois", () => {
+    // Mostrar só o primeiro esconderia metade da resposta da família.
+    const grupos = agruparCriterios([
+      { cursoRotulo: "Ensino Médio", criterio: geral },
+      { cursoRotulo: "EJA — Médio", criterio: eja },
+    ]);
+
+    expect(grupos.map((g) => g.criterio.id)).toEqual(["2026", "2026-eja-medio"]);
+  });
+
+  it("filho sem critério publicado não vira bloco vazio", () => {
+    expect(
+      agruparCriterios([{ cursoRotulo: "Ensino Médio", criterio: null }]),
+    ).toEqual([]);
   });
 });

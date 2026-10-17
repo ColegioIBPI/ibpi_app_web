@@ -405,6 +405,11 @@ O do curso ganha do geral: se o colégio publicou um critério só para o EJA,
 > Não tente contornar: o critério é discutido antes de virar comunicado, e
 > um rascunho na tela da família é pior que nenhum.
 
+Mostre-o em **dois lugares**, como o Portal: junto do boletim, que é onde a
+dúvida nasce, e na aba de informações úteis, para quem for procurar fora da
+época de boletim. Na aba de informações não há aluno selecionado — agrupe os
+critérios dos filhos e só diga o curso quando houver mais de um.
+
 O critério é **por ano letivo**. O de 2026 não vale para o boletim de 2025 —
 busque sempre pelo ano do boletim que está na tela, não pelo ano corrente.
 

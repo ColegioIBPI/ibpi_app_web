@@ -86,3 +86,48 @@ function formatarNota(valor: number): string {
 function formatarPercentual(valor: number): string {
   return `${String(valor).replace(".", ",")}%`;
 }
+
+export interface GrupoDeCriterio<T> {
+  criterio: T;
+  /** Os cursos dos filhos que este critério cobre, para rotular. */
+  cursos: string[];
+}
+
+/**
+ * Agrupa os critérios dos filhos de uma família.
+ *
+ * Quase sempre devolve um só: os irmãos estudam no mesmo colégio sob a
+ * mesma regra. Mas uma família pode ter um filho no EJA e outro no médio
+ * com critérios diferentes, e aí mostrar só o primeiro esconderia metade da
+ * resposta — enquanto repetir o mesmo critério uma vez por filho encheria a
+ * tela de texto idêntico.
+ *
+ * O rótulo do curso vem junto para a tela poder dizer a qual filho cada
+ * critério se aplica **quando houver mais de um**.
+ */
+export function agruparCriterios<T extends { id: string }>(
+  itens: Array<{ cursoRotulo: string; criterio: T | null }>,
+): Array<GrupoDeCriterio<T>> {
+  const grupos = new Map<string, GrupoDeCriterio<T>>();
+
+  for (const item of itens) {
+    if (!item.criterio) continue;
+
+    const grupo = grupos.get(item.criterio.id);
+
+    if (!grupo) {
+      grupos.set(item.criterio.id, {
+        criterio: item.criterio,
+        cursos: [item.cursoRotulo],
+      });
+      continue;
+    }
+
+    // Dois filhos no mesmo curso não repetem o rótulo.
+    if (!grupo.cursos.includes(item.cursoRotulo)) {
+      grupo.cursos.push(item.cursoRotulo);
+    }
+  }
+
+  return [...grupos.values()];
+}
