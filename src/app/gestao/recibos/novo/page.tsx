@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { pode } from "@/core/auth/roles";
 import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
 import { FormularioDeRecibo } from "@/features/recibos/components/formulario";
 import { seriesAbertas } from "@/features/recibos/services/recibos.server";
@@ -45,6 +46,7 @@ export default async function NovoReciboPage({
           proximoNumero: serie.proximoNumero,
         }))}
         matriculaInicial={typeof matricula === "string" ? matricula : undefined}
+        podeQuitar={pode(sessao.role, "financeiro", "lancar")}
       />
     </div>
   );

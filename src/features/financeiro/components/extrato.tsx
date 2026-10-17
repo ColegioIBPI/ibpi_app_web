@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Trash2, Undo2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -207,7 +208,18 @@ export function Extrato({ matricula, cobrancas, podeLancar }: ExtratoProps) {
                     </td>
 
                     <td className="text-ink py-2 pr-3 tabular-nums">
-                      {cobranca.recibo ?? "—"}
+                      {/* Com `reciboId` a parcela leva ao documento; sem
+                          ele sobra o texto do Access, que é só o número. */}
+                      {cobranca.reciboId ? (
+                        <Link
+                          href={`/gestao/recibos/${cobranca.reciboId}`}
+                          className="text-brand-600 hover:underline"
+                        >
+                          {cobranca.recibo ?? cobranca.reciboId}
+                        </Link>
+                      ) : (
+                        (cobranca.recibo ?? "—")
+                      )}
                     </td>
 
                     <td className="text-ink-muted max-w-[14rem] truncate py-2 pr-3">

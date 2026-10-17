@@ -26,6 +26,7 @@ function recibo(extra: Partial<ReciboComId> = {}): ReciboComId {
         formaDePagamento: "pix",
         referenciaDoPagamento: "E1234",
         valor: 1923,
+        cobrancaId: "c-5",
       },
       {
         servico: "taxa-de-material",
@@ -33,6 +34,7 @@ function recibo(extra: Partial<ReciboComId> = {}): ReciboComId {
         formaDePagamento: "credito-visa",
         referenciaDoPagamento: null,
         valor: 77.5,
+        cobrancaId: null,
       },
     ],
     observacoes: null,

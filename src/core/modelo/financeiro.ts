@@ -130,6 +130,18 @@ export const cobrancaSchema = z.object({
   /** Banco e recibo da baixa manual (`ITAÚ`, `00042981`). */
   banco: textoOpcional,
   recibo: textoOpcional,
+  /**
+   * O recibo do Portal que quitou esta parcela — `A-000042`.
+   *
+   * Existe junto de `recibo`, que é texto livre vindo do Access, porque só
+   * o id permite ir do extrato ao documento sem adivinhar. E é guardado
+   * **aqui**, e não só do lado do recibo, porque a Firestore não consulta
+   * campo dentro de array de mapas: sem este campo, montar o extrato
+   * exigiria varrer todos os recibos do colégio.
+   *
+   * Os dois lados são escritos na mesma transação, então não divergem.
+   */
+  reciboId: z.string().nullish(),
   observacoes: textoOpcional,
   /** `uid` de quem deu baixa — contestação de cobrança precisa de autor. */
   baixadoPor: z.string().nullish(),

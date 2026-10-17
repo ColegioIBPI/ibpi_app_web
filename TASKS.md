@@ -270,7 +270,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Recibo impresso, com o cancelamento estampado no documento
 - [x] Recurso de permissão próprio, para a secretaria emitir sem dar baixa
 - [x] Publicar a Security Rule e os índices
-- [ ] Ligar o recibo à parcela que ele quita (`cobrancas.recibo` já existe em texto)
+- [x] Ligar o recibo à parcela que ele quita, dando baixa na emissão
+- [x] Cancelar devolve a parcela ao aberto, sem apagar pagamento de recibo mais novo
 - [ ] 2ª via do recibo no aplicativo, para a família
 - [ ] Relatório de caixa por dia e por forma de pagamento
 

@@ -6,16 +6,29 @@ import { z } from "zod";
 import { corpoDaAuditoria, gravarComAuditoria } from "@/core/auditoria/registrar";
 import { calcularAlteracoes, semCamposTecnicos } from "@/core/auditoria/diferencas";
 import { exigirPermissao } from "@/core/auth/guards";
+import { pode } from "@/core/auth/roles";
+import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
   COLECOES,
+  ROTULOS_DE_TIPO_DE_COBRANCA,
   itemDoReciboSchema,
   reciboSchema,
   serieDeRecibosSchema,
+  type Cobranca,
   type Recibo,
   type SerieDeRecibos,
+  type TipoDeServico,
 } from "@/core/modelo";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import {
+  aindaQuitadaPor,
+  dataNoBrasil,
+  formaDaParcela,
+  impedimentoParaQuitar,
+  referenciaDaParcela,
+  servicoDaParcela,
+} from "@/features/recibos/domain/quitacao";
 import { idDoRecibo, normalizarSerie } from "@/features/recibos/domain/recibo";
 
 /**
@@ -59,6 +72,31 @@ export async function emitirRecibo(
     return { ok: false, erro: "Aluno não encontrado." };
   }
 
+  const quitacoes = entrada.data.itens
+    .map((item) => item.cobrancaId)
+    .filter((id): id is string => Boolean(id));
+
+  /**
+   * Quitar parcela é ato de caixa, e **não** vem junto com o recibo.
+   *
+   * A secretaria emite recibo de declaração e 2ª via sem ter `financeiro:
+   * lancar` — é o motivo de recibo ser recurso próprio. Se a emissão desse
+   * baixa sem conferir aqui, a mesma pessoa que não pode dar baixa daria
+   * baixa pela porta do recibo.
+   */
+  if (quitacoes.length > 0 && !pode(sessao.role, "financeiro", "lancar")) {
+    return {
+      ok: false,
+      erro: "Seu perfil emite recibo, mas não dá baixa em parcela.",
+    };
+  }
+
+  // Duas linhas apontando para a mesma parcela pagariam uma e sobrescreveriam
+  // a outra, deixando o total do recibo maior que a baixa.
+  if (new Set(quitacoes).size !== quitacoes.length) {
+    return { ok: false, erro: "A mesma parcela está em dois itens do recibo." };
+  }
+
   const db = getAdminDb();
   const serieRef = db.collection(COLECOES.seriesDeRecibo).doc(serie);
   const agora = new Date().toISOString();
@@ -74,7 +112,18 @@ export async function emitirRecibo(
      * documento que já existe falha.
      */
     const id = await db.runTransaction(async (transacao) => {
+      // Toda leitura antes de toda escrita: é exigência da transação do
+      // Firestore, e por isso as parcelas são lidas aqui em cima e não no
+      // laço que grava a baixa.
       const serieDoc = await transacao.get(serieRef);
+
+      const parcelas = new Map<string, FirebaseFirestore.DocumentSnapshot>();
+      for (const cobrancaId of quitacoes) {
+        parcelas.set(
+          cobrancaId,
+          await transacao.get(db.collection(COLECOES.cobrancas).doc(cobrancaId)),
+        );
+      }
 
       if (!serieDoc.exists) {
         throw new Error(`A série ${serie} não existe. Abra o talão primeiro.`);
@@ -112,6 +161,40 @@ export async function emitirRecibo(
 
       transacao.create(db.collection(COLECOES.recibos).doc(documentoId), recibo);
       transacao.update(serieRef, { proximoNumero: numero + 1 });
+
+      // A baixa sai no mesmo commit do recibo: ou os dois existem, ou
+      // nenhum. Um recibo impresso sem a baixa correspondente é o extrato
+      // cobrando de novo quem já pagou, com o papel na mão para provar.
+      for (const item of recibo.itens) {
+        if (!item.cobrancaId) continue;
+
+        const parcela = parcelas.get(item.cobrancaId);
+        const impedimento = impedimentoParaQuitar(
+          parcela?.exists ? (parcela.data() as Cobranca) : null,
+          aluno.matricula,
+        );
+
+        if (impedimento) {
+          throw new Error(`${impedimento.motivo} Recibo não emitido.`);
+        }
+
+        transacao.update(
+          db.collection(COLECOES.cobrancas).doc(item.cobrancaId),
+          {
+            dataPagamento: dataNoBrasil(agora),
+            valorPago: item.valor,
+            formaDePagamento: formaDaParcela(item.formaDePagamento),
+            recibo: documentoId,
+            reciboId: documentoId,
+            // Entra conferida, como toda baixa: quem emite o recibo está
+            // com o dinheiro na mão.
+            confirmado: true,
+            baixadoPor: sessao.uid,
+            atualizadoEm: agora,
+            atualizadoPor: sessao.uid,
+          },
+        );
+      }
 
       transacao.set(
         db.collection(COLECOES.auditoria).doc(),
@@ -175,6 +258,19 @@ export async function cancelarRecibo(
     return { ok: false, erro: "Este recibo já está cancelado." };
   }
 
+  const quitadas = anterior.itens
+    .map((item) => item.cobrancaId)
+    .filter((id): id is string => Boolean(id));
+
+  // Quem emite recibo nem sempre dá baixa. Se o recibo quitou parcela,
+  // cancelá-lo desfaz pagamento — e isso é ato de caixa.
+  if (quitadas.length > 0 && !pode(sessao.role, "financeiro", "lancar")) {
+    return {
+      ok: false,
+      erro: "Este recibo quitou parcela. Só o financeiro pode cancelá-lo.",
+    };
+  }
+
   await gravarComAuditoria({
     colecao: COLECOES.recibos,
     documentoId: entrada.data.id,
@@ -190,10 +286,56 @@ export async function cancelarRecibo(
     autor: sessao,
   });
 
+  await desfazerQuitacoes(quitadas, entrada.data.id, sessao);
+
   revalidatePath("/gestao/recibos");
   revalidatePath(`/gestao/recibos/${entrada.data.id}`);
 
   return { ok: true, id: entrada.data.id };
+}
+
+/**
+ * Devolve as parcelas ao estado de em aberto, uma a uma e com auditoria.
+ *
+ * **Só as que ainda apontam para este recibo.** Se a parcela já foi paga
+ * de novo por um recibo mais recente, limpar aqui apagaria o pagamento
+ * válido — e a família passaria a dever uma mensalidade que pagou duas
+ * vezes. É o erro mais caro possível nesta tela, e ele não aparece em
+ * nenhum teste que não simule a reemissão.
+ */
+async function desfazerQuitacoes(
+  cobrancaIds: string[],
+  reciboId: string,
+  sessao: SessionUser,
+): Promise<void> {
+  const db = getAdminDb();
+
+  for (const cobrancaId of cobrancaIds) {
+    const referencia = db.collection(COLECOES.cobrancas).doc(cobrancaId);
+    const atual = await referencia.get();
+    if (!atual.exists) continue;
+
+    const cobranca = atual.data() as Cobranca;
+    if (!aindaQuitadaPor(cobranca, reciboId)) continue;
+
+    await gravarComAuditoria({
+      colecao: COLECOES.cobrancas,
+      documentoId: cobrancaId,
+      antes: cobranca,
+      depois: {
+        dataPagamento: null,
+        valorPago: null,
+        formaDePagamento: null,
+        recibo: null,
+        reciboId: null,
+        confirmado: null,
+        baixadoPor: sessao.uid,
+      },
+      autor: sessao,
+    });
+
+    revalidatePath(`/gestao/financeiro/${cobranca.matricula}`);
+  }
 }
 
 const aberturaDeSerieSchema = z.object({
@@ -288,4 +430,49 @@ export async function alternarSerie(
   revalidatePath("/gestao/recibos");
 
   return { ok: true, id: serie };
+}
+
+export interface ParcelaEmAberto {
+  id: string;
+  vencimento: string;
+  descricao: string;
+  referencia: string;
+  servico: TipoDeServico;
+  valor: number;
+}
+
+/**
+ * As parcelas que o recibo pode quitar.
+ *
+ * Buscadas sob demanda, quando o aluno é escolhido: carregar as de todos os
+ * alunos de uma vez mandaria o carnê do colégio inteiro para o navegador de
+ * quem vai emitir um recibo só.
+ */
+export async function listarParcelasEmAberto(
+  matricula: string,
+): Promise<ParcelaEmAberto[]> {
+  const sessao = await exigirPermissao("recibos", "lancar");
+
+  // Quem não dá baixa não precisa da lista — e não pode usá-la.
+  if (!pode(sessao.role, "financeiro", "lancar")) return [];
+
+  const resultado = await getAdminDb()
+    .collection(COLECOES.cobrancas)
+    .where("matricula", "==", matricula)
+    .get();
+
+  return resultado.docs
+    .map((doc) => ({ id: doc.id, cobranca: doc.data() as Cobranca }))
+    .filter(({ cobranca }) => !cobranca.dataPagamento)
+    .sort((a, b) => a.cobranca.vencimento.localeCompare(b.cobranca.vencimento))
+    .map(({ id, cobranca }) => ({
+      id,
+      vencimento: cobranca.vencimento,
+      descricao: cobranca.tipo
+        ? ROTULOS_DE_TIPO_DE_COBRANCA[cobranca.tipo]
+        : "Sem descrição",
+      referencia: referenciaDaParcela(cobranca),
+      servico: servicoDaParcela(cobranca.tipo),
+      valor: cobranca.valor ?? 0,
+    }));
 }

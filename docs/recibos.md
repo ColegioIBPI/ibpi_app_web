@@ -122,6 +122,77 @@ diferentes — ver [financeiro.md](financeiro.md), seção 3.
 
 ---
 
+## 4b. A quitação da parcela
+
+Um item do recibo pode apontar para a **parcela que ele quita**
+(`cobrancaId`). Quando aponta, **emitir o recibo dá baixa na parcela** — no
+mesmo commit.
+
+**Emitir recibo de mensalidade é dar baixa nela.** Separar os dois atos
+obrigaria a lançar a mesma informação duas vezes, e bastaria esquecer a
+segunda para o extrato cobrar de novo quem já pagou, com o recibo na mão
+para provar.
+
+A maior parte dos itens **não** aponta para parcela nenhuma: declaração, 2ª
+via e taxa de formatura não nascem de carnê.
+
+### Quem pode ligar
+
+Quitar parcela exige `financeiro: lancar`. A secretaria emite recibo de
+declaração e 2ª via sem ter esse nível — é o motivo de recibo ser recurso
+próprio —, e sem essa conferência ela daria baixa pela porta do recibo. A
+lista de parcelas em aberto nem é carregada para quem não pode usá-la.
+
+Cancelar um recibo que quitou parcela também é ato de caixa, pela mesma
+razão: o cancelamento desfaz pagamento.
+
+### As travas
+
+- **A parcela é relida dentro da transação.** Entre a secretaria ver a lista
+  e clicar em emitir, o financeiro pode ter dado baixa na mesma parcela; sem
+  reler, o segundo recibo passaria por cima do primeiro pagamento. Parcela
+  paga, de outro aluno ou inexistente **aborta a emissão inteira** — não
+  existe recibo meio emitido.
+- **Duas linhas não apontam para a mesma parcela.** Uma pagaria e a outra
+  sobrescreveria, deixando o total do recibo maior que a baixa.
+- **Trocar o aluno no formulário desliga as parcelas já lançadas**, senão o
+  recibo de um sairia com a baixa do carnê do outro.
+
+### Cancelar devolve a parcela — com uma condição
+
+O cancelamento desfaz a baixa **só se a parcela ainda aponta para aquele
+recibo**. Se ela já foi paga de novo por um recibo mais recente, cancelar o
+antigo apagaria o pagamento válido — e a família passaria a dever uma
+mensalidade que pagou duas vezes.
+
+> Conferido contra o banco real: emitir quita; reemitir é recusado;
+> cancelar devolve a parcela; e cancelar o recibo antigo **depois** da
+> reemissão não encosta no pagamento novo.
+
+### A bandeira não desce para a parcela
+
+`cobrancas.formaDePagamento` para em "cartão de crédito". A conversão é uma
+função testada e não um `as` no meio da transação: gravar `credito-visa` num
+campo que não conhece esse valor deixaria a coluna vazia no extrato.
+
+### Os dois lados do vínculo
+
+| Onde | Campo | Para quê |
+| --- | --- | --- |
+| Recibo | `itens[].cobrancaId` | o que o documento quitou |
+| Parcela | `reciboId` | ir do extrato ao recibo |
+
+Guardar dos dois lados é deliberado: o Firestore **não consulta campo dentro
+de array de mapas**, então sem `reciboId` montar o extrato exigiria varrer
+todos os recibos do colégio. Os dois são escritos na mesma transação, então
+não divergem.
+
+A data da baixa é calculada **no fuso do colégio**. A Vercel roda em UTC: um
+recibo emitido às 22h de 10/03 em São Paulo é 01h de 11/03 em UTC, e a baixa
+sairia com a data do dia seguinte.
+
+---
+
 ## 5. Quem faz o quê
 
 | Ação | Perfil |
@@ -156,9 +227,9 @@ tela passam a discordar.
 
 ## 7. Pendências
 
-- **Vínculo com a parcela.** O recibo é lançado item a item e não aponta
-  para a cobrança que ele quita. `cobrancas.recibo` já guarda o número do
-  recibo em texto, vindo do Access; ligar os dois é o passo natural.
+- **Baixa parcial não é oferecida na tela.** O valor do item vem do valor
+  da parcela e pode ser editado, mas a tela não explica que pagar menos
+  deixa saldo em aberto.
 - **Recibo no aplicativo**, para a família baixar a 2ª via.
 - **Relatório de caixa por dia e por forma de pagamento** — hoje a lista é
   por recibo.

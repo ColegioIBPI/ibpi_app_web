@@ -17,6 +17,7 @@ function item(valor: number): ItemDoRecibo {
     formaDePagamento: "pix",
     referenciaDoPagamento: null,
     valor,
+    cobrancaId: null,
   };
 }
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Link2, Link2Off, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { formatCurrency, parsearDinheiro } from "@/core/lib/format";
+import { formatCurrency, formatDate, parsearDinheiro } from "@/core/lib/format";
 import {
   FORMAS_DE_PAGAMENTO_DO_RECIBO,
   ROTULOS_DE_FORMA_DO_RECIBO,
@@ -16,7 +16,11 @@ import {
 import { Button } from "@/core/ui/button";
 import { Card } from "@/core/ui/card";
 import { SelectField, TextAreaField, TextField } from "@/core/ui/field";
-import { emitirRecibo } from "@/features/recibos/actions/recibos";
+import {
+  emitirRecibo,
+  listarParcelasEmAberto,
+  type ParcelaEmAberto,
+} from "@/features/recibos/actions/recibos";
 import { totalDoRecibo } from "@/features/recibos/domain/recibo";
 
 export interface OpcaoDeAluno {
@@ -39,6 +43,10 @@ interface Linha {
   formaDePagamento: FormaDePagamentoDoRecibo;
   referenciaDoPagamento: string;
   valor: string;
+  /** A parcela que esta linha quita. `null` quando o item não é de carnê. */
+  cobrancaId: string | null;
+  /** Só para a tela: o vencimento da parcela ligada. */
+  vencimentoDaParcela: string | null;
 }
 
 function linhaNova(): Linha {
@@ -49,6 +57,19 @@ function linhaNova(): Linha {
     formaDePagamento: "pix",
     referenciaDoPagamento: "",
     valor: "",
+    cobrancaId: null,
+    vencimentoDaParcela: null,
+  };
+}
+
+function linhaDaParcela(parcela: ParcelaEmAberto): Linha {
+  return {
+    ...linhaNova(),
+    servico: parcela.servico,
+    referencia: parcela.referencia,
+    valor: String(parcela.valor).replace(".", ","),
+    cobrancaId: parcela.id,
+    vencimentoDaParcela: parcela.vencimento,
   };
 }
 
@@ -65,10 +86,13 @@ export function FormularioDeRecibo({
   alunos,
   series,
   matriculaInicial,
+  podeQuitar = false,
 }: {
   alunos: OpcaoDeAluno[];
   series: OpcaoDeSerie[];
   matriculaInicial?: string;
+  /** Quem não dá baixa emite recibo, mas não liga item a parcela. */
+  podeQuitar?: boolean;
 }) {
   const router = useRouter();
 
@@ -76,8 +100,37 @@ export function FormularioDeRecibo({
   const [matricula, setMatricula] = useState(matriculaInicial ?? "");
   const [linhas, setLinhas] = useState<Linha[]>([linhaNova()]);
   const [observacoes, setObservacoes] = useState("");
+  const [parcelas, setParcelas] = useState<ParcelaEmAberto[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [emitindo, setEmitindo] = useState(false);
+
+  /**
+   * As parcelas em aberto chegam quando o aluno é escolhido.
+   *
+   * `ignorar` porque duas trocas rápidas de aluno respondem fora de ordem,
+   * e a resposta antiga sobrescreveria a nova: a tela mostraria o carnê do
+   * aluno anterior ao lado do nome do atual.
+   */
+  useEffect(() => {
+    // A limpeza acontece na troca de aluno, e não aqui: `setState` síncrono
+    // dentro do efeito renderiza duas vezes à toa, e o lint do projeto o
+    // proíbe por isso.
+    if (!podeQuitar || !matricula) return;
+
+    let ignorar = false;
+
+    listarParcelasEmAberto(matricula).then((lista) => {
+      if (!ignorar) setParcelas(lista);
+    });
+
+    return () => {
+      ignorar = true;
+    };
+  }, [matricula, podeQuitar]);
+
+  const ligadas = new Set(
+    linhas.map((linha) => linha.cobrancaId).filter(Boolean),
+  );
 
   const itens = linhas.map((linha) => ({
     servico: linha.servico,
@@ -85,6 +138,7 @@ export function FormularioDeRecibo({
     formaDePagamento: linha.formaDePagamento,
     referenciaDoPagamento: linha.referenciaDoPagamento.trim() || null,
     valor: parsearDinheiro(linha.valor),
+    cobrancaId: linha.cobrancaId,
   }));
 
   const total = totalDoRecibo(itens);
@@ -181,7 +235,19 @@ export function FormularioDeRecibo({
             label="Aluno"
             hint="Matrícula, curso e série entram no recibo como estão hoje."
             value={matricula}
-            onChange={(evento) => setMatricula(evento.target.value)}
+            onChange={(evento) => {
+              setMatricula(evento.target.value);
+              setParcelas([]);
+              // Parcela ligada é de um aluno. Trocar o aluno sem desligar
+              // emitiria para um a baixa do carnê do outro.
+              setLinhas((atuais) =>
+                atuais.map((linha) => ({
+                  ...linha,
+                  cobrancaId: null,
+                  vencimentoDaParcela: null,
+                })),
+              );
+            }}
           >
             <option value="">Selecione…</option>
             {alunos.map((aluno) => (
@@ -198,6 +264,57 @@ export function FormularioDeRecibo({
         </p>
       </Card>
 
+      {podeQuitar && matricula && parcelas.length > 0 && (
+        <Card
+          title="Parcelas em aberto"
+          description="Lançar a parcela no recibo dá baixa nela ao emitir — não precisa lançar a baixa de novo no financeiro."
+        >
+          <ul className="divide-line divide-y text-sm">
+            {parcelas.map((parcela) => {
+              const jaLigada = ligadas.has(parcela.id);
+
+              return (
+                <li
+                  key={parcela.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-2.5"
+                >
+                  <div>
+                    <span className="text-ink">
+                      {parcela.descricao}
+                      {parcela.referencia ? ` · ${parcela.referencia}` : ""}
+                    </span>
+                    <span className="text-ink-muted block text-xs">
+                      Vence em {formatDate(parcela.vencimento)} ·{" "}
+                      {formatCurrency(parcela.valor)}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={jaLigada}
+                    onClick={() =>
+                      setLinhas((atuais) => [
+                        // A linha em branco inicial some quando a primeira
+                        // parcela entra: senão o recibo sairia com um item
+                        // vazio que a pessoa não pediu.
+                        ...atuais.filter(
+                          (linha) => linha.valor.trim() || linha.cobrancaId,
+                        ),
+                        linhaDaParcela(parcela),
+                      ])
+                    }
+                  >
+                    <Link2 className="size-4" aria-hidden />
+                    {jaLigada ? "Já no recibo" : "Lançar no recibo"}
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+
       <Card
         title="Itens"
         description="Um por serviço cobrado. Cada item tem a própria forma de pagamento."
@@ -208,10 +325,33 @@ export function FormularioDeRecibo({
               key={linha.chave}
               className="border-line rounded-md border p-3"
             >
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <span className="text-ink-muted text-xs font-medium">
                   Item {indice + 1}
+                  {linha.cobrancaId && linha.vencimentoDaParcela && (
+                    <span className="text-brand-600 ml-2 font-normal">
+                      quita a parcela de{" "}
+                      {formatDate(linha.vencimentoDaParcela)}
+                    </span>
+                  )}
                 </span>
+                <span className="flex items-center gap-1">
+                {linha.cobrancaId && (
+                  <button
+                    type="button"
+                    aria-label={`Desligar o item ${indice + 1} da parcela`}
+                    title="Desligar da parcela"
+                    onClick={() =>
+                      alterar(linha.chave, {
+                        cobrancaId: null,
+                        vencimentoDaParcela: null,
+                      })
+                    }
+                    className="text-ink-muted hover:text-ink rounded-md p-1"
+                  >
+                    <Link2Off className="size-4" aria-hidden />
+                  </button>
+                )}
                 {linhas.length > 1 && (
                   <button
                     type="button"
@@ -226,6 +366,7 @@ export function FormularioDeRecibo({
                     <Trash2 className="size-4" aria-hidden />
                   </button>
                 )}
+                </span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

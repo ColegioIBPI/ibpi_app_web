@@ -126,6 +126,16 @@ export const ROTULOS_DE_STATUS_DO_RECIBO: Record<StatusDoRecibo, string> = {
 
 export const itemDoReciboSchema = z.object({
   servico: tipoDeServicoSchema,
+  /**
+   * A parcela que este item quita, quando quita alguma.
+   *
+   * `null` na maior parte dos itens: declaração, 2ª via e taxa de formatura
+   * não nascem de carnê nenhum. Quando preenchido, a emissão dá baixa na
+   * parcela dentro da **mesma transação** — emitir recibo de mensalidade
+   * **é** dar baixa nela, e lançar as duas coisas em separado é como o
+   * extrato acaba cobrando de novo quem já pagou.
+   */
+  cobrancaId: z.string().nullable().default(null),
   /** A que se refere: `Parcela 5/12`, `Fevereiro/2026`, `2º bimestre`. */
   referencia: textoOpcional,
   formaDePagamento: formaDePagamentoDoReciboSchema,

@@ -195,6 +195,11 @@ Os dados do aluno são **cópia**, não ponteiro: a 2ª via precisa sair igual �
 
 O **total não é gravado**, é somado na leitura — em centavos.
 
+Um item pode apontar para a parcela que quita (`itens[].cobrancaId`), e aí a
+emissão dá baixa nela na mesma transação; a parcela guarda o caminho de
+volta em `cobrancas.reciboId`. Os dois lados existem porque o Firestore não
+consulta campo dentro de array de mapas.
+
 Os vocabulários de serviço e de forma de pagamento são **próprios**, maiores
 que os de `cobrancas`. A razão está em [recibos.md](recibos.md), seção 4.
 

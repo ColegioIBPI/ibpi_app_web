@@ -202,6 +202,10 @@ Regras de escrita que existem por um motivo:
 - **Editar mexe no que foi cobrado; a baixa, no que foi pago.** São dois
   fatos distintos, e um formulário que alterasse os dois juntos deixaria a
   auditoria sem dizer qual deles a pessoa quis corrigir.
+- **O recibo dá a baixa.** Um item de recibo pode apontar para a parcela que
+  quita, e a emissão lança o pagamento no mesmo commit — ver
+  [recibos.md](recibos.md), seção 4b. Cancelar o recibo devolve a parcela ao
+  aberto, desde que ela ainda aponte para ele.
 - **Confirmar é ação à parte da baixa** porque a conferência costuma
   acontecer depois: o pagamento entra no dia em que a família avisa, e o
   extrato bancário chega no dia seguinte.
