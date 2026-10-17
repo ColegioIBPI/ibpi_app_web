@@ -23,10 +23,16 @@ O app é da **família**. Dois perfis entram:
 | Perfil        | Abas                                                                                            |
 | ------------- | ----------------------------------------------------------------------------------------------- |
 | `responsavel` | Boletim · Frequência · Ocorrências · Financeiro · **Solicitações** · Avisos · Informações úteis |
-| `aluno`       | Boletim · Frequência · Avisos · Informações úteis                                               |
+| `aluno`       | Boletim · Frequência · **Ocorrências** · Avisos · Informações úteis                            |
 
-O aluno **não** tem Ocorrências, Financeiro nem Solicitações. Não é tela
-escondida: as regras negam, e uma consulta dessas falha para ele.
+O aluno **não** tem Financeiro nem Solicitações. Não é tela escondida: as
+regras negam, e uma consulta dessas falha para ele.
+
+**Ocorrências entrou para o aluno**, e com uma ressalva que muda a tela: ele
+só enxerga as ocorrências que a escola **marcar** para ele, uma a uma. O
+padrão é não marcar, então na maioria das contas a aba abre vazia — e isso é
+o comportamento correto, não um erro a investigar. Ver `app-mobile.md`,
+seção 2.
 
 Os **acessos às plataformas** (seção 12b) não são aba: ficam no início,
 junto do seletor de aluno, e valem para os dois perfis.
@@ -148,13 +154,17 @@ anual, a recuperação quando houver, a média final, as faltas e a situação.
 
 ## 7. Frequência
 
-Faltas e atrasos do aluno.
+Faltas, atrasos e saídas antecipadas do aluno.
 
-| Marca      | Rótulo   |
-| ---------- | -------- |
-| `presente` | Presente |
-| `falta`    | Falta    |
-| `atraso`   | Atraso   |
+| Marca              | Rótulo           | Conta como   |
+| ------------------ | ---------------- | ------------ |
+| `presente`         | Presente         | presença     |
+| `falta`            | Falta            | falta        |
+| `atraso`           | Atraso           | **presença** |
+| `saida-antecipada` | Saída antecipada | **presença** |
+
+Atraso e saída antecipada **não são falta**: o aluno esteve na aula. Somá-los
+às faltas mostraria à família uma reprovação que não existe.
 
 Mostre o **percentual de presença** com destaque — é o número que a família
 procura. O mínimo legal, adotado pelo colégio, é **75%** (`FREQUENCIA_MINIMA`
@@ -167,7 +177,7 @@ conforme o colégio registra."
 
 ---
 
-## 8. Ocorrências — só responsável
+## 8. Ocorrências — responsável sempre, aluno quando liberado
 
 | Tipo                        | Rótulo                    |
 | --------------------------- | ------------------------- |
@@ -186,7 +196,26 @@ são justificativas, e `academica` é pedagógica. **Não pinte a lista inteira
 de vermelho** — a família lê a cor antes do texto, e um atestado marcado
 como problema é uma conversa desnecessária.
 
+**Quem vê o quê.** Cada ocorrência traz dois campos de publicação, e a
+escola decide caso a caso: o responsável lê a menos que o registro tenha
+sido retido; o aluno lê só o que for marcado para ele. A regra está em
+`app-mobile.md`, seção 2 — aqui o que importa para a tela é o resto deste
+bloco.
+
+**Nunca diga que há algo retido.** Nada de "1 ocorrência oculta": isso
+entrega o fato sem o contexto, que é justamente o que a retenção quis
+evitar. Para o app, a ocorrência retida simplesmente não existe.
+
+**A lista muda sozinha.** A coordenação altera a publicação depois do
+registro, então um item pode sumir entre uma abertura e outra. Não avise, não
+trate como erro de sincronização, e **não guarde em cache que sobreviva à
+sessão** — um registro retido depois de baixado continuaria na tela do
+aparelho.
+
 Vazio: **"Nenhuma ocorrência registrada"** / "Nada a relatar até aqui."
+
+Para o aluno, o vazio é o caso comum. Use o mesmo texto: "Nada a relatar até
+aqui" serve, e não insinua que existe algo guardado.
 
 ---
 

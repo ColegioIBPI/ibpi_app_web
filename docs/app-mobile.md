@@ -275,6 +275,27 @@ para ele, que na maioria das vezes é nada. A aba aparece; a lista vem vazia.
 pode ver": isso entrega o fato sem o contexto, que é justamente o que a
 retenção quis evitar.
 
+#### A publicação muda depois de publicada
+
+A coordenação altera os dois campos pela lista de ocorrências, **a qualquer
+momento**. O que a família viu ontem pode estar retido hoje, e o contrário
+também: a conversa com a família acontece depois do registro, e é ela que
+decide.
+
+Para o app, três consequências práticas:
+
+- **Não guarde a ocorrência em cache que sobreviva à sessão.** Um registro
+  retido depois de baixado continuaria na tela do aparelho — e a família
+  leria exatamente o que o colégio decidiu não mostrar.
+- **Ocorrência que some da lista não é erro.** Não trate o sumiço como
+  falha de sincronização nem avise o usuário: foi retida, e dizer isso já
+  entregaria o fato.
+- Se usar listener do Firestore, ele já reflete a mudança. Se usar leitura
+  pontual, **releia ao abrir a aba**, não só no login.
+
+> Isso vale para os dois perfis. Um responsável e o filho podem ver listas
+> diferentes do mesmo aluno, no mesmo dia — é o desenho, não um defeito.
+
 ### Onde a ocorrência vive
 
 Em **duas** coleções, de propósito:
@@ -295,14 +316,18 @@ ocorrencias/{id} = {
   turmaCodigo: string,
   tipo: <um dos nove acima>,
   descricao: string,
-  registradoPor: string    // uid de quem lançou
+  registradoPor: string,   // uid de quem lançou
+
+  visivelParaResponsavel,  // boolean | ausente — ver acima
+  visivelParaAluno         // boolean | ausente — ver acima
 }
 ```
 
-> ⚠️ **O perfil `aluno` não pode ver a própria ocorrência disciplinar.** É
-> decisão do colégio: a ocorrência é tratada com o responsável. As Security
-> Rules já barram — o app não precisa reimplementar, mas precisa não
-> prometer a aba ao aluno.
+> ⚠️ **Este parágrafo mudou.** Antes dizia que o perfil `aluno` nunca via a
+> própria ocorrência. **Não vale mais**: ele tem a aba, e enxerga as que a
+> escola marcar para ele. O padrão continua sendo não mostrar, então na
+> maioria das contas a lista vem vazia — mas o app precisa tratar o caso de
+> vir cheia.
 
 ---
 
@@ -332,7 +357,7 @@ frequenciaDiaria/{data}-{matricula} = {
   nome: string,
   turmaId: string,
   turmaCodigo: string,
-  situacao: "presente" | "falta" | "atraso",
+  situacao: "presente" | "falta" | "atraso" | "saida-antecipada",
   aula: number | null,        // preenchido só em marcação por aula
   ocorrencia: string | null,
   observacao: string | null
@@ -489,10 +514,30 @@ Detalhe completo, com exemplos: [`avaliacao.md`](avaliacao.md).
 
 ## 5. Valores fechados
 
+> ⚠️ **`segmento` saiu desta lista.** Ele era fechado em quatro valores
+> (`fundamental`, `medio`, `eja-fundamental`, `eja-medio`) e **não é mais**:
+> o colégio passou a cadastrar os próprios cursos, e pode abrir um técnico
+> ou um curso livre sem ninguém publicar app nenhum.
+>
+> Trate `segmento` como **string opaca**. O rótulo a exibir vem da coleção
+> `cursos`:
+>
+> ```
+> cursos/{codigo} = { codigo, nome, sigla, ordem, ativo }
+> ```
+>
+> `alunos.segmento` e `turmas.segmento` guardam o `codigo`. Os quatro
+> antigos continuam valendo com os mesmos códigos, então nada quebra hoje —
+> o que quebra é um `when` exaustivo sobre eles no dia em que a secretaria
+> criar o quinto.
+>
+> Qualquer pessoa autenticada lê `cursos`. Curso encerrado tem
+> `ativo: false` e **continua existindo**: o histórico de quem se formou
+> aponta para ele, então use-o para rotular, só não ofereça em seletor.
+
 ```
-segmento:  fundamental | medio | eja-fundamental | eja-medio
 turno:     manha | tarde | flex
-situacao (presença):  presente | falta | atraso
+situacao (presença):  presente | falta | atraso | saida-antecipada
 situacao (cobrança):  calculada, não gravada — ver seção 8
 role:      aluno | responsavel | professor | secretaria | coordenacao
            | financeiro | admin        // admin = administração do sistema,
@@ -1086,10 +1131,10 @@ teste.
 
 | Aba               | Situação                                                                      |
 | ----------------- | ----------------------------------------------------------------------------- |
-| Frequência        | ✅ livre                                                                      |
+| Frequência        | ✅ livre — **quatro situações agora**, com `saida-antecipada`; ver seção 3    |
 | Financeiro        | ✅ livre — inclui o plano acordado; ver seção 8                               |
 | Boletim           | ✅ livre — regras definidas nesta página, seção 4                             |
-| Ocorrências       | ✅ livre — sem campo de natureza; ver seção 2                                 |
+| Ocorrências       | ✅ livre — **publicação por documento e aba nova para o aluno**; ver seção 2  |
 | Avisos            | ✅ livre — a regra lê `users/{uid}.chavesDeAlcance`                           |
 | Informações úteis | ✅ livre — texto no documento; ver seção 7                                    |
 | Anexos            | ✅ livre — rota autenticada aceita o token; ver seção 6                       |
