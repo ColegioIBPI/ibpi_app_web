@@ -35,7 +35,8 @@ export type Recurso =
   | "notas"
   | "financeiro"
   | "avisos"
-  | "solicitacoes";
+  | "solicitacoes"
+  | "recibos";
 
 /**
  * Níveis de acesso, cumulativos: quem gerencia também lança, quem lança
@@ -64,6 +65,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     financeiro: "gerenciar",
     avisos: "gerenciar",
     solicitacoes: "gerenciar",
+    recibos: "gerenciar",
   },
   secretaria: {
     cadastros: "gerenciar",
@@ -74,6 +76,16 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     avisos: "gerenciar",
     // Atende a fila: muda a situação do pedido e o recusa quando for o caso.
     solicitacoes: "gerenciar",
+    /**
+     * **Emite recibo sem poder lançar mensalidade.**
+     *
+     * É por isso que recibo é recurso próprio e não um nível a mais em
+     * `financeiro`: metade da lista de serviços — declaração, 2ª via de
+     * histórico, 2ª chamada — é cobrada no balcão da secretaria. Subir
+     * `financeiro` para `lancar` resolveria o recibo e daria de brinde a
+     * baixa de parcela, que não é dela.
+     */
+    recibos: "gerenciar",
   },
   coordenacao: {
     cadastros: "gerenciar",
@@ -83,6 +95,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     financeiro: "ler",
     avisos: "gerenciar",
     solicitacoes: "gerenciar",
+    // Confere e reimprime a 2ª via; quem emite é quem recebe o dinheiro.
+    recibos: "ler",
   },
   // Quem cuida de mensalidade não precisa ver nota, falta nem ocorrência
   // disciplinar. Lê o cadastro apenas para contato e cobrança.
@@ -96,6 +110,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     avisos: "lancar",
     // Pedido de declaração e de saída não passa pelo caixa.
     solicitacoes: "nenhum",
+    recibos: "gerenciar",
   },
   professor: {
     cadastros: "ler",
@@ -106,6 +121,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     // Publica para as turmas que leciona — o escopo vale aqui também.
     avisos: "lancar",
     solicitacoes: "nenhum",
+    recibos: "nenhum",
   },
   aluno: {
     cadastros: "ler",
@@ -117,6 +133,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     // Quem pede declaração, saída antecipada e 2ª chamada é o responsável.
     // O aluno é menor de idade, e o pedido é um ato do adulto por ele.
     solicitacoes: "nenhum",
+    recibos: "nenhum",
   },
   responsavel: {
     cadastros: "ler",
@@ -134,6 +151,9 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
      * verifica o vínculo com o aluno antes de aceitar.
      */
     solicitacoes: "lancar",
+    // A família recebe o recibo em papel. Mostrá-lo no aplicativo é
+    // desejável e não foi pedido — ver TASKS.
+    recibos: "nenhum",
   },
 };
 

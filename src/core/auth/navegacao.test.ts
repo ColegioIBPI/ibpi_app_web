@@ -8,7 +8,13 @@ const rotulos = (role: Parameters<typeof navegacaoPara>[0]) =>
 
 describe("navegacaoPara", () => {
   it("financeiro vê só o financeiro e o cadastro", () => {
-    expect(rotulos("financeiro")).toEqual(["Alunos", "Avisos", "Financeiro"]);
+    // Recibo entra aqui com recurso próprio: quem recebe o dinheiro emite.
+    expect(rotulos("financeiro")).toEqual([
+      "Alunos",
+      "Avisos",
+      "Financeiro",
+      "Recibos",
+    ]);
   });
 
   it("quem publica aviso não publica material institucional", () => {
@@ -51,6 +57,7 @@ describe("navegacaoPara", () => {
       "Solicitações",
       "Informações úteis",
       "Financeiro",
+      "Recibos",
     ]);
   });
 

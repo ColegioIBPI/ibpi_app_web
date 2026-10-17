@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { formatCurrency, formatDate } from "@/core/lib/format";
+import {
+  formatCurrency,
+  formatDate,
+  parsearDinheiro,
+} from "@/core/lib/format";
 import {
   ROTULOS_DE_TIPO_DE_COBRANCA,
   type TipoDeCobranca,
@@ -42,7 +46,7 @@ export function NovoPlano({ matricula }: { matricula: string }) {
   const previa = useMemo(
     () =>
       gerarParcelas({
-        valor: Number(valor.replace(/\./g, "").replace(",", ".")) || 0,
+        valor: parsearDinheiro(valor),
         parcelas: Number(parcelas) || 0,
         primeiroVencimento,
       }),
@@ -63,7 +67,7 @@ export function NovoPlano({ matricula }: { matricula: string }) {
     try {
       const resultado = await criarPlanoDePagamento({
         matricula,
-        valor: Number(valor.replace(/\./g, "").replace(",", ".")),
+        valor: parsearDinheiro(valor),
         parcelas: Number(parcelas),
         primeiroVencimento,
         tipo,

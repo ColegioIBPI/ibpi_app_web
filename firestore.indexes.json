@@ -41,6 +41,22 @@
         { "fieldPath": "turmaId", "order": "ASCENDING" },
         { "fieldPath": "ativo", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "recibos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aluno.matricula", "order": "ASCENDING" },
+        { "fieldPath": "emitidoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recibos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serie", "order": "ASCENDING" },
+        { "fieldPath": "emitidoEm", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

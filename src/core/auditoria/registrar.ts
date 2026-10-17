@@ -64,20 +64,56 @@ export async function gravarComAuditoria({
     { merge: true },
   );
 
-  lote.set(db.collection(COLECOES.auditoria).doc(), {
-    colecao,
-    documentoId,
-    acao: antes ? "alterou" : "criou",
-    alteracoes,
-    autorUid: autor.uid,
-    autorNome: autor.nome,
-    autorPerfil: autor.role,
-    em: agora,
-  });
+  lote.set(
+    db.collection(COLECOES.auditoria).doc(),
+    corpoDaAuditoria({
+      colecao,
+      documentoId,
+      acao: antes ? "alterou" : "criou",
+      alteracoes,
+      autor,
+      em: agora,
+    }),
+  );
 
   await lote.commit();
 
   return alteracoes;
+}
+
+/**
+ * O registro de auditoria em si.
+ *
+ * Exportado porque nem toda gravação cabe num lote: a emissão de recibo
+ * acontece numa **transação**, para o contador do talão não entregar o
+ * mesmo número a duas pessoas. Montar o registro lá dentro à mão criaria
+ * uma segunda descrição do formato, e as duas envelheceriam separadas.
+ */
+export function corpoDaAuditoria({
+  colecao,
+  documentoId,
+  acao,
+  alteracoes,
+  autor,
+  em,
+}: {
+  colecao: string;
+  documentoId: string;
+  acao: "criou" | "alterou" | "removeu";
+  alteracoes: Alteracoes;
+  autor: SessionUser;
+  em: string;
+}) {
+  return {
+    colecao,
+    documentoId,
+    acao,
+    alteracoes,
+    autorUid: autor.uid,
+    autorNome: autor.nome,
+    autorPerfil: autor.role,
+    em,
+  };
 }
 
 /** Mantém de `origem` só as chaves que `modelo` também tem, recursivamente. */

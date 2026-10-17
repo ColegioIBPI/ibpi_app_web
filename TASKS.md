@@ -261,6 +261,19 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.16 Recibos
+
+- [x] Modelar `recibos` e `seriesDeRecibo`, com vocabulários próprios
+- [x] Numeração sequencial por série, em transação, continuando do talão de papel
+- [x] Emissão com itens, forma de pagamento por item e total somado em centavos
+- [x] Cancelamento com motivo obrigatório, sem reaproveitar o número
+- [x] Recibo impresso, com o cancelamento estampado no documento
+- [x] Recurso de permissão próprio, para a secretaria emitir sem dar baixa
+- [x] Publicar a Security Rule e os índices
+- [ ] Ligar o recibo à parcela que ele quita (`cobrancas.recibo` já existe em texto)
+- [ ] 2ª via do recibo no aplicativo, para a família
+- [ ] Relatório de caixa por dia e por forma de pagamento
+
 ### 3.15 Conferência dos documentos da matrícula
 
 - [x] Modelar `entregaDeDocumentos` — nove itens fixos, laudo médico opcional

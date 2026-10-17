@@ -9,6 +9,7 @@ import {
   Megaphone,
   NotebookPen,
   Presentation,
+  ReceiptText,
   School,
   ScrollText,
   Send,
@@ -47,6 +48,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/gestao/informacoes": LifeBuoy,
   "/gestao/solicitacoes": Send,
   "/gestao/financeiro": Wallet,
+  "/gestao/recibos": ReceiptText,
 
   "/portal/avisos": Megaphone,
   "/portal/boletim": ScrollText,

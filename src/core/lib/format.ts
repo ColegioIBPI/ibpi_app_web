@@ -33,6 +33,17 @@ export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
 }
 
+/**
+ * `1.923,00` e `1923.00` chegam do mesmo teclado; os dois viram 1923.
+ *
+ * Mora aqui, e não em cada formulário, porque já existia copiado no extrato
+ * e no gerador de carnê — e o recibo seria a terceira cópia. Três lugares
+ * para corrigir no dia em que alguém digitar de um jeito novo.
+ */
+export function parsearDinheiro(texto: string): number {
+  return Number(texto.replace(/\./g, "").replace(",", ".")) || 0;
+}
+
 /** `2026-03-27` → `27/03/2026` */
 export function formatDate(value: Date | string): string {
   return dateFormatter.format(paraData(value));

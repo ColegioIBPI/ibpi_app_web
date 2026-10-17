@@ -294,6 +294,30 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ------------------------------------------------------- recibos
+
+    // Os recibos emitidos e os talões que lhes dão numeração.
+    //
+    // Lê a equipe de caixa e de balcão: financeiro, secretaria, coordenação
+    // e administração. O **professor não** — recibo é dinheiro.
+    //
+    // A **família não lê** por ora: ela recebe o papel na mão. Mostrar os
+    // recibos no aplicativo é desejável e não foi pedido; quando for, é a
+    // leitura por `ehFilho(resource.data.aluno.matricula)` que entra aqui.
+    //
+    // Escrita só pelo servidor, como em todo o resto — e aqui com um motivo
+    // a mais: o número sai de um contador em transação, e cliente nenhum
+    // pode encostar nele.
+    match /recibos/{id} {
+      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow write: if false;
+    }
+
+    match /seriesDeRecibo/{serie} {
+      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow write: if false;
+    }
+
     // ------------------------------------------ entrega de documentos
 
     // A conferência dos documentos que a família entrega na matrícula.

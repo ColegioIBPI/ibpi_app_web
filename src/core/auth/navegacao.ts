@@ -158,6 +158,16 @@ const ITENS: ItemDeNavegacao[] = [
     minimo: "ler",
     disponivel: true,
   },
+  {
+    href: "/gestao/recibos",
+    rotulo: "Recibos",
+    area: "gestao",
+    // Recurso próprio, e não `financeiro`: a secretaria emite recibo de
+    // declaração e 2ª via sem poder dar baixa em mensalidade.
+    recurso: "recibos",
+    minimo: "ler",
+    disponivel: true,
+  },
 
   // Consulta — aluno e responsável
   {

@@ -176,6 +176,28 @@ que o sistema nunca confere e que envelhece na primeira vez que a família a
 trocar. A tela mostra o **e-mail de acesso** e aponta para "Esqueci minha
 senha".
 
+### `recibos/{serie-numero}` e `seriesDeRecibo/{serie}`
+
+`serie` · `numero` · `status` · `emissorUid` · `emissorNome` · `emitidoEm` ·
+`aluno{matricula,nome,curso,serie}` · `itens[]` · `observacoes` ·
+`cancelamento{em,porNome,motivo}`
+
+O recibo que a família leva embora. **Imutável depois de emitido** — errou,
+cancela com motivo e emite outro.
+
+O id é a série e o número (`A-000042`), determinístico de propósito: com id
+gerado pelo Firestore, duas emissões simultâneas criariam dois recibos nº 42
+e ninguém saberia. O número sai de `seriesDeRecibo/{serie}.proximoNumero`,
+lido e incrementado **em transação**.
+
+Os dados do aluno são **cópia**, não ponteiro: a 2ª via precisa sair igual à
+1ª, mesmo que o aluno mude de série no ano seguinte.
+
+O **total não é gravado**, é somado na leitura — em centavos.
+
+Os vocabulários de serviço e de forma de pagamento são **próprios**, maiores
+que os de `cobrancas`. A razão está em [recibos.md](recibos.md), seção 4.
+
 ### `entregaDeDocumentos/{matricula}`
 
 `matricula` · `itens{<documento>:{entregue,em,porNome}}` · `pastaDoDrive` ·

@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { cn } from "@/core/lib/cn";
-import { formatCurrency, formatDate } from "@/core/lib/format";
+import {
+  formatCurrency,
+  formatDate,
+  parsearDinheiro,
+} from "@/core/lib/format";
 import {
   ROTULOS_DE_COBRANCA,
   ROTULOS_DE_FORMA_DE_PAGAMENTO,
@@ -468,7 +472,7 @@ function FormularioDaParcela({
                 tipo,
                 parcela: paraInteiro(parcela),
                 totalDeParcelas: paraInteiro(total),
-                valor: paraNumero(valor),
+                valor: parsearDinheiro(valor),
                 observacoes: observacoes.trim() || null,
               })
             }
@@ -589,7 +593,7 @@ function FormularioDeBaixa({
               onConfirmar({
                 id: cobranca.id,
                 dataPagamento: data,
-                valorPago: paraNumero(valor),
+                valorPago: parsearDinheiro(valor),
                 formaDePagamento: forma,
                 recibo: recibo.trim() || null,
                 observacoes: observacoes.trim() || null,
@@ -663,11 +667,6 @@ function FormularioDeBaixa({
       </div>
     </Modal>
   );
-}
-
-/** `1.923,00` e `1923.00` chegam do mesmo teclado; os dois viram 1923. */
-function paraNumero(texto: string): number {
-  return Number(texto.replace(/\./g, "").replace(",", ".")) || 0;
 }
 
 function paraInteiro(texto: string): number | null {

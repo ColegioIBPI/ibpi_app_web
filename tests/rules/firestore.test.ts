@@ -261,6 +261,19 @@ beforeEach(async () => {
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
       plural: { usuario: "aluno", senha: "plural-2026" },
     });
+    await setDoc(doc(db, "recibos/A-000042"), {
+      serie: "A",
+      numero: 42,
+      status: "confirmado",
+      emissorNome: "Cristiana",
+      aluno: { matricula: FILHO, nome: "Filho de Teste" },
+      itens: [{ servico: "mensalidade", formaDePagamento: "pix", valor: 100 }],
+    });
+    await setDoc(doc(db, "seriesDeRecibo/A"), {
+      serie: "A",
+      proximoNumero: 43,
+      ativa: true,
+    });
     await setDoc(doc(db, `entregaDeDocumentos/${FILHO}`), {
       matricula: FILHO,
       itens: { "rg-do-aluno": { entregue: true, em: "2026-02-10" } },
@@ -811,6 +824,48 @@ describe("acessos às plataformas", () => {
   });
 });
 
+describe("recibos", () => {
+  it("a equipe de caixa e de balcão lê", async () => {
+    const { secretaria, coordenacao, financeiro, admin } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, financeiro, admin]) {
+      await assertSucceeds(ler(contexto, "recibos/A-000042"));
+      await assertSucceeds(ler(contexto, "seriesDeRecibo/A"));
+    }
+  });
+
+  it("o professor não lê: recibo é dinheiro", async () => {
+    const { professor } = contextos();
+
+    await assertFails(ler(professor, "recibos/A-000042"));
+    await assertFails(ler(professor, "seriesDeRecibo/A"));
+  });
+
+  it("a família não lê, nem o recibo do próprio filho", async () => {
+    // Ela recebe o papel na mão. Mostrar no aplicativo é desejável e ainda
+    // não foi pedido — ver TASKS.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "recibos/A-000042"));
+    await assertFails(ler(aluno, "recibos/A-000042"));
+  });
+
+  it("ninguém escreve pelo cliente, nem no contador do talão", async () => {
+    // O número sai de uma transação no servidor: cliente nenhum encosta
+    // nele, senão dois recibos sairiam com o mesmo número.
+    const { financeiro, secretaria } = contextos();
+
+    await assertFails(
+      setDoc(doc(financeiro.firestore(), "recibos/A-000043"), { numero: 43 }),
+    );
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "seriesDeRecibo/A"), {
+        proximoNumero: 1,
+      }),
+    );
+  });
+});
+
 describe("conferência dos documentos da matrícula", () => {
   it("secretaria, coordenação e administração leem", async () => {
     const { secretaria, coordenacao, admin } = contextos();
@@ -920,6 +975,8 @@ describe("administração — a chave mestra", () => {
       `boletos/${FILHO}`,
       `credenciais/${FILHO}`,
       `entregaDeDocumentos/${FILHO}`,
+      "recibos/A-000042",
+      "seriesDeRecibo/A",
       "documentosSolicitaveis/declaracao",
       "solicitacoes/do-filho",
       "informacoes/tutoria",

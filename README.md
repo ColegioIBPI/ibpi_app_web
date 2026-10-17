@@ -74,6 +74,8 @@ inteira.
 | --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
 | **Administração** | Lê e **gerencia**    | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia** | Lê e **gerencia**   |
 
+> A coluna **Recibos** também não cabe acima, e é **recurso próprio e não um nível de Financeiro**: metade dos serviços que o colégio cobra — declaração, 2ª via de histórico, 2ª chamada — é paga no balcão da **secretaria**, que precisa emitir recibo **sem** poder dar baixa em mensalidade. Emitem e cancelam secretaria, financeiro e administração; a coordenação confere e reimprime. Professor e família não acessam. Ver [docs/recibos.md](docs/recibos.md).
+
 > A coluna **Solicitações** não cabe na tabela acima: o **responsável abre o próprio pedido** — a única escrita da família no sistema — e atende a fila a secretaria, a coordenação e a administração. Com uma exceção: **saída antecipada é só da coordenação e da administração**, porque quem responde por tirar um aluno da aula é a coordenação. Aluno, professor e financeiro não participam.
 | **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
