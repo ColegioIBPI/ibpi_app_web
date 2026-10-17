@@ -9,16 +9,32 @@ import { z } from "zod";
  * passa a aceitar o que o banco recusa.
  */
 
-export const segmentoSchema = z.enum([
-  "fundamental",
-  "medio",
-  "eja-fundamental",
-  "eja-medio",
-]);
+/**
+ * O curso do aluno e da turma — Ensino Fundamental, Médio, EJA.
+ *
+ * **O campo continua se chamando `segmento` nos documentos**, e isso é
+ * deliberado: `docs/app-mobile.md` é contrato publicado com a equipe do
+ * aplicativo, e renomear 400 documentos para ganhar um sinônimo quebraria
+ * o contrato sem entregar nada. "Curso" é como o colégio chama; `segmento`
+ * é como está gravado. São a mesma coisa.
+ *
+ * **Deixou de ser `enum`** quando o colégio passou a cadastrar os próprios
+ * cursos (`cursos/{codigo}`): um enum recusaria no banco o curso que a
+ * secretaria acabou de criar na tela. A lista válida agora é o cadastro, e
+ * o id de cada documento é este código.
+ */
+export const segmentoSchema = z.string().trim().min(1);
 
 export type Segmento = z.infer<typeof segmentoSchema>;
 
-export const ROTULOS_DE_SEGMENTO: Record<Segmento, string> = {
+/**
+ * Os quatro que o sistema já usava, que viram a semente do cadastro.
+ *
+ * Os códigos são **os mesmos de antes**, então todo aluno, turma, boletim e
+ * aviso já gravado continua apontando para um curso válido sem migração
+ * nenhuma.
+ */
+export const ROTULOS_DE_SEGMENTO: Record<string, string> = {
   fundamental: "Ensino Fundamental",
   medio: "Ensino Médio",
   "eja-fundamental": "EJA — Fundamental",

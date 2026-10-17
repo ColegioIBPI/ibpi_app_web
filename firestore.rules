@@ -294,6 +294,29 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ------------------------------------------- cursos e avaliação
+
+    // Os cursos do colégio. **Qualquer pessoa autenticada lê**, pela mesma
+    // razão que `turmas`: o nome do curso aparece na ficha do aluno, no
+    // boletim e no recibo, e sem poder lê-lo essas telas imprimiriam o
+    // código em vez do nome.
+    match /cursos/{codigo} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    // O critério de avaliação do ano, como documento publicado — não é o
+    // que o boletim calcula (ver docs/avaliacao.md).
+    //
+    // A equipe lê sempre; a família, só o que foi **publicado**. O critério
+    // costuma ser discutido antes de virar comunicado, e um rascunho
+    // visível à família é pior que nenhum.
+    match /criteriosDeAvaliacao/{id} {
+      allow read: if temPerfil(['secretaria', 'coordenacao', 'professor', 'financeiro'])
+                  || (autenticado() && resource.data.publicado == true);
+      allow write: if false;
+    }
+
     // ------------------------------------------------------- recibos
 
     // Os recibos emitidos e os talões que lhes dão numeração.

@@ -261,6 +261,18 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.17 Configurações do ano letivo
+
+- [x] Área de Configurações com o roteiro de montagem do ano
+- [x] Cadastro de cursos, substituindo a lista fixa no código, sem migração
+- [x] Vincular a turma ao curso pelo cadastro
+- [x] Vínculos professor × disciplina × turma, vistos pela turma
+- [x] Critério de avaliação do ano, publicado — sem mexer no cálculo
+- [x] Publicar a Security Rule de `cursos` e `criteriosDeAvaliacao`
+- [ ] Mostrar o critério publicado no Portal da família
+- [ ] Tela de salas e de dias/horários de aula
+- [ ] Copiar a estrutura de um ano letivo para o seguinte
+
 ### 3.16 Recibos
 
 - [x] Modelar `recibos` e `seriesDeRecibo`, com vocabulários próprios

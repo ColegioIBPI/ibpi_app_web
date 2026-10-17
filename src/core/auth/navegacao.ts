@@ -159,6 +159,15 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/configuracoes",
+    rotulo: "Configurações",
+    area: "gestao",
+    // Mesma dona de Turmas e Disciplinas: quem monta a estrutura do ano.
+    recurso: "cadastros",
+    minimo: "gerenciar",
+    disponivel: true,
+  },
+  {
     href: "/gestao/recibos",
     rotulo: "Recibos",
     area: "gestao",

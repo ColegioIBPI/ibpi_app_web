@@ -15,6 +15,7 @@ import { Card } from "@/core/ui/card";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
 import { FotoDoAluno } from "@/features/alunos/components/foto-do-aluno";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 import { listarResponsaveisDoAluno } from "@/features/responsaveis/services/responsaveis.server";
 
 export async function generateMetadata({
@@ -92,7 +93,7 @@ export default async function AlunoPage({
         <ResponsaveisDoAluno matricula={aluno.matricula} />
       )}
 
-      <FichaDoAluno aluno={aluno} />
+      <FichaDoAluno aluno={aluno} cursos={await listarCursos()} />
 
       {/* A conferência da matrícula é da secretaria e da coordenação.
           Professor e financeiro não entram: "laudo médico entregue" é

@@ -11,6 +11,7 @@ import {
   ROTULOS_DE_TURNO,
   segmentoSchema,
   turnoSchema,
+  type CursoComId,
   type Segmento,
   type Turno,
 } from "@/core/modelo";
@@ -33,11 +34,14 @@ type Formulario = z.input<typeof schema>;
 interface FormularioDeTurmaProps {
   turma?: TurmaComId;
   anoLetivoPadrao: number;
+  /** Os cursos abertos, vindos do cadastro em Configurações. */
+  cursos: CursoComId[];
 }
 
 export function FormularioDeTurma({
   turma,
   anoLetivoPadrao,
+  cursos,
 }: FormularioDeTurmaProps) {
   const router = useRouter();
   const [erro, setErro] = useState<string | null>(null);
@@ -51,7 +55,9 @@ export function FormularioDeTurma({
     defaultValues: {
       codigo: turma?.codigo ?? "",
       anoLetivo: turma?.anoLetivo ?? anoLetivoPadrao,
-      segmento: turma?.segmento ?? "medio",
+      // O curso da turma, ou o primeiro do cadastro. `medio` como último
+      // recurso: é o que o sistema usava antes de o cadastro existir.
+      segmento: turma?.segmento ?? cursos[0]?.codigo ?? "medio",
       turno: turma?.turno ?? "manha",
       ativa: turma?.ativa ?? true,
     },
@@ -106,15 +112,26 @@ export function FormularioDeTurma({
             {...register("anoLetivo")}
           />
           <SelectField
-            label="Segmento"
+            label="Curso"
+            hint="Cadastrado em Configurações › Cursos."
             error={errors.segmento?.message}
             {...register("segmento")}
           >
-            {Object.entries(ROTULOS_DE_SEGMENTO).map(([valor, rotulo]) => (
-              <option key={valor} value={valor}>
-                {rotulo}
+            {cursos.map((curso) => (
+              <option key={curso.codigo} value={curso.codigo}>
+                {curso.nome}
               </option>
             ))}
+
+            {/* O curso da turma pode ter sido encerrado depois de ela ser
+                criada. Sem esta opção o seletor abriria em outro curso e
+                salvar trocaria o curso da turma sem ninguém pedir. */}
+            {turma?.segmento &&
+              !cursos.some((curso) => curso.codigo === turma.segmento) && (
+                <option value={turma.segmento}>
+                  {ROTULOS_DE_SEGMENTO[turma.segmento] ?? turma.segmento} (encerrado)
+                </option>
+              )}
           </SelectField>
           <SelectField
             label="Turno"

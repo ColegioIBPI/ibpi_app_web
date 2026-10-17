@@ -3,10 +3,10 @@ import Image from "next/image";
 import { formatCurrency, formatDate } from "@/core/lib/format";
 import {
   ROTULOS_DE_FORMA_DO_RECIBO,
-  ROTULOS_DE_SEGMENTO,
   ROTULOS_DE_SERVICO,
   type ReciboComId,
 } from "@/core/modelo";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 import { identificacao, totalDoRecibo } from "@/features/recibos/domain/recibo";
 
 /**
@@ -21,7 +21,14 @@ import { identificacao, totalDoRecibo } from "@/features/recibos/domain/recibo";
  * rodapé: a 2ª via de um recibo cancelado circula, e quem a receber precisa
  * ver na primeira olhada que ela não vale.
  */
-export function ReciboImpresso({ recibo }: { recibo: ReciboComId }) {
+export function ReciboImpresso({
+  recibo,
+  cursos = [],
+}: {
+  recibo: ReciboComId;
+  /** Só para o rótulo: o código do curso já está gravado no recibo. */
+  cursos?: Array<{ codigo: string; nome: string }>;
+}) {
   const cancelado = recibo.status === "cancelado";
 
   return (
@@ -76,7 +83,7 @@ export function ReciboImpresso({ recibo }: { recibo: ReciboComId }) {
         <div>
           <dt className="text-ink-muted text-xs">Curso e série</dt>
           <dd className="text-ink">
-            {recibo.aluno.curso ? ROTULOS_DE_SEGMENTO[recibo.aluno.curso] : "—"}
+            {rotuloDoCurso(recibo.aluno.curso, cursos)}
             {recibo.aluno.serie ? ` · ${recibo.aluno.serie}` : ""}
           </dd>
         </div>

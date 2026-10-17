@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
-import { ROTULOS_DE_SEGMENTO, ROTULOS_DE_TURNO } from "@/core/modelo";
+import { ROTULOS_DE_TURNO } from "@/core/modelo";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import {
@@ -58,7 +60,7 @@ export default async function TurmaPage({
             {turma.codigo}
           </h1>
           <p className="text-ink-muted mt-1 text-sm">
-            {ROTULOS_DE_SEGMENTO[turma.segmento]} ·{" "}
+            {rotuloDoCurso(turma.segmento, await listarCursos())} ·{" "}
             {ROTULOS_DE_TURNO[turma.turno]} · {turma.anoLetivo}
             {turma.ativa ? "" : " · inativa"}
           </p>

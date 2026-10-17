@@ -108,15 +108,34 @@ describe("turmaSchema", () => {
     }
   });
 
-  it("recusa segmento que não existe no colégio", () => {
+  it("aceita curso que não é um dos quatro antigos", () => {
+    // O schema deixou de ser `enum` quando o colégio passou a cadastrar os
+    // próprios cursos: recusar aqui impediria de gravar a turma do curso
+    // que a secretaria acabou de criar na tela.
     expect(
       turmaSchema.safeParse({
-        codigo: "EI1A",
+        codigo: "TEC1A",
         anoLetivo: 2026,
-        segmento: "infantil",
+        segmento: "tecnico-informatica",
         turno: "manha",
       }).success,
-    ).toBe(false);
+    ).toBe(true);
+  });
+
+  it("recusa turma sem curso nenhum", () => {
+    // A conferência de que o curso **existe no cadastro** mudou de lugar:
+    // vive em `salvarTurma`, que lê o cadastro. O schema só garante que o
+    // campo não está vazio.
+    for (const segmento of ["", "   "]) {
+      expect(
+        turmaSchema.safeParse({
+          codigo: "EI1A",
+          anoLetivo: 2026,
+          segmento,
+          turno: "manha",
+        }).success,
+      ).toBe(false);
+    }
   });
 });
 

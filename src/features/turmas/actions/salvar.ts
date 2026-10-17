@@ -15,6 +15,7 @@ import {
   turmaSchema,
   turnoSchema,
 } from "@/core/modelo";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 import { chaveDeComparacao } from "@/features/migracao/domain/texto";
 import { z } from "zod";
 
@@ -53,6 +54,23 @@ export async function salvarTurma(
   }
 
   const { codigo, anoLetivo, segmento, turno, ativa } = formulario.data;
+
+  /**
+   * O curso precisa existir no cadastro.
+   *
+   * Enquanto a lista era um `enum`, o Zod recusava o código inventado. Ela
+   * deixou de ser enum quando o colégio passou a cadastrar os próprios
+   * cursos — e sem esta conferência uma turma poderia nascer apontando
+   * para um curso que não existe, o que só apareceria no boletim, em
+   * branco, no fim do trimestre.
+   *
+   * A verificação é **no servidor** e não no formulário: o seletor já só
+   * mostra cursos válidos, mas seletor é conveniência, não garantia.
+   */
+  const cursos = await listarCursos();
+  if (!cursos.some((curso) => curso.codigo === segmento)) {
+    return { ok: false, erro: `O curso ${segmento} não existe no cadastro.` };
+  }
 
   // O id embute ano e código. Mudar qualquer um dos dois cria outra turma —
   // por isso, na edição, o id existente manda.

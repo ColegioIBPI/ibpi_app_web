@@ -9,6 +9,8 @@ const rotulos = (role: Parameters<typeof navegacaoPara>[0]) =>
 describe("navegacaoPara", () => {
   it("financeiro vê só o financeiro e o cadastro", () => {
     // Recibo entra aqui com recurso próprio: quem recebe o dinheiro emite.
+    // Configurações **não** entra: monta a estrutura do ano e exige
+    // `gerenciar` em cadastros, que o financeiro não tem.
     expect(rotulos("financeiro")).toEqual([
       "Alunos",
       "Avisos",
@@ -57,6 +59,7 @@ describe("navegacaoPara", () => {
       "Solicitações",
       "Informações úteis",
       "Financeiro",
+      "Configurações",
       "Recibos",
     ]);
   });

@@ -261,6 +261,25 @@ beforeEach(async () => {
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
       plural: { usuario: "aluno", senha: "plural-2026" },
     });
+    await setDoc(doc(db, "cursos/medio"), {
+      codigo: "medio",
+      nome: "Ensino Médio",
+      ativo: true,
+    });
+    await setDoc(doc(db, "criteriosDeAvaliacao/2026"), {
+      anoLetivo: 2026,
+      periodos: 3,
+      mediaMinima: 5,
+      frequenciaMinima: 75,
+      publicado: true,
+    });
+    await setDoc(doc(db, "criteriosDeAvaliacao/2027"), {
+      anoLetivo: 2027,
+      periodos: 3,
+      mediaMinima: 5,
+      frequenciaMinima: 75,
+      publicado: false,
+    });
     await setDoc(doc(db, "recibos/A-000042"), {
       serie: "A",
       numero: 42,
@@ -824,6 +843,62 @@ describe("acessos às plataformas", () => {
   });
 });
 
+describe("cursos e critérios de avaliação", () => {
+  it("qualquer pessoa autenticada lê os cursos", async () => {
+    // O nome do curso aparece na ficha, no boletim e no recibo: sem poder
+    // lê-lo, essas telas imprimiriam o código.
+    const { aluno, responsavel, professor, financeiro, secretaria } =
+      contextos();
+
+    for (const contexto of [
+      aluno,
+      responsavel,
+      professor,
+      financeiro,
+      secretaria,
+    ]) {
+      await assertSucceeds(ler(contexto, "cursos/medio"));
+    }
+  });
+
+  it("a família lê o critério publicado", async () => {
+    const { responsavel, aluno } = contextos();
+
+    await assertSucceeds(ler(responsavel, "criteriosDeAvaliacao/2026"));
+    await assertSucceeds(ler(aluno, "criteriosDeAvaliacao/2026"));
+  });
+
+  it("a família NÃO lê o critério em rascunho", async () => {
+    // Critério é discutido antes de virar comunicado, e um rascunho
+    // visível à família é pior que nenhum.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "criteriosDeAvaliacao/2027"));
+    await assertFails(ler(aluno, "criteriosDeAvaliacao/2027"));
+  });
+
+  it("a equipe lê o rascunho", async () => {
+    const { secretaria, coordenacao, professor, admin } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, professor, admin]) {
+      await assertSucceeds(ler(contexto, "criteriosDeAvaliacao/2027"));
+    }
+  });
+
+  it("ninguém escreve pelo cliente", async () => {
+    const { secretaria } = contextos();
+
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "cursos/tecnico"), { nome: "X" }),
+    );
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "criteriosDeAvaliacao/2026"), {
+        mediaMinima: 0,
+      }),
+    );
+  });
+});
+
 describe("recibos", () => {
   it("a equipe de caixa e de balcão lê", async () => {
     const { secretaria, coordenacao, financeiro, admin } = contextos();
@@ -975,6 +1050,9 @@ describe("administração — a chave mestra", () => {
       `boletos/${FILHO}`,
       `credenciais/${FILHO}`,
       `entregaDeDocumentos/${FILHO}`,
+      "cursos/medio",
+      "criteriosDeAvaliacao/2026",
+      "criteriosDeAvaliacao/2027",
       "recibos/A-000042",
       "seriesDeRecibo/A",
       "documentosSolicitaveis/declaracao",

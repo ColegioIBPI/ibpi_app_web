@@ -287,6 +287,34 @@ sem aviso. A secretaria cola o endereço uma vez por aluno.
 > preenche o ausente com o padrão — montar só o pedaço alterado faria
 > salvar uma observação apagar a pasta, em silêncio.
 
+### `cursos/{codigo}`
+
+`codigo` · `nome` · `sigla` · `ordem` · `ativo`
+
+Os cursos do colégio. Era lista fixa no código; virou cadastro porque a
+lista é do colégio, não do sistema.
+
+**Os ids dos quatro primeiros são os códigos que já existiam**, então o
+cadastro nasceu sem migração: aluno, turma, boletim e aviso já gravados
+apontam para um curso válido. Nos documentos o campo continua se chamando
+`segmento` — renomear quebraria `docs/app-mobile.md`, contrato publicado com
+a equipe do aplicativo.
+
+Curso não se apaga, se encerra: histórico de aluno formado aponta para ele.
+Detalhes em [configuracoes.md](configuracoes.md).
+
+### `criteriosDeAvaliacao/{ano}` ou `{ano}-{curso}`
+
+`anoLetivo` · `cursoCodigo` · `periodos` · `nomeDoPeriodo` · `avaliacoes[]` ·
+`mediaMinima` · `frequenciaMinima` · `comoSeCalcula` · `publicado`
+
+O critério **como documento publicado**, não como parâmetro de cálculo: o
+boletim continua sendo calculado por `features/notas/domain/calculo.ts`.
+Ligar a conta a um documento editável faria boletim já fechado mudar de
+resultado porque alguém salvou uma tela.
+
+Rascunho (`publicado: false`) só a equipe lê.
+
 ### `turmas/{ano-codigo}`
 
 `codigo` (`EM1A`, `E.J.A. EM`) · `anoLetivo` · `segmento` · `turno` ·

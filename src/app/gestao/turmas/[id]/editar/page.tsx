@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { FormularioDeTurma } from "@/features/turmas/components/formulario-de-turma";
+import { cursosAtivos } from "@/features/cursos/services/cursos.server";
 import { obterTurma } from "@/features/turmas/services/turmas.server";
 
 export const metadata: Metadata = { title: "Editar turma" };
@@ -27,6 +28,7 @@ export default async function EditarTurmaPage({
       <FormularioDeTurma
         turma={turma}
         anoLetivoPadrao={new Date().getFullYear()}
+        cursos={await cursosAtivos()}
       />
     </div>
   );

@@ -4,7 +4,9 @@ import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
-import { ROTULOS_DE_SEGMENTO, ROTULOS_DE_TURNO } from "@/core/modelo";
+import { ROTULOS_DE_TURNO } from "@/core/modelo";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import {
@@ -21,7 +23,7 @@ export const metadata: Metadata = { title: "Turmas" };
 
 export default async function TurmasPage() {
   const sessao = await exigirPermissao("cadastros", "gerenciar");
-  const turmas = await listarTurmas();
+  const [turmas, cursos] = await Promise.all([listarTurmas(), listarCursos()]);
 
   const anos = [...new Set(turmas.map((t) => t.anoLetivo))].sort(
     (a, b) => b - a,
@@ -82,7 +84,7 @@ export default async function TurmasPage() {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>{ROTULOS_DE_SEGMENTO[turma.segmento]}</TableCell>
+                  <TableCell>{rotuloDoCurso(turma.segmento, cursos)}</TableCell>
                   <TableCell>{ROTULOS_DE_TURNO[turma.turno]}</TableCell>
                   <TableCell className="tabular-nums">
                     {turma.anoLetivo}

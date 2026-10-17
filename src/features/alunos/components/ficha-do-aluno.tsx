@@ -1,8 +1,6 @@
 import {
-  ROTULOS_DE_SEGMENTO,
   ROTULOS_DE_SITUACAO_DA_MATRICULA,
   ROTULOS_DE_TURNO,
-  type Segmento,
   type Turno,
 } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
@@ -12,6 +10,7 @@ import {
   situacaoDoMigrado,
 } from "@/features/alunos/domain/situacao";
 import type { AlunoComId } from "@/features/alunos/services/alunos.server";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 
 /**
  * Ficha do aluno, nos mesmos blocos do cadastro do Access — é como a
@@ -24,7 +23,14 @@ interface Campo {
   valor: string | null | undefined;
 }
 
-export function FichaDoAluno({ aluno }: { aluno: AlunoComId }) {
+export function FichaDoAluno({
+  aluno,
+  cursos = [],
+}: {
+  aluno: AlunoComId;
+  /** Do cadastro em Configurações. Vazio cai nos rótulos antigos. */
+  cursos?: Array<{ codigo: string; nome: string }>;
+}) {
   const { contato, documentos, filiacao } = aluno;
 
   return (
@@ -52,9 +58,9 @@ export function FichaDoAluno({ aluno }: { aluno: AlunoComId }) {
         campos={[
           { rotulo: "Turma", valor: aluno.turmaCodigo },
           {
-            rotulo: "Segmento",
+            rotulo: "Curso",
             valor: aluno.segmento
-              ? ROTULOS_DE_SEGMENTO[aluno.segmento as Segmento]
+              ? rotuloDoCurso(aluno.segmento, cursos)
               : null,
           },
           { rotulo: "Série", valor: aluno.serie },

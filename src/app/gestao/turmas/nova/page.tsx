@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { FormularioDeTurma } from "@/features/turmas/components/formulario-de-turma";
+import { cursosAtivos } from "@/features/cursos/services/cursos.server";
 
 export const metadata: Metadata = { title: "Nova turma" };
 
@@ -17,7 +18,10 @@ export default async function NovaTurmaPage() {
         </p>
       </div>
 
-      <FormularioDeTurma anoLetivoPadrao={new Date().getFullYear()} />
+      <FormularioDeTurma
+        anoLetivoPadrao={new Date().getFullYear()}
+        cursos={await cursosAtivos()}
+      />
     </div>
   );
 }

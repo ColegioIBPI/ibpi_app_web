@@ -11,6 +11,7 @@ import { CancelarRecibo } from "@/features/recibos/components/cancelar";
 import { ReciboImpresso } from "@/features/recibos/components/recibo-impresso";
 import { podeCancelar } from "@/features/recibos/domain/recibo";
 import { obterRecibo } from "@/features/recibos/services/recibos.server";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 
 export async function generateMetadata({
   params,
@@ -51,7 +52,7 @@ export default async function ReciboPage({
       </div>
 
       <Card>
-        <ReciboImpresso recibo={recibo} />
+        <ReciboImpresso recibo={recibo} cursos={await listarCursos()} />
       </Card>
     </div>
   );
