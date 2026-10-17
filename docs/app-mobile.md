@@ -372,6 +372,46 @@ Quatro decisões que mudam o número na tela:
    limite de 25% é da carga horária total, então quem passa dele reprova em
    tudo.
 
+### 4b. O critério publicado — novo
+
+A tabela acima é **a conta que o sistema faz**, e ela não muda. O colégio
+agora publica também o critério **em texto**, para a família ler junto do
+boletim — é a resposta para "como essa média foi calculada?", que hoje vira
+telefonema para a secretaria.
+
+```
+criteriosDeAvaliacao/{ano}            ← vale para o colégio inteiro
+criteriosDeAvaliacao/{ano}-{curso}    ← vale só para aquele curso
+= {
+  anoLetivo, cursoCodigo,              // cursoCodigo = null no geral
+  periodos, nomeDoPeriodo,             // 3, "Trimestre"
+  avaliacoes: [{ nome, peso, descricao }],
+  mediaMinima, frequenciaMinima,       // 5, 75
+  comoSeCalcula, recuperacao, observacoes,
+  publicado                            // boolean
+}
+```
+
+**Qual deles mostrar**, nesta ordem:
+
+1. `{ano}-{curso do aluno}`, se existir e estiver publicado;
+2. `{ano}`, se existir e estiver publicado;
+3. nenhum — e aí não mostre bloco nenhum, nem um vazio dizendo que falta.
+
+O do curso ganha do geral: se o colégio publicou um critério só para o EJA,
+é porque o geral não se aplica ali.
+
+> **`publicado: false` é rascunho e a regra do Firestore o nega à família.**
+> Não tente contornar: o critério é discutido antes de virar comunicado, e
+> um rascunho na tela da família é pior que nenhum.
+
+O critério é **por ano letivo**. O de 2026 não vale para o boletim de 2025 —
+busque sempre pelo ano do boletim que está na tela, não pelo ano corrente.
+
+`peso` é **texto** ("1/3 da média"), não número: ele não entra em conta
+nenhuma, e tratá-lo como número levaria o app a recalcular a média por
+conta própria. **O app não calcula média** — ver a seção 4.
+
 ### De onde ler
 
 ```

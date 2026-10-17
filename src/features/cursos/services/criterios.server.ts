@@ -2,6 +2,7 @@ import "server-only";
 
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, type CriterioComId } from "@/core/modelo";
+import { criterioQueVale } from "@/features/cursos/domain/criterio";
 
 /**
  * Leitura dos critérios de avaliação.
@@ -33,4 +34,34 @@ export async function obterCriterio(id: string): Promise<CriterioComId | null> {
     .get();
 
   return doc.exists ? ({ id: doc.id, ...doc.data() } as CriterioComId) : null;
+}
+
+/**
+ * O critério que a família lê, para um ano e um curso.
+ *
+ * Lê os **dois candidatos** por id em vez de consultar a coleção: são duas
+ * leituras diretas, sem índice composto, e o id já carrega a regra de
+ * escolha. A preferência — o do curso ganha do geral — fica em
+ * `domain/criterio.ts`, testada.
+ */
+export async function criterioPublicado(
+  anoLetivo: number,
+  cursoCodigo: string | null,
+  apenasPublicados = true,
+): Promise<CriterioComId | null> {
+  const db = getAdminDb();
+
+  const ids = cursoCodigo
+    ? [idDoCriterio(anoLetivo, cursoCodigo), idDoCriterio(anoLetivo, null)]
+    : [idDoCriterio(anoLetivo, null)];
+
+  const docs = await db.getAll(
+    ...ids.map((id) => db.collection(COLECOES.criteriosDeAvaliacao).doc(id)),
+  );
+
+  const encontrados = docs
+    .filter((doc) => doc.exists)
+    .map((doc) => ({ id: doc.id, ...doc.data() }) as CriterioComId);
+
+  return criterioQueVale(encontrados, anoLetivo, cursoCodigo, apenasPublicados);
 }

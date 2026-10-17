@@ -123,6 +123,20 @@ a família leria uma regra que o boletim não segue.
 O peso de cada avaliação é **texto** ("1/3 da média"), não número: um número
 ali daria a impressão de que entra em alguma conta.
 
+### Onde a família lê
+
+No **boletim**, abaixo das notas, e **imprime junto**: a pergunta "como essa
+média foi calculada?" aparece com o boletim na mão, e a resposta numa outra
+tela não chega a quem imprimiu o papel.
+
+Um critério por boletim, e não um por página: filhos em cursos diferentes
+podem ter critérios diferentes, e mostrar o de um ao lado do boletim do
+outro seria pior que não mostrar nada.
+
+O resumo no cabeçalho da página também sai do critério publicado. Antes era
+uma frase fixa no código, que só mudaria no dia em que alguém lembrasse de
+editá-la.
+
 ### Um por ano, e rascunho não vaza
 
 O critério de 2026 não substitui o de 2025: boletim fechado continua valendo
@@ -152,5 +166,6 @@ nome do curso aparece na ficha, no boletim e no recibo.
 - **Dias e horários de aula** (`diasDeAula`) continuam sem tela.
 - **Copiar a estrutura de um ano para o seguinte** — hoje turmas e vínculos
   de janeiro são recriados à mão.
-- O critério publicado ainda **não aparece no Portal da família**; falta a
-  tela de leitura.
+- O critério publicado aparece no **boletim** da família; ainda não tem
+  lugar em "Informações úteis", para quem quer lê-lo fora da época de
+  boletim.

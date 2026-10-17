@@ -6,6 +6,9 @@ import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { Boletim } from "@/features/notas/components/boletim";
 import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
+import { CriterioPublicado } from "@/features/cursos/components/criterio-publicado";
+import { resumoDoCriterio } from "@/features/cursos/domain/criterio";
+import { criterioPublicado } from "@/features/cursos/services/criterios.server";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };
@@ -42,6 +45,28 @@ export default async function BoletimDoPortalPage({
     )
   ).filter((boletim) => boletim !== null);
 
+  /**
+   * Um critério por boletim, e não um só na página: filhos em cursos
+   * diferentes podem ter critérios diferentes, e mostrar o de um ao lado do
+   * boletim do outro seria pior que não mostrar nada.
+   */
+  const criterios = new Map(
+    await Promise.all(
+      boletins.map(
+        async (boletim) =>
+          [
+            boletim.matricula,
+            await criterioPublicado(ano, boletim.cursoCodigo),
+          ] as const,
+      ),
+    ),
+  );
+
+  // O resumo do cabeçalho sai do critério publicado quando existe um. A
+  // frase fixa que estava aqui só mudaria no dia em que alguém lembrasse
+  // de editar o código.
+  const primeiro = boletins[0] && criterios.get(boletins[0].matricula);
+
   return (
     <div className="flex flex-col gap-6">
       <div
@@ -51,8 +76,9 @@ export default async function BoletimDoPortalPage({
         <div>
           <h1 className="text-ink text-xl font-semibold">Boletim</h1>
           <p className="text-ink-muted mt-1 text-sm">
-            Média do trimestre = (Projeto + Tarefas + AV) ÷ 3. Aprovação com
-            média 5,0 e frequência de 75%.
+            {primeiro
+              ? resumoDoCriterio(primeiro)
+              : "Média do trimestre = (Projeto + Tarefas + AV) ÷ 3. Aprovação com média 5,0 e frequência de 75%."}
           </p>
         </div>
 
@@ -85,6 +111,10 @@ export default async function BoletimDoPortalPage({
               eletivas={boletim.documento?.eletivas}
               dependencias={boletim.dependencias}
               observacoes={boletim.documento?.observacoes}
+            />
+
+            <CriterioPublicado
+              criterio={criterios.get(boletim.matricula) ?? null}
             />
           </Card>
         ))

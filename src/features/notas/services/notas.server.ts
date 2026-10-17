@@ -2,7 +2,6 @@ import "server-only";
 
 import {
   COLECOES,
-  ROTULOS_DE_SEGMENTO,
   type Alocacao,
   type Boletim,
   type DiarioDeClasse,
@@ -22,6 +21,8 @@ import { faltasNaDisciplina, idDoDiario } from "@/core/escola/aulas";
 import { contar, percentualDePresenca } from "@/core/escola/frequencia";
 import { getAdminDb } from "@/core/firebase/admin";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import { rotuloDoCurso } from "@/features/cursos/domain/curso";
+import { listarCursos } from "@/features/cursos/services/cursos.server";
 import {
   montarBoletim,
   type BoletimMontado,
@@ -97,6 +98,8 @@ export interface BoletimDoAluno extends BoletimMontado {
   nome: string;
   turmaCodigo: string | null;
   segmentoRotulo: string | null;
+  /** O código do curso, para achar o critério de avaliação que vale. */
+  cursoCodigo: string | null;
   serie: string | null;
   dataMatricula: string | null;
   anoLetivo: number;
@@ -137,7 +140,12 @@ export async function boletimDoAluno(
     matricula,
     nome: aluno.nome,
     turmaCodigo: aluno.turmaCodigo ?? null,
-    segmentoRotulo: aluno.segmento ? ROTULOS_DE_SEGMENTO[aluno.segmento] : null,
+    // `rotuloDoCurso`, e não o objeto indexado: curso novo devolvia
+    // `undefined` e o boletim imprimia o campo em branco.
+    segmentoRotulo: aluno.segmento
+      ? rotuloDoCurso(aluno.segmento, await listarCursos())
+      : null,
+    cursoCodigo: aluno.segmento ?? null,
     serie: aluno.serie ?? null,
     dataMatricula: aluno.dataMatricula ?? null,
     anoLetivo,
