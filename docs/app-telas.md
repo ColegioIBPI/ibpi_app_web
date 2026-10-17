@@ -8,6 +8,13 @@ repete campo de coleção, lá não se discute tela.
 A referência é o Portal web, que já está em produção. Onde este documento e
 o Portal divergirem, **o Portal está certo** — avise para corrigirmos aqui.
 
+> **Já tem uma cópia?** Mudaram três telas: **Ocorrências** passou a existir
+> para o perfil `aluno` (seção 8), **Frequência** ganhou a quarta marca,
+> `saida-antecipada` (seção 7), e o **Boletim** ganha o bloco do critério de
+> avaliação (seção 6), que também aparece em **Informações úteis** (seção
+> 11). A lista completa das mudanças de dados está no topo de
+> [`app-mobile.md`](app-mobile.md).
+
 > **Por que copiar as palavras do Portal.** A mesma família usa os dois. Se
 > o app disser "Em análise" onde o Portal diz "Em andamento", ela vai achar
 > que são coisas diferentes e ligar para a secretaria perguntando qual
@@ -149,6 +156,25 @@ anual, a recuperação quando houver, a média final, as faltas e a situação.
 - As médias são **calculadas na leitura**, não vêm prontas. A regra está em
   `app-mobile.md`, seção 4.
 - Vazio: **"Boletim indisponível"**.
+
+### Como o aluno é avaliado — bloco novo
+
+Abaixo das notas, quando o colégio tiver publicado um critério para aquele
+ano. Título: **"Como o aluno é avaliado"**.
+
+Mostre, nesta ordem: quantos períodos e como o colégio os chama, a média
+mínima, a frequência mínima, a lista do que compõe a média (nome e quanto
+vale, em texto) e, quando houver, "Como se calcula" e "Recuperação".
+
+| Decisão | Por quê |
+| --- | --- |
+| Fica **no boletim**, não numa tela à parte | a pergunta "como essa média foi calculada?" nasce com o boletim na mão |
+| **Sai na impressão / PDF**, se vocês tiverem | resposta em outra tela não chega a quem imprimiu o papel |
+| Sem critério publicado, **não mostre bloco nenhum** | nem um vazio dizendo que falta algo |
+| **Não recalcule nada com isto** | `peso` é texto ("1/3 da média"), não número; a conta é a da seção 4 de `app-mobile.md` |
+
+Qual critério mostrar e a ordem de preferência estão em `app-mobile.md`,
+seção 4b. Em resumo: o do curso do aluno ganha do geral do colégio.
 
 ---
 
@@ -305,8 +331,32 @@ Cards com ícone. Tocar abre o **texto dentro do app** — não é link externo.
   material completo" no navegador — nunca como único caminho.
 - Tipo desconhecido: ícone genérico, **não esconda o card**.
 
+### O critério de avaliação também entra aqui
+
+Além dos cards acima, mostre o critério publicado — é onde a família o
+procura fora da época de boletim. Mesmo conteúdo do bloco do boletim, num
+card com o título **"Como o aluno é avaliado"**.
+
+> ⚠️ **Não confunda com o card `criterios-de-avaliacao` da tabela acima.**
+> Aquele é um texto livre que a secretaria publica na coleção
+> `informacoes`. Este vem de `criteriosDeAvaliacao`, é estruturado e tem
+> ano e curso. Os dois podem existir ao mesmo tempo.
+
+Aqui **não há aluno selecionado**, e é o curso do aluno que decide qual
+critério vale. Então:
+
+- irmãos sob a mesma regra viram **um card só** — repetir o mesmo texto por
+  filho enche a tela;
+- critérios diferentes aparecem **os dois**, cada um dizendo a que curso se
+  aplica;
+- com um critério só, **não escreva o curso**: não informa nada e vira
+  ruído.
+
 Vazio: **"Nada publicado por enquanto"** / "O calendário, os horários e os
 documentos do colégio aparecem aqui."
+
+Se não houver card nenhum **mas houver critério**, não mostre o vazio: ele
+desmentiria o que está logo abaixo.
 
 ---
 

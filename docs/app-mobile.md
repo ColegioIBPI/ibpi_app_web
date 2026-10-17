@@ -30,6 +30,67 @@ HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
 
 ---
 
+## O que mudou desde a última versão
+
+Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os três
+primeiros itens **quebram código que já existe**; o resto é adição.
+
+### 1. `segmento` deixou de ser lista fechada — quebra
+
+Era `fundamental | medio | eja-fundamental | eja-medio`. O colégio passou a
+cadastrar os próprios cursos e pode abrir um técnico amanhã, sem publicar
+app nenhum.
+
+Trate como **string opaca** e pegue o rótulo na coleção `cursos`. Um `when`
+exaustivo sobre os quatro compila hoje e estoura no dia em que a secretaria
+criar o quinto. **Seção 5.**
+
+### 2. A presença tem quatro valores — quebra
+
+Entrou `saida-antecipada`, ao lado de `presente`, `falta` e `atraso`. Ela
+**conta como presença**, igual ao atraso: não some às faltas. **Seções 3 e
+5.**
+
+### 3. O aluno passou a ter a aba Ocorrências — quebra
+
+A versão anterior dizia, com ⚠️, que o perfil `aluno` nunca via a própria
+ocorrência. **Não vale mais.**
+
+Cada ocorrência agora tem `visivelParaResponsavel` e `visivelParaAluno`, e a
+escola decide caso a caso. O padrão é não mostrar ao aluno, então na maioria
+das contas a aba abre vazia — e isso é o certo, não um erro a investigar.
+
+Três cuidados que não são opcionais:
+
+- **não guardem ocorrência em cache que sobreviva à sessão** — a
+  coordenação retém um registro depois de publicado, e o que já foi baixado
+  continuaria na tela;
+- **item que some da lista não é falha de sincronização**;
+- **nunca digam que há algo retido** ("1 ocorrência oculta"): isso entrega o
+  fato sem o contexto, que é o que a retenção quis evitar.
+
+**Seção 2.**
+
+### 4. Critério de avaliação publicado — novo
+
+`criteriosDeAvaliacao/{ano}` e `{ano}-{curso}`: o colégio publica em texto
+como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
+úteis. Rascunho (`publicado: false`) a regra nega à família.
+
+**Isto não muda a conta do boletim**, que continua a da seção 4. **Seção
+4b.**
+
+### 5. Boleto do aluno — novo
+
+Um PDF por aluno, baixado por rota autenticada. **Seção 8.**
+
+### Ainda não entrou
+
+- **Recibos** existem no Portal e **a família ainda não os lê** pelo app.
+  Quando entrar, avisamos aqui.
+
+---
+
 ## 0. Para começar
 
 **Projeto Firebase:** `colegioibpi`, região `southamerica-east1`.
