@@ -86,6 +86,15 @@ export const entregaDeDocumentosSchema = z.object({
   itens: z
     .partialRecord(tipoDeDocumentoEntregueSchema, entregaSchema)
     .default({}),
+  /**
+   * A pasta do aluno no Drive do colégio — só o **id**, nunca o link
+   * inteiro (ver `features/alunos/domain/drive.ts`).
+   *
+   * Mora aqui, e não no cadastro do aluno, porque é a mesma coisa: a pasta
+   * guarda os documentos da matrícula, e quem pode ver a conferência é
+   * exatamente quem pode abrir a pasta. No cadastro, o professor leria.
+   */
+  pastaDoDrive: z.string().nullable().default(null),
   observacoes: textoOpcional,
   origem: origemSchema,
   ...auditoriaDoDocumentoSchema.shape,

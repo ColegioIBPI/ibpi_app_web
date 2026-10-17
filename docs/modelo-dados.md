@@ -178,7 +178,8 @@ senha".
 
 ### `entregaDeDocumentos/{matricula}`
 
-`matricula` · `itens{<documento>:{entregue,em,porNome}}` · `observacoes`
+`matricula` · `itens{<documento>:{entregue,em,porNome}}` · `pastaDoDrive` ·
+`observacoes`
 
 A conferência dos documentos que a **família entrega** na matrícula — a
 lista que hoje a secretaria risca no papel.
@@ -230,6 +231,34 @@ colateral de uma regra.
 
 Coleção separada de `alunos` pela mesma razão de `credenciais`: a regra
 decide por documento e nunca por campo.
+
+#### A pasta do aluno no Drive
+
+`pastaDoDrive` guarda **só o id** da pasta no Drive do colégio
+(`suporte2@colegioibpi.com.br`), com as três subpastas que a escola já usa:
+Documentos Pessoais, Laudos e Declarações. A tela mostra um botão que abre a
+pasta.
+
+**É um link, e não um explorador dentro do Portal.** Listar os arquivos aqui
+exigiria uma conta de serviço com delegação no Workspace — uma chave que
+abre o Drive inteiro da conta — para reconstruir uma listagem que o Drive já
+faz e que a secretaria já acessa.
+
+**O id, e não o link inteiro**, por causa do `/u/4/` que aparece no endereço
+copiado: esse número é o índice da conta Google **de quem copiou**. Salvo
+como veio, mandaria quem tem o `suporte2@` em outra posição para a conta
+errada, e o Drive responderia "você não tem acesso" a uma pasta que a pessoa
+abre todo dia. A URL é montada de novo como `/drive/folders/{id}`, deixando
+o Google escolher a conta.
+
+Também não se deriva do nome da pasta ("matrícula + nome completo"): o nome
+do aluno muda no cadastro e o da pasta não muda junto, e o link quebraria
+sem aviso. A secretaria cola o endereço uma vez por aluno.
+
+> A montagem do documento passa por `baseDaEntrega` justamente por causa
+> deste campo: a gravação é `merge` sobre um documento validado, e o schema
+> preenche o ausente com o padrão — montar só o pedaço alterado faria
+> salvar uma observação apagar a pasta, em silêncio.
 
 ### `turmas/{ano-codigo}`
 

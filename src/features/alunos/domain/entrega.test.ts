@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DOCUMENTOS_DA_MATRICULA } from "@/core/modelo";
 import {
+  baseDaEntrega,
   ehOpcional,
   foiEntregue,
   marcar,
@@ -57,6 +58,36 @@ describe("o que falta", () => {
   it("só o laudo médico é opcional", () => {
     const opcionais = DOCUMENTOS_DA_MATRICULA.filter(ehOpcional);
     expect(opcionais).toEqual(["laudo-medico"]);
+  });
+
+  it("salvar um campo não apaga os outros", () => {
+    // O apagamento seria silencioso: salvar uma observação levaria junto a
+    // pasta do Drive, e ninguém notaria até precisar do documento.
+    const anterior = {
+      itens: { "rg-do-aluno": { entregue: true, em: "2026-02-10", porNome: "Ana" } },
+      pastaDoDrive: "1AbC-dEfGhIjKlMnOpQrStUvWxYz0123",
+      observacoes: "cópia simples",
+      origem: "portal",
+    };
+
+    const depois = {
+      ...baseDaEntrega("26031", anterior),
+      observacoes: "trouxe a autenticada",
+    };
+
+    expect(depois.pastaDoDrive).toBe("1AbC-dEfGhIjKlMnOpQrStUvWxYz0123");
+    expect(depois.itens).toEqual(anterior.itens);
+    expect(depois.observacoes).toBe("trouxe a autenticada");
+  });
+
+  it("aluno sem conferência nenhuma parte do zero", () => {
+    expect(baseDaEntrega("26031", null)).toEqual({
+      matricula: "26031",
+      itens: {},
+      pastaDoDrive: null,
+      observacoes: null,
+      origem: "portal",
+    });
   });
 
   it("marcação ausente é o mesmo que não entregue", () => {

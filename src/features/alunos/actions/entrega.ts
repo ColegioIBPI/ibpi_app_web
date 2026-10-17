@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
+import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
   COLECOES,
@@ -12,7 +13,8 @@ import {
   tipoDeDocumentoEntregueSchema,
   type EntregaDeDocumentos,
 } from "@/core/modelo";
-import { marcar } from "@/features/alunos/domain/entrega";
+import { extrairPastaDoDrive } from "@/features/alunos/domain/drive";
+import { baseDaEntrega, marcar } from "@/features/alunos/domain/entrega";
 
 /**
  * Conferência dos documentos entregues na matrícula.
@@ -26,6 +28,46 @@ import { marcar } from "@/features/alunos/domain/entrega";
 export interface ResultadoDaEntrega {
   ok: boolean;
   erro?: string;
+}
+
+/**
+ * Lê o documento atual e grava a versão com a mudança aplicada.
+ *
+ * As três ações passam por aqui porque a gravação é `merge` sobre um
+ * documento **inteiro validado**: o schema preenche o que falta com o
+ * padrão, então montar só o pedaço alterado apagaria os outros campos —
+ * salvar uma observação zeraria a pasta do Drive sem ninguém perceber.
+ */
+async function alterarEntrega(
+  matricula: string,
+  sessao: SessionUser,
+  mudanca: (anterior: EntregaDeDocumentos | null) => Partial<EntregaDeDocumentos>,
+): Promise<ResultadoDaEntrega> {
+  const db = getAdminDb();
+  const referencia = db.collection(COLECOES.entregaDeDocumentos).doc(matricula);
+  const atual = await referencia.get();
+  const anterior = atual.exists ? (atual.data() as EntregaDeDocumentos) : null;
+
+  const documento = entregaDeDocumentosSchema.safeParse({
+    ...baseDaEntrega(matricula, anterior),
+    ...mudanca(anterior),
+  });
+
+  if (!documento.success) {
+    return { ok: false, erro: documento.error.issues[0]?.message };
+  }
+
+  await gravarComAuditoria({
+    colecao: COLECOES.entregaDeDocumentos,
+    documentoId: matricula,
+    antes: anterior,
+    depois: documento.data,
+    autor: sessao,
+  });
+
+  revalidatePath(`/gestao/alunos/${matricula}`);
+
+  return { ok: true };
 }
 
 const marcacaoSchema = z.object({
@@ -43,41 +85,13 @@ export async function marcarEntrega(
   }
 
   const sessao = await exigirPermissao("cadastros", "gerenciar");
-  const db = getAdminDb();
 
-  const referencia = db
-    .collection(COLECOES.entregaDeDocumentos)
-    .doc(entrada.data.matricula);
-  const atual = await referencia.get();
-  const anterior = atual.exists
-    ? (atual.data() as EntregaDeDocumentos)
-    : null;
-
-  const documento = entregaDeDocumentosSchema.safeParse({
-    matricula: entrada.data.matricula,
+  return alterarEntrega(entrada.data.matricula, sessao, (anterior) => ({
     itens: {
       ...(anterior?.itens ?? {}),
       [entrada.data.tipo]: marcar(entrada.data.entregue, sessao.nome),
     },
-    observacoes: anterior?.observacoes ?? null,
-    origem: anterior?.origem ?? "portal",
-  });
-
-  if (!documento.success) {
-    return { ok: false, erro: documento.error.issues[0]?.message };
-  }
-
-  await gravarComAuditoria({
-    colecao: COLECOES.entregaDeDocumentos,
-    documentoId: entrada.data.matricula,
-    antes: anterior,
-    depois: documento.data,
-    autor: sessao,
-  });
-
-  revalidatePath(`/gestao/alunos/${entrada.data.matricula}`);
-
-  return { ok: true };
+  }));
 }
 
 const observacoesSchema = z.object({
@@ -94,36 +108,47 @@ export async function salvarObservacoesDaEntrega(
   }
 
   const sessao = await exigirPermissao("cadastros", "gerenciar");
-  const db = getAdminDb();
 
-  const referencia = db
-    .collection(COLECOES.entregaDeDocumentos)
-    .doc(entrada.data.matricula);
-  const atual = await referencia.get();
-  const anterior = atual.exists
-    ? (atual.data() as EntregaDeDocumentos)
-    : null;
-
-  const documento = entregaDeDocumentosSchema.safeParse({
-    matricula: entrada.data.matricula,
-    itens: anterior?.itens ?? {},
+  return alterarEntrega(entrada.data.matricula, sessao, () => ({
     observacoes: entrada.data.observacoes,
-    origem: anterior?.origem ?? "portal",
-  });
+  }));
+}
 
-  if (!documento.success) {
-    return { ok: false, erro: documento.error.issues[0]?.message };
+const pastaSchema = z.object({
+  matricula: z.string().min(1),
+  /** O link colado do Drive, ou vazio para desvincular. */
+  link: z.string().trim().default(""),
+});
+
+export async function salvarPastaDoDrive(
+  dados: z.infer<typeof pastaSchema>,
+): Promise<ResultadoDaEntrega> {
+  const entrada = pastaSchema.safeParse(dados);
+  if (!entrada.success) {
+    return { ok: false, erro: entrada.error.issues[0]?.message };
   }
 
-  await gravarComAuditoria({
-    colecao: COLECOES.entregaDeDocumentos,
-    documentoId: entrada.data.matricula,
-    antes: anterior,
-    depois: documento.data,
-    autor: sessao,
-  });
+  const sessao = await exigirPermissao("cadastros", "gerenciar");
 
-  revalidatePath(`/gestao/alunos/${entrada.data.matricula}`);
+  // Desvincular é deliberado: campo vazio tira a pasta.
+  if (!entrada.data.link) {
+    return alterarEntrega(entrada.data.matricula, sessao, () => ({
+      pastaDoDrive: null,
+    }));
+  }
 
-  return { ok: true };
+  const pastaDoDrive = extrairPastaDoDrive(entrada.data.link);
+
+  // Recusar é melhor que guardar o que não abre: um link quebrado só
+  // aparece no dia em que alguém precisa do documento.
+  if (!pastaDoDrive) {
+    return {
+      ok: false,
+      erro: "Não reconheci uma pasta nesse link. Abra a pasta do aluno no Drive e copie o endereço da barra.",
+    };
+  }
+
+  return alterarEntrega(entrada.data.matricula, sessao, () => ({
+    pastaDoDrive,
+  }));
 }

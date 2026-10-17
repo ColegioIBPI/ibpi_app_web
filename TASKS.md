@@ -267,9 +267,13 @@ Referência de requisitos: [README.md](README.md).
 - [x] Checklist na ficha do aluno, gravando a cada clique, com quem conferiu e quando
 - [x] Observação interna da conferência
 - [x] Publicar a Security Rule: só secretaria, coordenação e administração
+- [x] Vincular a pasta do aluno no Drive, guardando o id e não o link
 - [ ] Decidir com a secretaria se a família passa a ver a lista no aplicativo
-- [ ] Área de visualização do drive do aluno — depende de decisão e de acesso
-      ao Workspace `suporte2@colegioibpi.com.br`
+- [ ] Vincular as pastas dos alunos já existentes — uma vez por aluno
+
+> O explorador de arquivos dentro do Portal foi **descartado**: exigiria uma
+> conta de serviço com delegação no Workspace para reconstruir a listagem
+> que o Drive já faz. O botão abre a pasta.
 
 ### 3.14 Boleto do aluno
 

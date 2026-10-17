@@ -59,6 +59,34 @@ export function resumir(itens: Itens): Resumo {
   };
 }
 
+/**
+ * O documento inteiro a partir do que já existe, antes de aplicar a
+ * mudança.
+ *
+ * Existe porque a gravação é `merge` sobre um documento **validado**, e o
+ * schema preenche o que falta com o padrão: montar só o pedaço alterado
+ * faria `pastaDoDrive` voltar a `null` toda vez que alguém salvasse uma
+ * observação. O apagamento seria silencioso — o campo some, ninguém vê, e
+ * a pasta se perde.
+ */
+export function baseDaEntrega(
+  matricula: string,
+  anterior: {
+    itens?: Itens;
+    pastaDoDrive?: string | null;
+    observacoes?: string | null;
+    origem?: string;
+  } | null,
+) {
+  return {
+    matricula,
+    itens: anterior?.itens ?? {},
+    pastaDoDrive: anterior?.pastaDoDrive ?? null,
+    observacoes: anterior?.observacoes ?? null,
+    origem: anterior?.origem ?? "portal",
+  };
+}
+
 /** A marcação a gravar, com quem marcou e quando. */
 export function marcar(
   entregue: boolean,

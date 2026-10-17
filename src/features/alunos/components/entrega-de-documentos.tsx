@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -11,11 +12,13 @@ import {
   type TipoDeDocumentoEntregue,
 } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
-import { TextAreaField } from "@/core/ui/field";
+import { TextAreaField, TextField } from "@/core/ui/field";
 import {
   marcarEntrega,
   salvarObservacoesDaEntrega,
+  salvarPastaDoDrive,
 } from "@/features/alunos/actions/entrega";
+import { urlDaPasta } from "@/features/alunos/domain/drive";
 import {
   ehOpcional,
   resumir,
@@ -148,11 +151,152 @@ export function EntregaDeDocumentosDoAluno({
         })}
       </ul>
 
+      <PastaDoAluno
+        matricula={matricula}
+        pastaDoDrive={entrega?.pastaDoDrive ?? null}
+        podeAlterar={podeMarcar}
+      />
+
       {podeMarcar && (
         <ObservacoesDaEntrega
           matricula={matricula}
           texto={entrega?.observacoes ?? ""}
         />
+      )}
+    </div>
+  );
+}
+
+/**
+ * A pasta do aluno no Drive do colégio.
+ *
+ * Um botão que abre a pasta, e não um explorador dentro do Portal: as
+ * pastas já existem e a secretaria já as acessa: reconstruir a listagem
+ * aqui duplicaria o que funciona e exigiria uma chave que abre o Drive
+ * inteiro da conta.
+ *
+ * O campo some depois de vinculado — a pasta se define uma vez por aluno,
+ * e um campo de link sempre aberto ao lado do botão só convida a colar por
+ * cima do que está certo.
+ */
+function PastaDoAluno({
+  matricula,
+  pastaDoDrive,
+  podeAlterar,
+}: {
+  matricula: string;
+  pastaDoDrive: string | null;
+  podeAlterar: boolean;
+}) {
+  const router = useRouter();
+
+  const [link, setLink] = useState("");
+  const [editando, setEditando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, comecarSalvamento] = useTransition();
+
+  function salvar(valor: string) {
+    setErro(null);
+
+    comecarSalvamento(async () => {
+      const resultado = await salvarPastaDoDrive({ matricula, link: valor });
+
+      if (!resultado.ok) {
+        setErro(resultado.erro ?? "Não foi possível salvar.");
+        return;
+      }
+
+      setLink("");
+      setEditando(false);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="border-line flex flex-col gap-3 border-t pt-4">
+      <div>
+        <h3 className="text-ink text-sm font-medium">Pasta do aluno no Drive</h3>
+        <p className="text-ink-muted text-xs">
+          Documentos Pessoais, Laudos e Declarações. Abre no Drive do colégio,
+          com a sua conta.
+        </p>
+      </div>
+
+      {erro && (
+        <p
+          role="alert"
+          className="border-danger bg-danger-surface text-danger rounded-md border px-3 py-2 text-sm"
+        >
+          {erro}
+        </p>
+      )}
+
+      {pastaDoDrive && !editando ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={urlDaPasta(pastaDoDrive)}
+            target="_blank"
+            rel="noreferrer"
+            className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <FolderOpen className="size-4" aria-hidden />
+            Abrir drive do aluno
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
+
+          {podeAlterar && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setEditando(true)}
+            >
+              Trocar pasta
+            </Button>
+          )}
+        </div>
+      ) : podeAlterar ? (
+        <>
+          <TextField
+            label="Link da pasta"
+            hint="Abra a pasta do aluno no Drive e cole o endereço. O sistema guarda só o identificador da pasta."
+            placeholder="https://drive.google.com/drive/folders/..."
+            value={link}
+            onChange={(evento) => setLink(evento.target.value)}
+          />
+
+          <div className="flex justify-end gap-2">
+            {pastaDoDrive && (
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setEditando(false);
+                    setLink("");
+                    setErro(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => salvar("")}
+                  loading={salvando}
+                >
+                  Desvincular
+                </Button>
+              </>
+            )}
+            <Button size="sm" onClick={() => salvar(link)} loading={salvando}>
+              Vincular pasta
+            </Button>
+          </div>
+        </>
+      ) : (
+        <p className="text-ink-muted text-sm">
+          Nenhuma pasta vinculada a este aluno.
+        </p>
       )}
     </div>
   );
