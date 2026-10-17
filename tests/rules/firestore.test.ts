@@ -261,6 +261,10 @@ beforeEach(async () => {
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
       plural: { usuario: "aluno", senha: "plural-2026" },
     });
+    await setDoc(doc(db, `entregaDeDocumentos/${FILHO}`), {
+      matricula: FILHO,
+      itens: { "rg-do-aluno": { entregue: true, em: "2026-02-10" } },
+    });
     await setDoc(doc(db, "documentosSolicitaveis/declaracao"), {
       nome: "Declaração de matrícula",
       ativo: true,
@@ -807,6 +811,48 @@ describe("acessos às plataformas", () => {
   });
 });
 
+describe("conferência dos documentos da matrícula", () => {
+  it("secretaria, coordenação e administração leem", async () => {
+    const { secretaria, coordenacao, admin } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, admin]) {
+      await assertSucceeds(ler(contexto, `entregaDeDocumentos/${FILHO}`));
+    }
+  });
+
+  it("o professor NÃO lê", async () => {
+    // "Laudo Médico entregue" é informação de saúde. Ele lê o cadastro do
+    // aluno, e é por isso que a conferência mora em coleção separada.
+    const { professor } = contextos();
+
+    await assertFails(ler(professor, `entregaDeDocumentos/${FILHO}`));
+    await assertSucceeds(ler(professor, `alunos/${FILHO}`));
+  });
+
+  it("o financeiro não lê", async () => {
+    const { financeiro } = contextos();
+    await assertFails(ler(financeiro, `entregaDeDocumentos/${FILHO}`));
+  });
+
+  it("a família não lê, nem a do próprio aluno", async () => {
+    // Por ora é conferência interna. Mostrá-la à família transformaria a
+    // lista em cobrança automática, e isso é decisão da secretaria.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, `entregaDeDocumentos/${FILHO}`));
+    await assertFails(ler(aluno, `entregaDeDocumentos/${FILHO}`));
+  });
+
+  it("ninguém escreve pelo cliente", async () => {
+    const { secretaria } = contextos();
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), `entregaDeDocumentos/${FILHO}`), {
+        itens: {},
+      }),
+    );
+  });
+});
+
 describe("catálogo de documentos", () => {
   it("toda pessoa com sessão lê a lista", async () => {
     // É a lista de onde a família escolhe ao pedir uma declaração: sem
@@ -873,6 +919,7 @@ describe("administração — a chave mestra", () => {
       "avisos/despublicado",
       `boletos/${FILHO}`,
       `credenciais/${FILHO}`,
+      `entregaDeDocumentos/${FILHO}`,
       "documentosSolicitaveis/declaracao",
       "solicitacoes/do-filho",
       "informacoes/tutoria",

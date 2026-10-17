@@ -8,7 +8,9 @@ import { pode } from "@/core/auth/roles";
 import { formatarTelefone } from "@/core/lib/format";
 import { ROTULOS_DE_TIPO_DE_RESPONSAVEL } from "@/core/modelo";
 import { AcessosDoAluno } from "@/features/alunos/components/acessos";
+import { EntregaDeDocumentosDoAluno } from "@/features/alunos/components/entrega-de-documentos";
 import { obterCredenciais } from "@/features/alunos/services/credenciais.server";
+import { obterEntrega } from "@/features/alunos/services/entrega.server";
 import { Card } from "@/core/ui/card";
 import { FichaDoAluno } from "@/features/alunos/components/ficha-do-aluno";
 import { FotoDoAluno } from "@/features/alunos/components/foto-do-aluno";
@@ -91,6 +93,22 @@ export default async function AlunoPage({
       )}
 
       <FichaDoAluno aluno={aluno} />
+
+      {/* A conferência da matrícula é da secretaria e da coordenação.
+          Professor e financeiro não entram: "laudo médico entregue" é
+          informação de saúde, e quem dá aula não precisa dela. */}
+      {pode(sessao.role, "cadastros", "gerenciar") && (
+        <Card
+          title="Documentos da matrícula"
+          description="Marque conforme a família entrega na secretaria."
+        >
+          <EntregaDeDocumentosDoAluno
+            matricula={aluno.matricula}
+            entrega={await obterEntrega(sessao, aluno.matricula)}
+            podeMarcar
+          />
+        </Card>
+      )}
 
       {/* Senha de plataforma não é assunto de professor: ele lê o cadastro
           mas não chega aqui. */}

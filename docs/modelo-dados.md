@@ -176,6 +176,61 @@ que o sistema nunca confere e que envelhece na primeira vez que a família a
 trocar. A tela mostra o **e-mail de acesso** e aponta para "Esqueci minha
 senha".
 
+### `entregaDeDocumentos/{matricula}`
+
+`matricula` · `itens{<documento>:{entregue,em,porNome}}` · `observacoes`
+
+A conferência dos documentos que a **família entrega** na matrícula — a
+lista que hoje a secretaria risca no papel.
+
+Não se confunde com `documentosSolicitaveis`, que é o caminho contrário: lá
+é o que a **escola emite** a pedido da família.
+
+**A lista é fixa**, nove itens no código e não um catálogo que alguém
+cadastra: são os documentos exigidos de todo aluno. Virar cadastro abriria a
+porta para cada ano ter uma lista diferente, e aí a conferência de um aluno
+não poderia mais ser comparada com a de outro.
+
+| Documento                                  |            |
+| ------------------------------------------ | ---------- |
+| Histórico Escolar Original                 | exigido    |
+| Cópia Certidão de Nascimento               | exigido    |
+| Cópia RG Aluno                             | exigido    |
+| Cópia CPF Aluno                            | exigido    |
+| Tipo Sanguíneo                             | exigido    |
+| Cópia do RG do Responsável Financeiro      | exigido    |
+| Cópia do CPF do Responsável Financeiro     | exigido    |
+| Comprovante de Residência do Responsável   | exigido    |
+| Laudo Médico                               | **quando houver** |
+
+O laudo é opcional de propósito: exigi-lo de todos faria a lista nunca
+fechar, e uma pendência que nunca sai ensina a secretaria a ignorar o aviso.
+Por isso `completo` olha só os oito exigidos.
+
+**Guarda o mapa inteiro, não a lista do que foi entregue.** É o que permite
+responder "quando a mãe trouxe o histórico" — a pergunta que aparece
+justamente quando alguém diz que já entregou. Cada marcação registra
+`em` e `porNome`; desmarcar limpa os dois, porque manter a data antiga
+afirmaria uma entrega que a própria marcação nega.
+
+`itens` é `partialRecord` e não `record`: aluno recém-cadastrado não tem
+marcação nenhuma, e `record` com chave de enum exigiria as nove.
+
+Cada clique grava sozinho, sem botão "salvar" — a conferência acontece com a
+família no balcão, e um formulário que só persiste no fim perderia a
+marcação de quem foi interrompido no meio do atendimento.
+
+**Lê só a escola, e nem a escola inteira:** secretaria, coordenação e
+administração. O **professor não** — "Laudo Médico entregue" é informação de
+saúde, e quem dá aula não precisa dela. O **financeiro também não**:
+documento de matrícula não é caixa. E a **família não lê**, por ora; mostrar
+a lista no aplicativo é desejável, mas transformaria a conferência interna
+em cobrança automática, e essa é uma decisão da secretaria, não um efeito
+colateral de uma regra.
+
+Coleção separada de `alunos` pela mesma razão de `credenciais`: a regra
+decide por documento e nunca por campo.
+
 ### `turmas/{ano-codigo}`
 
 `codigo` (`EM1A`, `E.J.A. EM`) · `anoLetivo` · `segmento` · `turno` ·

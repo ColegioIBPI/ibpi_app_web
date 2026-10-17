@@ -294,6 +294,24 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ------------------------------------------ entrega de documentos
+
+    // A conferência dos documentos que a família entrega na matrícula.
+    //
+    // **Só a escola lê**, e nem a escola inteira: secretaria, coordenação
+    // e administração. O professor fica de fora — "Laudo Médico entregue"
+    // é informação de saúde, e quem dá aula não precisa dela — e o
+    // financeiro também, porque documento de matrícula não é caixa.
+    //
+    // A **família também não lê**, por ora. Mostrar a lista no aplicativo
+    // é desejável, mas transformaria a conferência interna em cobrança
+    // automática à família, e essa é uma decisão da secretaria e não um
+    // efeito colateral de uma regra.
+    match /entregaDeDocumentos/{matricula} {
+      allow read: if temPerfil(['secretaria', 'coordenacao']);
+      allow write: if false;
+    }
+
     // --------------------------------------------------- solicitações
 
     // Os pedidos que a família faz à secretaria.

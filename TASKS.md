@@ -261,6 +261,16 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.15 Conferência dos documentos da matrícula
+
+- [x] Modelar `entregaDeDocumentos` — nove itens fixos, laudo médico opcional
+- [x] Checklist na ficha do aluno, gravando a cada clique, com quem conferiu e quando
+- [x] Observação interna da conferência
+- [x] Publicar a Security Rule: só secretaria, coordenação e administração
+- [ ] Decidir com a secretaria se a família passa a ver a lista no aplicativo
+- [ ] Área de visualização do drive do aluno — depende de decisão e de acesso
+      ao Workspace `suporte2@colegioibpi.com.br`
+
 ### 3.14 Boleto do aluno
 
 - [x] Modelar `boletos` — um documento por matrícula, com o PDF no Storage

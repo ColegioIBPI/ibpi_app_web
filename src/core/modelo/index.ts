@@ -26,6 +26,7 @@ export * from "@/core/modelo/documento";
 export * from "@/core/modelo/solicitacao";
 export * from "@/core/modelo/credencial";
 export * from "@/core/modelo/boleto";
+export * from "@/core/modelo/entrega";
 
 /** Nome de cada coleção no Firestore, em um lugar só. */
 export const COLECOES = {
@@ -54,6 +55,7 @@ export const COLECOES = {
   solicitacoes: "solicitacoes",
   credenciais: "credenciais",
   boletos: "boletos",
+  entregaDeDocumentos: "entregaDeDocumentos",
   auditoria: "auditoria",
 } as const;
 
