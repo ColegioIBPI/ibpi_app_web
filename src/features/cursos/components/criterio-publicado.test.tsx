@@ -102,3 +102,21 @@ describe("sem separador — dentro de um cartão", () => {
     expect(screen.getByText("Como o aluno é avaliado")).toBeInTheDocument();
   });
 });
+
+describe("rascunho", () => {
+  it("avisa quando o critério ainda não foi publicado", () => {
+    // O professor é equipe e enxerga o rascunho; tomá-lo por regra vigente
+    // o faria explicar à turma uma avaliação que ainda pode mudar.
+    render(<CriterioPublicado criterio={criterio({ publicado: false })} />);
+
+    expect(
+      screen.getByText(/Rascunho — ainda não publicado/),
+    ).toBeInTheDocument();
+  });
+
+  it("critério publicado não leva aviso nenhum", () => {
+    render(<CriterioPublicado criterio={criterio()} />);
+
+    expect(screen.queryByText(/Rascunho/)).not.toBeInTheDocument();
+  });
+});

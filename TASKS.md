@@ -272,6 +272,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Mostrar o critério publicado no boletim da família, imprimindo junto
 - [x] Atualizar o contrato do app com `criteriosDeAvaliacao`
 - [x] Dar ao critério um lugar em "Informações úteis", fora da época de boletim
+- [x] Visão de leitura do critério para o professor, no lançamento de notas
 - [ ] Tela de salas e de dias/horários de aula
 - [ ] Copiar a estrutura de um ano letivo para o seguinte
 

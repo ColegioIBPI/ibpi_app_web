@@ -8,6 +8,10 @@ import { trimestreDaQuery } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
 import { SeletorDeTrimestre } from "@/core/ui/seletor-de-trimestre";
 import { EmptyState } from "@/core/ui/states";
+import { getAdminDb } from "@/core/firebase/admin";
+import { COLECOES, type Turma } from "@/core/modelo";
+import { CriterioPublicado } from "@/features/cursos/components/criterio-publicado";
+import { criterioPublicado } from "@/features/cursos/services/criterios.server";
 import { GradeDeNotas } from "@/features/notas/components/grade-de-notas";
 import { montarLancamento } from "@/features/notas/domain/lancamento";
 import { contextoDeLancamento } from "@/features/notas/services/notas.server";
@@ -29,6 +33,27 @@ export default async function LancamentoDeNotasPage({
   if (!contexto) notFound();
 
   const { alocacao, alunos, notas, faltasDoDiario } = contexto;
+
+  /**
+   * O critério da turma, em leitura.
+   *
+   * O professor não alcança a tela de Configurações — ela exige
+   * `cadastros: gerenciar`, que ele não tem. Sem isto, a regra que ele
+   * aplica ao lançar nota existiria só no boletim da família.
+   *
+   * Rascunho **incluído**, porque ele é equipe e a coordenação discute o
+   * critério com quem vai aplicá-lo; o componente o marca como rascunho.
+   */
+  const turmaDoc = await getAdminDb()
+    .collection(COLECOES.turmas)
+    .doc(alocacao.turmaId)
+    .get();
+
+  const criterio = await criterioPublicado(
+    alocacao.anoLetivo,
+    turmaDoc.exists ? ((turmaDoc.data() as Turma).segmento ?? null) : null,
+    false,
+  );
 
   // Quem ainda não tem lançamento começa com as faltas contadas no diário —
   // o professor confere em vez de recontar.
@@ -58,6 +83,15 @@ export default async function LancamentoDeNotasPage({
           {alocacao.anoLetivo} · {trimestre}º trimestre
         </p>
       </div>
+
+      {criterio && (
+        <Card
+          title="Como o aluno é avaliado"
+          description={`Critério de ${criterio.anoLetivo}, definido pela coordenação.`}
+        >
+          <CriterioPublicado criterio={criterio} semSeparador />
+        </Card>
+      )}
 
       <SeletorDeTrimestre atual={trimestre} />
 

@@ -3,7 +3,9 @@ import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { alocacoesVisiveis } from "@/core/escola/alocacoes.server";
-import { trimestreDaQuery } from "@/core/lib/ano-letivo";
+import { anoLetivoAtual, trimestreDaQuery } from "@/core/lib/ano-letivo";
+import { resumoDoCriterio } from "@/features/cursos/domain/criterio";
+import { criterioPublicado } from "@/features/cursos/services/criterios.server";
 import { Card } from "@/core/ui/card";
 import { SeletorDeTrimestre } from "@/core/ui/seletor-de-trimestre";
 import { EmptyState } from "@/core/ui/states";
@@ -19,13 +21,20 @@ export default async function NotasPage({
 
   const alocacoes = await alocacoesVisiveis(sessao);
 
+  // A lista cobre turmas de cursos diferentes, então aqui só cabe o
+  // critério **geral** do colégio. O da turma aparece na tela de
+  // lançamento, onde há uma turma só. Publicado apenas: uma linha solta
+  // não tem onde dizer que é rascunho.
+  const geral = await criterioPublicado(anoLetivoAtual(), null);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-ink text-xl font-semibold">Notas</h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Projeto, Tarefas e AV por aluno. A média do trimestre é
-          {" "}(Projeto + Tarefas + AV) ÷ 3.
+          {geral
+            ? resumoDoCriterio(geral)
+            : "Projeto, Tarefas e AV por aluno. A média do trimestre é (Projeto + Tarefas + AV) ÷ 3."}
         </p>
       </div>
 

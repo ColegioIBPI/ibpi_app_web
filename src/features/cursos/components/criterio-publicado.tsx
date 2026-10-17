@@ -34,6 +34,18 @@ export function CriterioPublicado({
         </h3>
       )}
 
+      {/*
+        O rascunho só chega à equipe — a regra do Firestore o nega à
+        família. Mas a equipe precisa ver que é rascunho: um professor que
+        tomasse um texto em discussão por regra vigente explicaria à turma
+        uma avaliação que ainda pode mudar.
+      */}
+      {!criterio.publicado && (
+        <p className="border-warning bg-warning-surface text-warning mt-2 rounded-md border px-2 py-1 text-xs">
+          Rascunho — ainda não publicado para as famílias.
+        </p>
+      )}
+
       <dl className={`grid gap-3 text-sm sm:grid-cols-3 ${semSeparador ? "" : "mt-3"}`}>
         <div>
           <dt className="text-ink-muted text-xs">Períodos</dt>

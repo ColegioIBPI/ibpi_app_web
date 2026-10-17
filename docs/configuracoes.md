@@ -125,7 +125,23 @@ ali daria a impressão de que entra em alguma conta.
 
 ### Onde a família lê
 
-Em **dois lugares, com papéis diferentes**.
+### Quem lê, e onde
+
+| Quem | Onde | Rascunho? |
+| --- | --- | --- |
+| Família | boletim e Informações úteis | não |
+| Professor | tela de lançamento de notas | **sim**, marcado |
+| Coordenação, secretaria | Configurações | sim, é lá que edita |
+
+O **professor não alcança Configurações** — ela exige `cadastros:
+gerenciar`, que ele não tem. Sem a visão de leitura no lançamento de notas,
+a regra que ele aplica existiria só no boletim da família.
+
+Ele vê o rascunho, e **marcado como tal**: a coordenação discute o critério
+com quem vai aplicá-lo, mas um professor que tomasse um texto em discussão
+por regra vigente explicaria à turma uma avaliação que ainda pode mudar.
+
+Em **dois lugares, com papéis diferentes**, do lado da família.
 
 No **boletim**, abaixo das notas, e **imprime junto**: a pergunta "como essa
 média foi calculada?" aparece com o boletim na mão, e a resposta numa outra
@@ -180,5 +196,5 @@ nome do curso aparece na ficha, no boletim e no recibo.
 - **Dias e horários de aula** (`diasDeAula`) continuam sem tela.
 - **Copiar a estrutura de um ano para o seguinte** — hoje turmas e vínculos
   de janeiro são recriados à mão.
-- O critério **não aparece para o professor** em lugar nenhum: ele o lê
-  pela tela de Configurações, que é de edição.
+- **Copiar o critério de um ano para o seguinte** — hoje recomeça do
+  padrão do código.
