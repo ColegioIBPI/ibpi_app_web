@@ -33,12 +33,16 @@ const SITUACOES: {
   { valor: "presente", letra: "P", rotulo: "Presente" },
   { valor: "falta", letra: "F", rotulo: "Falta" },
   { valor: "atraso", letra: "A", rotulo: "Atraso" },
+  { valor: "saida-antecipada", letra: "S", rotulo: "Saída antecipada" },
 ];
 
 const CORES: Record<SituacaoDePresenca, string> = {
   presente: "bg-success-surface text-success border-success",
   falta: "bg-danger-surface text-danger border-danger",
   atraso: "bg-warning-surface text-warning border-warning",
+  // Mesma cor do atraso: as duas contam como presença e são o mesmo tipo
+  // de recado à coordenação. Vermelho só para quem faltou.
+  "saida-antecipada": "bg-warning-surface text-warning border-warning",
 };
 
 /**
@@ -46,7 +50,8 @@ const CORES: Record<SituacaoDePresenca, string> = {
  *
  * A secretaria faz isso todo dia para cada turma, então a tela é construída
  * em volta da velocidade: todo mundo começa presente, as letras P/F/A são as
- * mesmas da planilha, e o botão de situação cicla no clique. Nada de abrir
+ * mesmas da planilha — S é a saída antecipada, que a planilha não tinha —,
+ * e o botão de situação cicla no clique. Nada de abrir
  * um diálogo por aluno.
  */
 export function Chamada({
@@ -94,6 +99,8 @@ export function Chamada({
           situacao: linha.situacao,
           ocorrencia: linha.ocorrencia,
           observacao: linha.observacao,
+          visivelParaResponsavel: linha.visivelParaResponsavel,
+          visivelParaAluno: linha.visivelParaAluno,
         })),
       });
 
@@ -199,6 +206,43 @@ export function Chamada({
                 </option>
               ))}
             </select>
+
+            {/*
+              A autorização só aparece quando há ocorrência: sem ela não há
+              o que publicar, e duas caixas em toda linha da turma
+              atravancariam a chamada, que é feita às pressas.
+            */}
+            {linha.ocorrencia && (
+              <div className="flex items-center gap-3 text-xs">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    className="border-line size-3.5 rounded"
+                    checked={linha.visivelParaResponsavel}
+                    onChange={(evento) =>
+                      alterar(linha.matricula, {
+                        visivelParaResponsavel: evento.target.checked,
+                      })
+                    }
+                  />
+                  <span className="text-ink-muted">Responsável vê</span>
+                </label>
+
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    className="border-line size-3.5 rounded"
+                    checked={linha.visivelParaAluno}
+                    onChange={(evento) =>
+                      alterar(linha.matricula, {
+                        visivelParaAluno: evento.target.checked,
+                      })
+                    }
+                  />
+                  <span className="text-ink-muted">Aluno vê</span>
+                </label>
+              </div>
+            )}
 
             <input
               aria-label={`Observação sobre ${linha.nome}`}

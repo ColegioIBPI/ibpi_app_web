@@ -3,6 +3,7 @@ import type {
   SituacaoDePresenca,
   TipoDeOcorrencia,
 } from "@/core/modelo";
+import type { ParaPublicacao } from "@/features/frequencia/domain/publicacao";
 
 /**
  * Montagem da chamada do dia.
@@ -25,17 +26,40 @@ export interface LinhaDaChamada {
   situacao: SituacaoDePresenca;
   ocorrencia: TipoDeOcorrencia | null;
   observacao: string;
+  /**
+   * Autorização de publicação da ocorrência. Só tem efeito quando há
+   * ocorrência: sem ela não há o que publicar.
+   *
+   * O responsável nasce marcado — é o que já acontecia antes de o campo
+   * existir, e desmarcá-lo é o ato deliberado de **reter** o registro
+   * delicado. O aluno nasce desmarcado: ocorrência disciplinar se trata
+   * com o adulto, e mostrá-la a ele é decisão caso a caso.
+   */
+  visivelParaResponsavel: boolean;
+  visivelParaAluno: boolean;
   /** `true` quando já existia lançamento gravado para este dia. */
   jaLancado: boolean;
 }
 
+/**
+ * O lançamento do dia, somado à autorização de publicação da ocorrência.
+ *
+ * A autorização mora no documento da **ocorrência**, não no da frequência;
+ * quem carrega a tela junta os dois antes de chamar esta função, para que
+ * ela continue pura.
+ */
+export type LancamentoDaChamada = Partial<FrequenciaDiaria> &
+  Partial<ParaPublicacao>;
+
 export function montarChamada(
   alunos: readonly AlunoDaChamada[],
-  lancamentos: readonly Partial<FrequenciaDiaria>[],
+  lancamentos: readonly LancamentoDaChamada[],
 ): LinhaDaChamada[] {
   const porMatricula = new Map(
     lancamentos
-      .filter((item): item is FrequenciaDiaria => Boolean(item.matricula))
+      .filter((item): item is LancamentoDaChamada & { matricula: string } =>
+        Boolean(item.matricula),
+      )
       .map((item) => [item.matricula, item]),
   );
 
@@ -48,6 +72,10 @@ export function montarChamada(
       situacao: lancado?.situacao ?? "presente",
       ocorrencia: lancado?.ocorrencia ?? null,
       observacao: lancado?.observacao ?? "",
+      // Os padrões são os mesmos de `domain/publicacao.ts`: ausente é
+      // "como era antes do campo existir".
+      visivelParaResponsavel: lancado?.visivelParaResponsavel !== false,
+      visivelParaAluno: lancado?.visivelParaAluno === true,
       jaLancado: Boolean(lancado),
     };
   });
@@ -108,14 +136,23 @@ export function resumoDaChamada(linhas: readonly LinhaDaChamada[]) {
     presentes: linhas.filter((l) => l.situacao === "presente").length,
     faltas: linhas.filter((l) => l.situacao === "falta").length,
     atrasos: linhas.filter((l) => l.situacao === "atraso").length,
+    saidasAntecipadas: linhas.filter((l) => l.situacao === "saida-antecipada")
+      .length,
     ocorrencias: linhas.filter((l) => l.ocorrencia !== null).length,
   };
 }
 
-/** Códigos da planilha, para a digitação rápida por teclado. */
+/**
+ * O ciclo do botão de situação, que a secretaria avança no clique.
+ *
+ * A saída antecipada entra **no fim**, depois do atraso: ela é a marcação
+ * mais rara do dia, e pô-la antes faria a secretaria passar por ela toda
+ * vez que quisesse voltar a "presente".
+ */
 export const PROXIMA_SITUACAO: Record<SituacaoDePresenca, SituacaoDePresenca> =
   {
     presente: "falta",
     falta: "atraso",
-    atraso: "presente",
+    atraso: "saida-antecipada",
+    "saida-antecipada": "presente",
   };

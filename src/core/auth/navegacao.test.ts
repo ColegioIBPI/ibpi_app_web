@@ -73,13 +73,18 @@ describe("navegacaoPara", () => {
     expect(doAdmin).toContain("Financeiro");
   });
 
-  it("aluno não vê ocorrências nem financeiro", () => {
+  it("aluno não vê financeiro, mas tem a aba de ocorrências", () => {
+    // Ocorrências entrou quando a escola passou a poder **autorizar** a
+    // publicação caso a caso. A aba existe; o que ele lê lá dentro é só o
+    // que foi marcado para ele — o recorte é por documento, não por menu.
     expect(rotulos("aluno")).toEqual([
       "Avisos",
       "Boletim",
       "Frequência",
+      "Ocorrências",
       "Informações úteis",
     ]);
+    expect(rotulos("aluno")).not.toContain("Financeiro");
   });
 
   it("responsável vê tudo da área de consulta", () => {

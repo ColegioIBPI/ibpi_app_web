@@ -129,7 +129,19 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
   aluno: {
     cadastros: "ler",
     frequencia: "ler",
-    ocorrencias: "nenhum",
+    /**
+     * **Só as ocorrências marcadas para ele.**
+     *
+     * Era `nenhum`: ocorrência disciplinar se tratava com o responsável.
+     * Continua sendo o padrão — o que mudou é que agora quem lança pode
+     * autorizar a publicação caso a caso, e sem `ler` aqui a autorização
+     * não teria efeito nenhum.
+     *
+     * O recorte de **quais** ele vê não está nesta matriz, e sim em
+     * `features/frequencia/domain/publicacao.ts` e na Security Rule: a
+     * matriz diz o recurso, não o documento.
+     */
+    ocorrencias: "ler",
     notas: "ler",
     financeiro: "nenhum",
     avisos: "ler",

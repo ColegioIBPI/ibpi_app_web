@@ -14,6 +14,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/core/ui/table";
+import { resumoDaPublicacao } from "@/features/frequencia/domain/publicacao";
 import { ocorrenciasVisiveis } from "@/features/frequencia/services/frequencia.server";
 
 export const metadata: Metadata = { title: "Ocorrências" };
@@ -56,6 +57,7 @@ export default async function OcorrenciasPage() {
                 <TableHeaderCell>Turma</TableHeaderCell>
                 <TableHeaderCell>Tipo</TableHeaderCell>
                 <TableHeaderCell>Descrição</TableHeaderCell>
+                <TableHeaderCell>Publicação</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -78,6 +80,12 @@ export default async function OcorrenciasPage() {
                   </TableCell>
                   <TableCell className="text-ink-muted">
                     {ocorrencia.descricao}
+                  </TableCell>
+                  {/* A quem o registro chega: a coordenação precisa ver
+                      isso na lista, senão só descobre abrindo um por um
+                      que metade das ocorrências está retida. */}
+                  <TableCell className="text-ink-muted text-xs whitespace-nowrap">
+                    {resumoDaPublicacao(ocorrencia)}
                   </TableCell>
                 </TableRow>
               ))}

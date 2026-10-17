@@ -245,6 +245,36 @@ ocorrência"). A coluna "Natureza" acima é leitura minha para a aba do app —
 **não está no banco**. Se o app precisar do agrupamento como dado, ele
 precisa ser confirmado com a coordenação e gravado.
 
+### Autorização de publicação — novo
+
+Cada ocorrência decide **por documento** quem a lê fora da equipe:
+
+```
+visivelParaResponsavel   // ausente = true
+visivelParaAluno         // ausente = false
+```
+
+**Os padrões são assimétricos de propósito**, e cada um preserva o que já
+valia: antes do campo existir, o responsável via todas as ocorrências e o
+aluno não via nenhuma. Registro antigo não tem os campos.
+
+| Perfil | Mostre a ocorrência quando |
+| --- | --- |
+| Responsável | `visivelParaResponsavel != false` |
+| Aluno | `visivelParaAluno == true` |
+
+> A Security Rule aplica exatamente isso, então uma consulta que traga o
+> que não deve **falha**, não devolve vazio. Filtre no app também, para a
+> tela não depender do erro.
+
+**Mudança para o app: o aluno passa a ter a aba de ocorrências.** Ele tinha
+`ocorrencias: nenhum` e agora tem `ler` — mas só enxerga o que foi marcado
+para ele, que na maioria das vezes é nada. A aba aparece; a lista vem vazia.
+
+**Não diga que existe algo retido.** Nada de "há 1 ocorrência que você não
+pode ver": isso entrega o fato sem o contexto, que é justamente o que a
+retenção quis evitar.
+
 ### Onde a ocorrência vive
 
 Em **duas** coleções, de propósito:
@@ -277,6 +307,13 @@ ocorrencias/{id} = {
 ---
 
 ## 3. Frequência
+
+> **Nova situação: `saida-antecipada`.** As marcações agora são quatro —
+> `presente`, `falta`, `atraso` e `saida-antecipada` (letra `S` na tela da
+> secretaria). Um app que trate o enum como fechado em três valores quebra.
+>
+> Ela **conta como presença**, igual ao atraso: o aluno esteve na aula. Não
+> a some às faltas.
 
 São **duas contagens diferentes**, e elas não se somam:
 

@@ -471,6 +471,10 @@ a turma inteira a cada aula, e o significado seria o mesmo.
 
 ### `ocorrencias/{id}`
 
+> `visivelParaResponsavel` e `visivelParaAluno` decidem quem lê a ocorrência
+> fora da equipe. **Ausente preserva o que já valia**: responsável vê, aluno
+> não. Ver [frequencia.md](frequencia.md), seção 2.
+
 `data` · `matricula` · `turmaId` · `tipo` · `descricao` · `registradoPor`
 
 Oculta para o perfil aluno: a ocorrência é tratada com o responsável e a

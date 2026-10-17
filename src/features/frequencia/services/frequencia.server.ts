@@ -9,6 +9,10 @@ import {
 import { escopoDeAlunos } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
+import {
+  publicadasPara,
+  type ParaPublicacao,
+} from "@/features/frequencia/domain/publicacao";
 import { contar, type Contadores } from "@/core/escola/frequencia";
 
 /**
@@ -23,6 +27,9 @@ export interface LancamentoComId extends FrequenciaDiaria {
   id: string;
 }
 
+/** O lançamento do dia com a autorização da ocorrência já anexada. */
+export type LancamentoDoDia = LancamentoComId & Partial<ParaPublicacao>;
+
 export interface OcorrenciaComId extends Ocorrencia {
   id: string;
 }
@@ -31,17 +38,50 @@ export interface OcorrenciaComId extends Ocorrencia {
 export async function lancamentosDoDia(
   turmaId: string,
   data: string,
-): Promise<LancamentoComId[]> {
+): Promise<LancamentoDoDia[]> {
   const docs = await getAdminDb()
     .collection(COLECOES.frequenciaDiaria)
     .where("turmaId", "==", turmaId)
     .where("data", "==", data)
     .get();
 
-  return docs.docs.map((doc) => ({
+  const lancamentos = docs.docs.map((doc) => ({
     id: doc.id,
     ...(doc.data() as FrequenciaDiaria),
   }));
+
+  /**
+   * A autorização de publicação mora no documento da **ocorrência**, e a
+   * chamada precisa dela para reabrir com as caixas como foram deixadas.
+   *
+   * Sem isto, reabrir a chamada mostraria o padrão em vez do que a pessoa
+   * marcou — e salvar de novo republicaria a ocorrência que ela tinha
+   * retido, em silêncio.
+   */
+  const ocorrencias = await getAdminDb()
+    .collection(COLECOES.ocorrencias)
+    .where("turmaId", "==", turmaId)
+    .where("data", "==", data)
+    .get();
+
+  const publicacao = new Map(
+    ocorrencias.docs.map((doc) => {
+      const ocorrencia = doc.data() as Ocorrencia;
+      return [ocorrencia.matricula, ocorrencia] as const;
+    }),
+  );
+
+  return lancamentos.map((lancamento) => {
+    const ocorrencia = publicacao.get(lancamento.matricula);
+
+    return ocorrencia
+      ? {
+          ...lancamento,
+          visivelParaResponsavel: ocorrencia.visivelParaResponsavel,
+          visivelParaAluno: ocorrencia.visivelParaAluno,
+        }
+      : lancamento;
+  });
 }
 
 /** Frequência de um aluno, com os contadores já calculados. */
@@ -76,7 +116,6 @@ export async function ocorrenciasVisiveis(
   filtro: { matricula?: string; turmaId?: string } = {},
 ): Promise<OcorrenciaComId[]> {
   const escopo = escopoDeAlunos(sessao.role);
-  if (escopo === "proprio") return [];
 
   const db = getAdminDb();
   let consulta: FirebaseFirestore.Query = db.collection(COLECOES.ocorrencias);
@@ -93,9 +132,26 @@ export async function ocorrenciasVisiveis(
     .map((doc) => ({ id: doc.id, ...(doc.data() as Ocorrencia) }))
     .sort((a, b) => b.data.localeCompare(a.data));
 
+  /**
+   * A família lê o que foi publicado para ela.
+   *
+   * O filtro é aqui, e não só na Security Rule, porque o Admin SDK ignora
+   * as regras: o Portal montaria a lista inteira se dependesse delas.
+   */
   if (escopo === "filhos") {
-    return ocorrencias.filter((o) =>
-      sessao.alunosVinculados.includes(o.matricula),
+    return publicadasPara(
+      ocorrencias.filter((o) => sessao.alunosVinculados.includes(o.matricula)),
+      "responsavel",
+    );
+  }
+
+  // O aluno lê as próprias, e só as marcadas para ele.
+  if (escopo === "proprio") {
+    if (!sessao.matricula) return [];
+
+    return publicadasPara(
+      ocorrencias.filter((o) => o.matricula === sessao.matricula),
+      "aluno",
     );
   }
 

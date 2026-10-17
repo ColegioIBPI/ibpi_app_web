@@ -81,7 +81,7 @@ inteira.
 | **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
 | **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |
 | **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   | **Publica** (suas turmas) |
-| **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | ❌ Sem acesso   | Lê (próprio)     | ❌ Sem acesso   | Lê (os dele)              |
+| **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | Lê **só as liberadas** | Lê (próprio)     | ❌ Sem acesso   | Lê (os dele)              |
 | **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) | Lê (dele e dos filhos)    |
 
 A **Administração** é a chave mestra: enxerga e lança em tudo. Existe para
@@ -96,6 +96,14 @@ no documento do usuário, que a conta de administração não tem. A chave mestr
 abre as portas da escola, não a identidade de um aluno. E **não desliga a
 auditoria**: nenhuma escrita passa pelo cliente, e toda gravação registra
 quem alterou o quê.
+
+**Ocorrência tem autorização de publicação por documento.** Quem lança
+decide, caso a caso, se aquele registro chega ao **responsável** e se chega
+ao **aluno** — são duas caixas independentes, porque um comportamento
+descrito para a coordenação nem sempre é o texto que se quer na mão do
+aluno, e às vezes é exatamente o que o responsável precisa ler. O padrão
+mantém o que já valia: responsável vê, aluno não. Ver
+[docs/frequencia.md](docs/frequencia.md).
 
 A separação do **Financeiro** é intencional: quem cuida de mensalidade não
 precisa ver nota, falta nem ocorrência disciplinar de aluno. É o mesmo

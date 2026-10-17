@@ -261,6 +261,24 @@ beforeEach(async () => {
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
       plural: { usuario: "aluno", senha: "plural-2026" },
     });
+    await setDoc(doc(db, "ocorrencias/publicada-para-os-dois"), {
+      matricula: FILHO,
+      turmaId: "2026-EM1A",
+      data: "2026-03-10",
+      tipo: "uniforme",
+      descricao: "Sem uniforme",
+      visivelParaResponsavel: true,
+      visivelParaAluno: true,
+    });
+    await setDoc(doc(db, "ocorrencias/retida"), {
+      matricula: FILHO,
+      turmaId: "2026-EM1A",
+      data: "2026-03-11",
+      tipo: "comportamento-inadequado",
+      descricao: "Conversa delicada",
+      visivelParaResponsavel: false,
+      visivelParaAluno: false,
+    });
     await setDoc(doc(db, "cursos/medio"), {
       codigo: "medio",
       nome: "Ensino Médio",
@@ -839,6 +857,46 @@ describe("acessos às plataformas", () => {
       setDoc(doc(secretaria.firestore(), `credenciais/${FILHO}`), {
         plural: { senha: "x" },
       }),
+    );
+  });
+});
+
+describe("publicação das ocorrências", () => {
+  it("a equipe lê qualquer ocorrência, inclusive a retida", async () => {
+    const { secretaria, coordenacao, admin } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, admin]) {
+      await assertSucceeds(ler(contexto, "ocorrencias/retida"));
+    }
+  });
+
+  it("a ocorrência antiga, sem os campos, continua chegando ao responsável", async () => {
+    // Tratar a ausência como retida faria a família deixar de ver o que já
+    // via — e o que some não avisa.
+    const { responsavel } = contextos();
+    await assertSucceeds(ler(responsavel, "ocorrencias/o1"));
+  });
+
+  it("o responsável não lê a ocorrência retida", async () => {
+    const { responsavel } = contextos();
+    await assertFails(ler(responsavel, "ocorrencias/retida"));
+  });
+
+  it("o aluno lê só a que foi marcada para ele", async () => {
+    const { aluno } = contextos();
+
+    await assertSucceeds(ler(aluno, "ocorrencias/publicada-para-os-dois"));
+    // A antiga não tem o campo, e o aluno nunca viu ocorrência nenhuma.
+    await assertFails(ler(aluno, "ocorrencias/o1"));
+    await assertFails(ler(aluno, "ocorrencias/retida"));
+  });
+
+  it("a publicação não abre a ocorrência de outro aluno", async () => {
+    // Publicar é autorizar a família **daquele** aluno, não o colégio.
+    const { outroResponsavel } = contextos();
+
+    await assertFails(
+      ler(outroResponsavel, "ocorrencias/publicada-para-os-dois"),
     );
   });
 });

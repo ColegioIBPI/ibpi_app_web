@@ -118,9 +118,11 @@ export function resumirPeriodo(linhas: readonly LinhaDoPeriodo[]) {
       presencas: soma.presencas + linha.contadores.presencas,
       faltas: soma.faltas + linha.contadores.faltas,
       atrasos: soma.atrasos + linha.contadores.atrasos,
+      saidasAntecipadas:
+        soma.saidasAntecipadas + linha.contadores.saidasAntecipadas,
       dias: soma.dias + linha.contadores.dias,
     }),
-    { presencas: 0, faltas: 0, atrasos: 0, dias: 0 },
+    { presencas: 0, faltas: 0, atrasos: 0, saidasAntecipadas: 0, dias: 0 },
   );
 
   return {

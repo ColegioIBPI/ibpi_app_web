@@ -74,8 +74,14 @@ describe("matriz de acesso — README seção 3.1", () => {
     expect(pode("financeiro", "financeiro", "lancar")).toBe(true);
   });
 
-  it("aluno não enxerga ocorrência disciplinar nem financeiro", () => {
-    expect(podeVer("aluno", "ocorrencias")).toBe(false);
+  it("aluno não enxerga financeiro, e lê ocorrência só no que for liberado", () => {
+    // `ocorrencias: ler` era `nenhum`. Mudou porque a escola passou a
+    // autorizar a publicação caso a caso, e sem o recurso a autorização
+    // não teria efeito. **Quais** ocorrências ele lê não é decidido aqui:
+    // a matriz diz o recurso, e `domain/publicacao.ts` diz o documento.
+    expect(podeVer("aluno", "ocorrencias")).toBe(true);
+    expect(pode("aluno", "ocorrencias", "lancar")).toBe(false);
+
     expect(podeVer("aluno", "financeiro")).toBe(false);
     expect(podeVer("aluno", "notas")).toBe(true);
     expect(podeVer("aluno", "frequencia")).toBe(true);

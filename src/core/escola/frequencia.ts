@@ -18,6 +18,7 @@ export interface Contadores {
   presencas: number;
   faltas: number;
   atrasos: number;
+  saidasAntecipadas: number;
   /** Dias com registro. Dia sem aula não entra. */
   dias: number;
 }
@@ -27,6 +28,7 @@ export function contar(situacoes: readonly SituacaoDePresenca[]): Contadores {
     presencas: 0,
     faltas: 0,
     atrasos: 0,
+    saidasAntecipadas: 0,
     dias: situacoes.length,
   };
 
@@ -34,6 +36,7 @@ export function contar(situacoes: readonly SituacaoDePresenca[]): Contadores {
     if (situacao === "presente") contadores.presencas += 1;
     if (situacao === "falta") contadores.faltas += 1;
     if (situacao === "atraso") contadores.atrasos += 1;
+    if (situacao === "saida-antecipada") contadores.saidasAntecipadas += 1;
   }
 
   return contadores;
@@ -42,9 +45,14 @@ export function contar(situacoes: readonly SituacaoDePresenca[]): Contadores {
 /**
  * Percentual de presença, de 0 a 1.
  *
- * **Atraso conta como presença.** O aluno atrasado esteve na aula; o atraso
- * é registrado à parte porque interessa à coordenação, mas transformá-lo em
- * falta inventaria uma reprovação que o colégio não aplica.
+ * **Atraso e saída antecipada contam como presença.** Os dois alunos
+ * estiveram na aula; o registro à parte existe porque interessa à
+ * coordenação, mas transformá-lo em falta inventaria uma reprovação que o
+ * colégio não aplica.
+ *
+ * Isso vale enquanto a marcação for **do dia**. No dia em que o colégio
+ * quiser descontar as aulas perdidas depois da saída, a conta muda aqui —
+ * e é por isso que ela mora numa função só.
  *
  * Sem nenhum dia registrado devolve `null`, e não 0% ou 100%: no começo do
  * ano letivo não há o que calcular, e mostrar "0% de presença" assustaria a
@@ -53,7 +61,12 @@ export function contar(situacoes: readonly SituacaoDePresenca[]): Contadores {
 export function percentualDePresenca(contadores: Contadores): number | null {
   if (contadores.dias === 0) return null;
 
-  return (contadores.presencas + contadores.atrasos) / contadores.dias;
+  return (
+    (contadores.presencas +
+      contadores.atrasos +
+      contadores.saidasAntecipadas) /
+    contadores.dias
+  );
 }
 
 export type SituacaoDeFrequencia = "regular" | "atencao" | "reprovado";

@@ -41,6 +41,13 @@ const linhaSchema = z.object({
   situacao: situacaoDePresencaSchema,
   ocorrencia: tipoDeOcorrenciaSchema.nullable(),
   observacao: z.string(),
+  /**
+   * Autorização de publicação da ocorrência. Os padrões repetem os de
+   * `domain/publicacao.ts` para que uma chamada enviada por um cliente
+   * antigo não mude a visibilidade do que já estava gravado.
+   */
+  visivelParaResponsavel: z.boolean().default(true),
+  visivelParaAluno: z.boolean().default(false),
 });
 
 const entradaSchema = z.object({
@@ -137,6 +144,8 @@ export async function salvarChamada(
         turmaCodigo,
         tipo: linha.ocorrencia,
         descricao: linha.observacao.trim() || rotuloPadrao(linha.ocorrencia),
+        visivelParaResponsavel: linha.visivelParaResponsavel,
+        visivelParaAluno: linha.visivelParaAluno,
         registradoPor: sessao.uid,
         origem: "portal",
       });

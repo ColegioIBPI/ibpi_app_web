@@ -156,6 +156,7 @@ describe("resumoDaChamada", () => {
       presentes: 1,
       faltas: 1,
       atrasos: 1,
+      saidasAntecipadas: 0,
       ocorrencias: 1,
     });
   });

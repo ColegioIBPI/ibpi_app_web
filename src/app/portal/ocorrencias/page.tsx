@@ -18,11 +18,15 @@ import { ocorrenciasVisiveis } from "@/features/frequencia/services/frequencia.s
 export const metadata: Metadata = { title: "Ocorrências" };
 
 /**
- * Ocorrências para o responsável.
+ * Ocorrências para a família.
  *
- * O perfil aluno não chega aqui: a rota exige permissão em `ocorrencias`, e
- * ele não tem. A ocorrência disciplinar é tratada com o responsável e a
- * equipe escolar.
+ * O responsável lê as dos filhos; **o aluno, só as que a escola marcou
+ * para ele** — o padrão continua sendo tratar a ocorrência disciplinar com
+ * o adulto, e o recorte é feito em `ocorrenciasVisiveis`.
+ *
+ * A lista nunca diz que existe algo retido. "Há uma ocorrência que você
+ * não pode ver" é pior que silêncio: entrega o fato sem o contexto, que é
+ * justamente o que a retenção quis evitar.
  */
 export default async function OcorrenciasDoPortalPage() {
   const sessao = await exigirPermissao("ocorrencias", "ler");
@@ -33,7 +37,9 @@ export default async function OcorrenciasDoPortalPage() {
       <div>
         <h1 className="text-ink text-xl font-semibold">Ocorrências</h1>
         <p className="text-ink-muted mt-1 text-sm">
-          Registros da equipe escolar sobre seus filhos.
+          {sessao.role === "aluno"
+            ? "Registros da equipe escolar sobre você."
+            : "Registros da equipe escolar sobre seus filhos."}
         </p>
       </div>
 

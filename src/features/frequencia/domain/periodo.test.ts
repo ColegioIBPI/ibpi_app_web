@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { Aula, DiarioDeClasse, FrequenciaDiaria } from "@/core/modelo";
+import type {
+  Aula,
+  DiarioDeClasse,
+  FrequenciaDiaria,
+  SituacaoDePresenca,
+} from "@/core/modelo";
 import {
   consolidarPeriodo,
   diariosNoPeriodo,
@@ -19,7 +24,7 @@ const ALUNOS = [
 const lancamento = (
   matricula: string,
   data: string,
-  situacao: "presente" | "falta" | "atraso",
+  situacao: SituacaoDePresenca,
 ): FrequenciaDiaria =>
   ({ matricula, data, situacao, turmaId: "2026-EM1A" }) as FrequenciaDiaria;
 
@@ -35,11 +40,12 @@ describe("consolidarPeriodo", () => {
     expect(linhas.find((l) => l.matricula === "25047")?.contadores.dias).toBe(0);
   });
 
-  it("conta presenças, faltas e atrasos por aluno", () => {
+  it("conta presenças, faltas, atrasos e saídas por aluno", () => {
     const linhas = consolidarPeriodo(ALUNOS, [
       lancamento("26007", "2026-09-01", "presente"),
       lancamento("26007", "2026-09-02", "falta"),
       lancamento("26007", "2026-09-03", "atraso"),
+      lancamento("26007", "2026-09-04", "saida-antecipada"),
     ]);
 
     const alice = linhas.find((l) => l.matricula === "26007")!;
@@ -47,7 +53,8 @@ describe("consolidarPeriodo", () => {
       presencas: 1,
       faltas: 1,
       atrasos: 1,
-      dias: 3,
+      saidasAntecipadas: 1,
+      dias: 4,
     });
   });
 
@@ -275,7 +282,7 @@ describe("disciplinasDoPeriodo", () => {
       {
         matricula: "1",
         nome: "A",
-        contadores: { presencas: 0, faltas: 0, atrasos: 0, dias: 0 },
+        contadores: { presencas: 0, faltas: 0, atrasos: 0, saidasAntecipadas: 0, dias: 0 },
         percentual: null,
         porDisciplina: [
           { disciplinaId: "fisica", disciplinaNome: "Física", aulas: 1, faltas: 0, percentual: 1 },
@@ -284,7 +291,7 @@ describe("disciplinasDoPeriodo", () => {
       {
         matricula: "2",
         nome: "B",
-        contadores: { presencas: 0, faltas: 0, atrasos: 0, dias: 0 },
+        contadores: { presencas: 0, faltas: 0, atrasos: 0, saidasAntecipadas: 0, dias: 0 },
         percentual: null,
         porDisciplina: [
           { disciplinaId: "fisica", disciplinaNome: "Física", aulas: 1, faltas: 1, percentual: 0 },

@@ -180,11 +180,23 @@ service cloud.firestore {
     // ---------------------------------------------------------- ocorrências
 
     match /ocorrencias/{id} {
-      // O aluno não vê a própria ocorrência disciplinar: ela é tratada com o
-      // responsável e a equipe escolar.
+      // A publicação é **por documento**: quem lança autoriza, caso a
+      // caso, se o registro chega ao responsável e se chega ao aluno.
+      //
+      // `visivelParaResponsavel` ausente conta como **verdadeiro**: antes
+      // do campo existir o responsável via todas, e tratar a ausência como
+      // retida faria a família deixar de ver o que já via, sem aviso.
+      //
+      // `visivelParaAluno` ausente conta como **falso**, pela mesma lógica
+      // ao contrário: o aluno nunca viu ocorrência nenhuma. A regra
+      // espelha `features/frequencia/domain/publicacao.ts` — as duas têm
+      // de bater.
       allow read: if secretariaOuCoordenacao()
                   || professorDaTurma(resource.data.turmaId)
-                  || ehFilho(resource.data.matricula);
+                  || (ehFilho(resource.data.matricula)
+                      && resource.data.get('visivelParaResponsavel', true) == true)
+                  || (ehProprioAluno(resource.data.matricula)
+                      && resource.data.get('visivelParaAluno', false) == true);
       allow write: if false;
     }
 

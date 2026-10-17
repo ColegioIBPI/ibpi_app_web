@@ -21,8 +21,21 @@ import {
  *   frequência por aluno.
  */
 
-/** Como a secretaria marca hoje: F (falta), P (presente), A (atraso). */
-export const situacaoDePresencaSchema = z.enum(["presente", "falta", "atraso"]);
+/**
+ * Como a secretaria marca: P (presente), F (falta), A (atraso) e S (saída
+ * antecipada).
+ *
+ * Os três primeiros são os da planilha `CONTROLE DE FALTAS.xlsx`. A **saída
+ * antecipada** foi pedida depois, e registra o aluno que esteve na aula e
+ * foi embora antes do fim — hoje ela só existia como tipo de ocorrência,
+ * que é outra coisa: a ocorrência narra o fato, a presença conta o dia.
+ */
+export const situacaoDePresencaSchema = z.enum([
+  "presente",
+  "falta",
+  "atraso",
+  "saida-antecipada",
+]);
 
 export type SituacaoDePresenca = z.infer<typeof situacaoDePresencaSchema>;
 
@@ -30,6 +43,7 @@ export const ROTULOS_DE_PRESENCA: Record<SituacaoDePresenca, string> = {
   presente: "Presente",
   falta: "Falta",
   atraso: "Atraso",
+  "saida-antecipada": "Saída antecipada",
 };
 
 /** Códigos usados na planilha, mantidos para a digitação rápida. */
@@ -37,6 +51,7 @@ export const CODIGOS_DE_PRESENCA: Record<string, SituacaoDePresenca> = {
   P: "presente",
   F: "falta",
   A: "atraso",
+  S: "saida-antecipada",
 };
 
 /**
@@ -149,6 +164,26 @@ export const ocorrenciaSchema = z.object({
   turmaCodigo: z.string().optional(),
   tipo: tipoDeOcorrenciaSchema,
   descricao: z.string().trim().min(1, "Descreva a ocorrência"),
+  /**
+   * Autorização de publicação: quem, fora da equipe, pode ler esta
+   * ocorrência.
+   *
+   * **Ausente significa "como era antes do campo existir"** — o
+   * responsável lê, o aluno não. As ocorrências lançadas antes desta
+   * mudança não têm os campos, e tratá-las como retidas faria a família
+   * deixar de ver, de uma hora para outra, o que já via. É o mesmo
+   * raciocínio de `confirmado` em `cobrancas`.
+   *
+   * Em ocorrência nova os dois são **sempre gravados**, então a ausência
+   * só acontece no registro antigo.
+   */
+  visivelParaResponsavel: z.boolean().nullish(),
+  /**
+   * O aluno só lê o que for marcado para ele. A ocorrência disciplinar é
+   * tratada com o responsável; mostrá-la ao aluno é decisão de quem
+   * lança, caso a caso.
+   */
+  visivelParaAluno: z.boolean().nullish(),
   /** `uid` de quem lançou — a família contesta, o colégio precisa saber. */
   registradoPor: z.string().nullish(),
   origem: origemSchema,

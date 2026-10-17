@@ -261,6 +261,15 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.18 Saída antecipada e publicação de ocorrências
+
+- [x] Saída antecipada como situação de presença (P/F/A/S), contando como presença
+- [x] Autorização de publicação por ocorrência: responsável e/ou aluno
+- [x] Aluno passa a ler as ocorrências liberadas para ele
+- [x] Publicar a Security Rule com o recorte por documento
+- [ ] Permitir editar a publicação fora da chamada, pela lista de ocorrências
+- [x] Atualizar o contrato do app com `visivelParaAluno` e a situação `S`
+
 ### 3.17 Configurações do ano letivo
 
 - [x] Área de Configurações com o roteiro de montagem do ano

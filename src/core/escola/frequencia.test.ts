@@ -10,14 +10,39 @@ import {
 
 const serie = (...situacoes: SituacaoDePresenca[]) => contar(situacoes);
 
+const serieDe = (situacao: SituacaoDePresenca, quantas: number) =>
+  Array.from({ length: quantas }, () => situacao);
+
 describe("contar", () => {
-  it("separa presença, falta e atraso", () => {
-    expect(serie("presente", "falta", "atraso", "presente")).toEqual({
+  it("separa presença, falta, atraso e saída antecipada", () => {
+    expect(
+      serie("presente", "falta", "atraso", "presente", "saida-antecipada"),
+    ).toEqual({
       presencas: 2,
       faltas: 1,
       atrasos: 1,
-      dias: 4,
+      saidasAntecipadas: 1,
+      dias: 5,
     });
+  });
+
+  it("saída antecipada conta como presença, igual ao atraso", () => {
+    // Os dois alunos estiveram na aula. Transformar a saída em falta
+    // inventaria uma reprovação que o colégio não aplica.
+    expect(percentualDePresenca(contar(serieDe("saida-antecipada", 4)))).toBe(1);
+    expect(
+      percentualDePresenca(
+        contar(["presente", "saida-antecipada", "atraso", "falta"]),
+      ),
+    ).toBe(0.75);
+  });
+
+  it("quatro saídas antecipadas não reprovam ninguém", () => {
+    // O oposto do que aconteceria se ela contasse como falta: 100% de
+    // saídas antecipadas daria 0% de presença e reprovação automática.
+    const contadores = contar(serieDe("saida-antecipada", 10));
+    expect(contadores.saidasAntecipadas).toBe(10);
+    expect(percentualDePresenca(contadores)).toBe(1);
   });
 
   it("começa zerado", () => {
@@ -25,6 +50,7 @@ describe("contar", () => {
       presencas: 0,
       faltas: 0,
       atrasos: 0,
+      saidasAntecipadas: 0,
       dias: 0,
     });
   });
