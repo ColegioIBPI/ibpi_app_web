@@ -269,7 +269,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Ata de alunos cancelados, com a data de cancelamento
 - [ ] Preencher a data de cancelamento dos 11 migrados (o Access não a trazia)
 - [x] Atas de matrículas, de alunos ativos e de resultado final
-- [ ] Pauta por turma, disciplina e curso
+- [x] Pauta por turma e disciplina, com chamada e conteúdo
 
 ### 3.20 Administração de usuários
 
@@ -351,7 +351,9 @@ Referência de requisitos: [README.md](README.md).
 - [x] Download por rota autenticada, que aceita cookie e token do app
 - [x] Publicar a Security Rule: família, secretaria, coordenação e financeiro
 - [x] Corrigir o domínio no contrato do app — `conecta.colegioibpi.com.br`
-- [ ] Investigar a falha intermitente de `grade-de-aulas.test.tsx`
+- [ ] Investigar as falhas intermitentes sob carga em testes de componente
+      (`grade-de-aulas`, `extrato`, `formulario` de recibo) — passam isolados
+      e na reexecução; parecem timeout do `userEvent` com a suíte cheia
 
 ### 3.13 Correções do cadastro de alunos
 

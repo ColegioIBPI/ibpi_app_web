@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { trimestreDaQuery } from "@/core/lib/ano-letivo";
+import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { GradeDeAulas } from "@/features/diario/components/grade-de-aulas";
@@ -33,7 +34,8 @@ export default async function DiarioDaAlocacaoPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
         <Link
           href="/gestao/diario"
           className="text-ink-muted hover:text-ink inline-flex items-center gap-1 text-sm"
@@ -50,6 +52,14 @@ export default async function DiarioDaAlocacaoPage({
           {alocacao.professorNome ?? "Professor não informado"} ·{" "}
           {alocacao.anoLetivo} · {trimestre}º trimestre
         </p>
+        </div>
+
+        {/* A pauta é este diário em planilha: chamada numa aba, conteúdo
+            na outra. Sai daqui porque é aqui que ele é preenchido. */}
+        <BotaoDeExportacao
+          href={`/api/exportacoes/pauta?alocacao=${id}&trimestre=${trimestre}`}
+          rotulo="Pauta"
+        />
       </div>
 
       <SeletorDeTrimestre atual={trimestre} />

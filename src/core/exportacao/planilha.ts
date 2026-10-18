@@ -41,16 +41,45 @@ const FORMATOS: Record<TipoDeColuna, string | undefined> = {
   percentual: "0.0%",
 };
 
-export async function montarPlanilha<T>({
-  aba,
-  colunas,
-  linhas,
-}: Planilha<T>): Promise<Buffer> {
+/**
+ * Uma aba já pronta para entrar no livro.
+ *
+ * É uma função, e não um objeto, porque as abas de um mesmo arquivo têm
+ * **linhas de tipos diferentes** — a pauta tem uma de chamada e outra de
+ * conteúdo. Guardá-las numa lista obrigaria a apagar o tipo das duas.
+ */
+export type Folha = (livro: ExcelJS.Workbook) => void;
+
+export function aba<T>({ aba, colunas, linhas }: Planilha<T>): Folha {
+  return (livro) => adicionarAba(livro, aba, colunas, linhas);
+}
+
+/** Um arquivo com uma aba — o caso de quase todos os relatórios. */
+export async function montarPlanilha<T>(
+  planilha: Planilha<T>,
+): Promise<Buffer> {
+  return montarLivro(aba(planilha));
+}
+
+export async function montarLivro(...folhas: Folha[]): Promise<Buffer> {
   const livro = new ExcelJS.Workbook();
   livro.creator = "Portal IBPI";
   livro.created = new Date();
 
-  const folha = livro.addWorksheet(aba.slice(0, 31));
+  for (const folha of folhas) folha(livro);
+
+  const buffer = await livro.xlsx.writeBuffer();
+
+  return Buffer.from(buffer);
+}
+
+function adicionarAba<T>(
+  livro: ExcelJS.Workbook,
+  nome: string,
+  colunas: Coluna<T>[],
+  linhas: readonly T[],
+): void {
+  const folha = livro.addWorksheet(nome.slice(0, 31));
 
   folha.columns = colunas.map((coluna) => ({
     header: coluna.titulo,
@@ -75,10 +104,6 @@ export async function montarPlanilha<T>({
     from: { row: 1, column: 1 },
     to: { row: 1, column: colunas.length },
   };
-
-  const buffer = await livro.xlsx.writeBuffer();
-
-  return Buffer.from(buffer);
 }
 
 /**

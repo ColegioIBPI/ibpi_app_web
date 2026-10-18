@@ -220,6 +220,51 @@ como no relatório financeiro.
 
 ---
 
+## 4e. Pauta
+
+A chamada de uma turma numa disciplina, aula a aula — o diário de classe
+em planilha, que é o documento que o colégio chama de "pauta de conteúdo".
+
+**Duas abas, porque são duas folhas no papel:**
+
+| Aba | O quê |
+| --- | --- |
+| **Chamada** | alunos nas linhas, **uma coluna por aula**, faltas e frequência |
+| **Conteúdo** | o que foi dado em cada aula, e se ela foi letiva |
+
+O título da coluna de aula traz **número e data** (`7 · 12/03`). Só a data
+não bastaria: a pauta é citada por número ("faltou na 7"), e só o número
+não diria quando foi.
+
+**Uma pauta é sempre de uma turma e uma disciplina** — é o que a alocação
+define. "Por curso", no documento do colégio, é o filtro que leva até a
+alocação, não uma terceira dimensão da planilha. Por isso o botão fica na
+tela do diário.
+
+### O que fica em branco, e por quê
+
+- **Dia sem aula** não vira `F`: férias e feriado não são ausência do
+  aluno, e marcá-los como falta inflaria a contagem que decide reprovação.
+  Na aba de conteúdo ele aparece com o motivo ("Feriado"), porque uma linha
+  vazia no meio da sequência parece aula que o professor esqueceu.
+- **Aula letiva sem marcação** também fica em branco: é chamada que ainda
+  não foi feita, e um `P` presumido afirmaria uma presença que ninguém
+  conferiu.
+
+> ⚠️ **A pauta reflete o diário.** Hoje há 3 diários na base, o maior com
+> **1 aula e nenhuma chamada feita** — a planilha sai com uma coluna e
+> vazia. Não é defeito: é o diário ainda não preenchido.
+
+### A planilha passou a aceitar várias abas
+
+`montarPlanilha` montava um arquivo de uma aba só. A pauta precisa de
+duas, com **linhas de tipos diferentes** — guardá-las numa lista apagaria o
+tipo das duas. Então a aba virou uma função (`aba()`), e `montarLivro()`
+recebe quantas forem. `montarPlanilha` continua existindo para o caso de
+uma aba, que é o de quase todos os relatórios.
+
+---
+
 ## 5. Índices do Firestore
 
 A consulta de frequência filtra por **turma e intervalo de datas ao mesmo
