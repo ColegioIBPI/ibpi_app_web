@@ -8,7 +8,13 @@ repete campo de coleção, lá não se discute tela.
 A referência é o Portal web, que já está em produção. Onde este documento e
 o Portal divergirem, **o Portal está certo** — avise para corrigirmos aqui.
 
-> **Já tem uma cópia?** Mudaram três telas: **Ocorrências** passou a existir
+> **Já tem uma cópia?** Antes das telas, um estado novo: **conta
+> suspensa**. A secretaria pode suspender o acesso, e aí o login falha com
+> `auth/user-disabled` e a sessão aberta cai. Mostre *"Seu acesso foi
+> suspenso. Fale com a secretaria."* — não a tela de senha errada, que faz
+> a pessoa tentar a senha certa indefinidamente.
+>
+> Mudaram três telas: **Ocorrências** passou a existir
 > para o perfil `aluno` (seção 8), **Frequência** ganhou a quarta marca,
 > **Boletim só aparece depois de liberado** (seção 6) —
 > `saida-antecipada` entrou na frequência (seção 7), e o **Boletim** ganha o bloco do critério de

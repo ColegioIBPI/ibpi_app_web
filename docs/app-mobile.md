@@ -33,9 +33,36 @@ HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
 ## O que mudou desde a última versão
 
 Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os
-quatro primeiros itens **quebram código que já existe**; o resto é adição.
+cinco primeiros itens **quebram código que já existe**; o resto é adição.
 
-### 1. A consulta de notas precisa filtrar `liberado` — quebra tudo
+### 1. Conta suspensa agora é desativada de verdade — trate o erro
+
+O colégio ganhou uma tela de administração de usuários, e **suspender
+desativa a conta no Firebase Auth** e revoga os tokens. Antes isso só
+bloqueava o Portal; o app continuava funcionando com o token na mão.
+
+O que o app passa a ver:
+
+| Quando | O que acontece |
+| --- | --- |
+| Entrando | `signInWithEmailAndPassword` falha com **`auth/user-disabled`** |
+| Já logado | o token é revogado e as leituras passam a falhar |
+
+**Tratem os dois.** Um app que só mostra "erro inesperado" e volta para a
+tela de login deixa a pessoa tentando a senha certa indefinidamente.
+
+```
+auth/user-disabled  →  "Seu acesso foi suspenso. Fale com a secretaria."
+```
+
+Na revogação em sessão aberta, **saiam da conta e levem para o login com a
+mesma mensagem** — não fiquem repetindo a leitura que vai falhar de novo.
+
+> Isso não é bloqueio de senha errada nem conta inexistente: é o colégio
+> tendo suspendido o acesso. A mensagem precisa dizer isso, senão a pessoa
+> liga reclamando que "o app parou".
+
+### 2. A consulta de notas precisa filtrar `liberado` — quebra tudo
 
 **Este é o mais urgente.** O colégio passou a liberar o boletim por aluno e
 por trimestre: a família só vê o trimestre depois que a secretaria libera.
@@ -58,7 +85,7 @@ lê todas.
 grade com traços: diga que ainda não foi liberado. Ver `app-telas.md`,
 seção 6.
 
-### 2. `segmento` deixou de ser lista fechada — quebra
+### 3. `segmento` deixou de ser lista fechada — quebra
 
 Era `fundamental | medio | eja-fundamental | eja-medio`. O colégio passou a
 cadastrar os próprios cursos e pode abrir um técnico amanhã, sem publicar
@@ -68,13 +95,13 @@ Trate como **string opaca** e pegue o rótulo na coleção `cursos`. Um `when`
 exaustivo sobre os quatro compila hoje e estoura no dia em que a secretaria
 criar o quinto. **Seção 5.**
 
-### 3. A presença tem quatro valores — quebra
+### 4. A presença tem quatro valores — quebra
 
 Entrou `saida-antecipada`, ao lado de `presente`, `falta` e `atraso`. Ela
 **conta como presença**, igual ao atraso: não some às faltas. **Seções 3 e
 5.**
 
-### 4. O aluno passou a ter a aba Ocorrências — quebra
+### 5. O aluno passou a ter a aba Ocorrências — quebra
 
 A versão anterior dizia, com ⚠️, que o perfil `aluno` nunca via a própria
 ocorrência. **Não vale mais.**
@@ -94,7 +121,7 @@ Três cuidados que não são opcionais:
 
 **Seção 2.**
 
-### 5. Critério de avaliação publicado — novo
+### 6. Critério de avaliação publicado — novo
 
 `criteriosDeAvaliacao/{ano}` e `{ano}-{curso}`: o colégio publica em texto
 como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
@@ -103,7 +130,7 @@ como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
 **Isto não muda a conta do boletim**, que continua a da seção 4. **Seção
 4b.**
 
-### 6. Boleto do aluno — novo
+### 7. Boleto do aluno — novo
 
 Um PDF por aluno, baixado por rota autenticada. **Seção 8.**
 
@@ -566,7 +593,7 @@ conta própria. **O app não calcula média** — ver a seção 4.
 ### De onde ler
 
 > ⚠️ **A consulta da família precisa de `where("liberado", "==", true)`.**
-> Sem isso a regra nega o lote inteiro — ver o item 1 de "O que mudou", no topo.
+> Sem isso a regra nega o lote inteiro — ver o item 2 de "O que mudou", no topo.
 
 ```
 notas/{ano}-t{trimestre}-{matricula}-{disciplina} = {
@@ -1189,6 +1216,21 @@ Duas coisas aprendidas na prática aqui:
 - **Um e-mail = uma conta = um perfil.** O Firebase identifica a conta pelo
   e-mail; cadastrar o mesmo endereço em dois perfis atualiza a mesma conta e
   o segundo perfil substitui o primeiro.
+
+### Conta suspensa
+
+A secretaria suspende acesso pela tela de usuários, e isso **desativa a
+conta no Firebase Auth**. Não há como "recuperar a senha" de uma conta
+suspensa: o problema não é a senha.
+
+| Erro | O que dizer |
+| --- | --- |
+| `auth/user-disabled` | "Seu acesso foi suspenso. Fale com a secretaria." |
+| token revogado em sessão aberta | saia da conta e mostre a mesma mensagem |
+
+Trocar o **perfil** de alguém também revoga o token — a pessoa entra de
+novo e já recebe o acesso novo. Para o app é o mesmo tratamento: sair e
+pedir login, sem mensagem de erro assustadora.
 
 ---
 
