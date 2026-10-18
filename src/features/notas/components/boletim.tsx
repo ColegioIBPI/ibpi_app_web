@@ -43,8 +43,6 @@ export interface BoletimProps {
   eletivas?: Eletiva[];
   dependencias?: Dependencia[];
   observacoes?: string | null;
-  /** Meta de média da escola, mostrada na coluna à direita da grade. */
-  meta?: number;
 }
 
 const TRIMESTRES = ["1", "2", "3"] as const;
@@ -77,7 +75,6 @@ export function Boletim({
   eletivas = [],
   dependencias = [],
   observacoes,
-  meta = 6,
 }: BoletimProps) {
   const bilingue = linhaDoBilingue(projetoBilingue);
 
@@ -128,7 +125,6 @@ export function Boletim({
       <GradeDeDisciplinas
         linhas={grade}
         faltasPorTrimestre={faltasPorTrimestre}
-        meta={meta}
       />
 
       <p className="mt-0.5 mb-1 text-right text-[9px]">
@@ -214,14 +210,20 @@ function Faixa({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * A grade de notas.
+ *
+ * **Sem a coluna META.** Ela existia na planilha do colégio para alimentar
+ * o gráfico, e era um número fixo repetido em toda linha — informação
+ * nenhuma para quem lê o boletim, e uma coluna a mais disputando largura
+ * num documento que já é apertado. O gráfico nunca a usou aqui.
+ */
 function GradeDeDisciplinas({
   linhas,
   faltasPorTrimestre,
-  meta,
 }: {
   linhas: LinhaDoBoletim[];
   faltasPorTrimestre: Record<string, number>;
-  meta: number;
 }) {
   return (
     <table className="w-full table-fixed border-separate border-spacing-[1px]">
@@ -230,7 +232,7 @@ function GradeDeDisciplinas({
       </caption>
 
       <colgroup>
-        <col className="w-[15%]" />
+        <col className="w-[19%]" />
         {TRIMESTRES.map((t) =>
           [...AVALIACOES, "media"].map((campo) => (
             <col key={`${t}-${campo}`} className="w-[5.2%]" />
@@ -240,7 +242,6 @@ function GradeDeDisciplinas({
         <col className="w-[5%]" />
         <col className="w-[6%]" />
         <col className="w-[11%]" />
-        <col className="w-[4%]" />
       </colgroup>
 
       <thead>
@@ -256,7 +257,7 @@ function GradeDeDisciplinas({
               {t}º TRI
             </th>
           ))}
-          <td colSpan={5} />
+          <td colSpan={4} />
         </tr>
 
         <tr>
@@ -281,11 +282,6 @@ function GradeDeDisciplinas({
             </th>
           ))}
 
-          {/* META fica sem preenchimento, fora da grade colorida, como na
-              planilha do colégio. */}
-          <th scope="col" className="py-0.5 text-center text-[9px] font-bold">
-            META
-          </th>
         </tr>
       </thead>
 
@@ -319,7 +315,6 @@ function GradeDeDisciplinas({
                   ? ""
                   : ROTULOS_DE_SITUACAO[linha.situacao]}
               </td>
-              <td className="text-center text-[9px] tabular-nums">{meta}</td>
             </tr>
           );
         })}
@@ -336,7 +331,7 @@ function GradeDeDisciplinas({
             <Faltas key={t} total={faltasPorTrimestre[t] ?? 0} />
           ))}
 
-          <td colSpan={5} />
+          <td colSpan={4} />
         </tr>
       </tbody>
     </table>

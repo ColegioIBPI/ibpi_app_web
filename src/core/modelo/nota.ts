@@ -57,6 +57,23 @@ export const notaSchema = z.object({
   faltas: z.number().int().min(0).default(0),
   observacoes: textoOpcional,
   lancadoPor: z.string().nullish(),
+  /**
+   * A nota já foi liberada para a família?
+   *
+   * **Denormalizado de `boletins.liberacoes`**, escrito no mesmo lote. O
+   * registro do ato — quem liberou e quando — vive lá; aqui fica só o
+   * `true`/`false` que a Security Rule consegue ler sem buscar outro
+   * documento.
+   *
+   * Sem este campo, a regra teria de fazer um `get()` no boletim **por
+   * nota** para decidir, e uma consulta de quinze disciplinas estouraria o
+   * limite de acessos a documento da regra.
+   *
+   * Ausente conta como **não liberada**: as notas existentes foram
+   * lançadas antes de a liberação existir, e o colégio quer justamente
+   * decidir quando mostrá-las.
+   */
+  liberado: z.boolean().nullish(),
   origem: origemSchema,
   ...auditoriaDoDocumentoSchema.shape,
 });
@@ -159,6 +176,14 @@ export type Dependencia = z.infer<typeof dependenciaSchema>;
  * `disciplinas[]` só é preenchido no **fechamento** do ano, como retrato do
  * que foi entregue à família.
  */
+/** Um trimestre liberado: quando e por quem. */
+export const liberacaoDoBoletimSchema = z.object({
+  em: z.string(),
+  porNome: z.string(),
+});
+
+export type LiberacaoDoBoletim = z.infer<typeof liberacaoDoBoletimSchema>;
+
 export const boletimSchema = z.object({
   anoLetivo: z.number().int(),
   matricula: z.string().min(1),
@@ -175,6 +200,20 @@ export const boletimSchema = z.object({
   faltasPorTrimestre: z.record(z.string(), z.number().int()).default({}),
   percentualDeFrequencia: z.number().min(0).max(1).nullable().default(null),
   situacao: situacaoFinalSchema.default("cursando"),
+  /**
+   * Quais trimestres já foram **liberados** para a família, por aluno.
+   *
+   * As notas são lançadas aos poucos, e a família não pode ver o trimestre
+   * em andamento: um boletim meio preenchido é lido como "meu filho está
+   * indo mal" por quem não sabe que faltam avaliações. A secretaria libera
+   * quando o trimestre fecha.
+   *
+   * É aqui que mora o **registro do ato** — quem liberou e quando. A trava
+   * que vale para o aplicativo está denormalizada em `notas.liberado`, que
+   * é escrita no mesmo lote: a regra do Firestore não consegue consultar
+   * outro documento por nota sem estourar o limite de leituras.
+   */
+  liberacoes: z.partialRecord(z.string(), liberacaoDoBoletimSchema).default({}),
   observacoes: textoOpcional,
   fechadoEm: z.string().nullish(),
   fechadoPor: z.string().nullish(),

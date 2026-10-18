@@ -10,7 +10,8 @@ o Portal divergirem, **o Portal está certo** — avise para corrigirmos aqui.
 
 > **Já tem uma cópia?** Mudaram três telas: **Ocorrências** passou a existir
 > para o perfil `aluno` (seção 8), **Frequência** ganhou a quarta marca,
-> `saida-antecipada` (seção 7), e o **Boletim** ganha o bloco do critério de
+> **Boletim só aparece depois de liberado** (seção 6) —
+> `saida-antecipada` entrou na frequência (seção 7), e o **Boletim** ganha o bloco do critério de
 > avaliação (seção 6), que também aparece em **Informações úteis** (seção
 > 11). A lista completa das mudanças de dados está no topo de
 > [`app-mobile.md`](app-mobile.md).
@@ -156,6 +157,23 @@ anual, a recuperação quando houver, a média final, as faltas e a situação.
 - As médias são **calculadas na leitura**, não vêm prontas. A regra está em
   `app-mobile.md`, seção 4.
 - Vazio: **"Boletim indisponível"**.
+
+### O boletim só aparece depois de liberado
+
+A secretaria libera **por aluno e por trimestre**, quando o trimestre
+fecha. Antes disso a família não recebe aquelas notas — a consulta nem as
+traz.
+
+- **Nenhum trimestre liberado:** não mostre a grade com traços, que faria
+  parecer que o colégio não lançou nada. Diga **"Boletim ainda não
+  liberado"** / "As notas são publicadas quando o trimestre fecha. Assim
+  que o colégio liberar, o boletim aparece aqui."
+- **Liberado em parte:** mostre o que veio e avise até onde vai —
+  *"Liberado até o 2º trimestre. Os demais aparecem quando o colégio
+  publicar."* Sem isso, quem abre em novembro com só o 1º liberado acha que
+  o colégio parou de lançar nota.
+- **Não diga quantos faltam nem quando sai.** O colégio decide o dia, e uma
+  promessa na tela vira cobrança na secretaria.
 
 ### Como o aluno é avaliado — bloco novo
 

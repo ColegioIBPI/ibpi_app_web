@@ -9,6 +9,11 @@ import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
 import { CriterioPublicado } from "@/features/cursos/components/criterio-publicado";
 import { resumoDoCriterio } from "@/features/cursos/domain/criterio";
 import { criterioPublicado } from "@/features/cursos/services/criterios.server";
+import {
+  TRIMESTRES,
+  trimestresLiberados,
+  ultimoLiberado,
+} from "@/features/notas/domain/liberacao";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };
@@ -93,7 +98,29 @@ export default async function BoletimDoPortalPage({
           />
         </Card>
       ) : (
-        boletins.map((boletim) => (
+        boletins.map((boletim) => {
+          const liberados = trimestresLiberados(boletim);
+
+          /**
+           * Sem nenhum trimestre liberado, a família **não vê grade
+           * nenhuma** — e precisa saber por quê.
+           *
+           * Mostrar o boletim vazio faria parecer que o colégio não lançou
+           * nada, e a ligação para a secretaria seria a mesma que a
+           * liberação quis evitar.
+           */
+          if (liberados.length === 0) {
+            return (
+              <Card key={boletim.matricula} title={boletim.nome}>
+                <EmptyState
+                  title="Boletim ainda não liberado"
+                  description="As notas são publicadas quando o trimestre fecha. Assim que o colégio liberar, o boletim aparece aqui."
+                />
+              </Card>
+            );
+          }
+
+          return (
           <Card key={boletim.matricula}>
             <Boletim
               nome={boletim.nome}
@@ -113,11 +140,21 @@ export default async function BoletimDoPortalPage({
               observacoes={boletim.documento?.observacoes}
             />
 
+            {/* Qual trimestre a família está vendo. Sem isto, quem abre
+                em novembro com só o 1º liberado acha que o colégio parou
+                de lançar nota. */}
+            <p className="text-ink-muted mt-4 text-xs">
+              {liberados.length === TRIMESTRES.length
+                ? "Todos os trimestres liberados."
+                : `Liberado até o ${ultimoLiberado(boletim)}º trimestre. Os demais aparecem quando o colégio publicar.`}
+            </p>
+
             <CriterioPublicado
               criterio={criterios.get(boletim.matricula) ?? null}
             />
           </Card>
-        ))
+          );
+        })
       )}
     </div>
   );

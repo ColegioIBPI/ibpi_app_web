@@ -32,8 +32,31 @@ HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
 
 ## O que mudou desde a última versão
 
-Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os três
-primeiros itens **quebram código que já existe**; o resto é adição.
+Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os
+quatro primeiros itens **quebram código que já existe**; o resto é adição.
+
+### 0. A consulta de notas precisa filtrar `liberado` — quebra tudo
+
+**Este é o mais urgente.** O colégio passou a liberar o boletim por aluno e
+por trimestre: a família só vê o trimestre depois que a secretaria libera.
+
+A consulta de hoje **para de funcionar inteira**. A regra do Firestore nega
+um lote que possa conter nota não liberada, e o erro não é "veio vazio", é
+`permission-denied` na consulta toda.
+
+```diff
+  .collection("notas")
+  .where("matricula", "==", matricula)
+  .where("anoLetivo", "==", ano)
++ .where("liberado", "==", true)
+```
+
+O índice composto já está publicado. Para a equipe escolar nada muda — ela
+lê todas.
+
+**Boletim sem nenhum trimestre liberado não é boletim vazio.** Não mostre a
+grade com traços: diga que ainda não foi liberado. Ver `app-telas.md`,
+seção 6.
 
 ### 1. `segmento` deixou de ser lista fechada — quebra
 
@@ -542,12 +565,16 @@ conta própria. **O app não calcula média** — ver a seção 4.
 
 ### De onde ler
 
+> ⚠️ **A consulta da família precisa de `where("liberado", "==", true)`.**
+> Sem isso a regra nega o lote inteiro — ver o item 0 no topo.
+
 ```
 notas/{ano}-t{trimestre}-{matricula}-{disciplina} = {
   anoLetivo, trimestre, matricula, turmaId,
   disciplinaId, disciplinaNome,
   avaliacoes: { projeto: number|null, tarefas: number|null, av: number|null },
-  faltas: number
+  faltas: number,
+  liberado: boolean      // ausente = NÃO liberada; filtre por true
 }
 
 boletins/{ano}-{matricula} = {
@@ -555,9 +582,17 @@ boletins/{ano}-{matricula} = {
   eletivas: [{ nome, periodo, situacao }],
   dependencias: [{ disciplinaNome, tipo, p1, p2, recuperacao, ... }],
   projetoBilingue: { nivel: "N2", componentes: [{ nome, trimestres, recuperacao }] },
-  observacoes: string | null
+  observacoes: string | null,
+
+  // Quais trimestres a família já pode ver, e quem liberou.
+  liberacoes: { "1": { em, porNome }, "2": ... }
 }
 ```
+
+**`liberacoes` serve para a mensagem, não para o filtro.** Use-o para dizer
+"liberado até o 2º trimestre"; o que entra na tela são as notas que a
+consulta filtrada trouxe. Dois filtros para a mesma coisa é como os dois
+passam a discordar.
 
 **As médias não estão gravadas** — são calculadas na leitura, a partir de
 `notas`. Guardar o boletim pronto significaria que corrigir uma nota deixa

@@ -20,7 +20,9 @@ import {
 import { faltasNaDisciplina, idDoDiario } from "@/core/escola/aulas";
 import { contar, percentualDePresenca } from "@/core/escola/frequencia";
 import { getAdminDb } from "@/core/firebase/admin";
+import { isEquipe } from "@/core/auth/roles";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import { somenteLiberadas } from "@/features/notas/domain/liberacao";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
 import {
@@ -105,6 +107,8 @@ export interface BoletimDoAluno extends BoletimMontado {
   anoLetivo: number;
   percentualDeFrequencia: number | null;
   documento: Boletim | null;
+  /** Quais trimestres a família já pode ver. Vazio = nenhum. */
+  liberacoes: Boletim["liberacoes"];
 }
 
 /**
@@ -136,6 +140,18 @@ export async function boletimDoAluno(
 
   const documento = boletimDoc.exists ? (boletimDoc.data() as Boletim) : null;
 
+  /**
+   * A família recebe só os trimestres liberados.
+   *
+   * O recorte é nas **notas**, antes de montar: deixar passar e esconder na
+   * tela entregaria o boletim inteiro na resposta da rede. A equipe vê tudo
+   * — é ela que lança e que decide o dia da liberação.
+   */
+  const todas = notasDocs.docs.map((doc) => doc.data() as Nota);
+  const notas = isEquipe(sessao.role)
+    ? todas
+    : somenteLiberadas(todas, documento);
+
   return {
     matricula,
     nome: aluno.nome,
@@ -151,8 +167,9 @@ export async function boletimDoAluno(
     anoLetivo,
     percentualDeFrequencia: percentual,
     documento,
+    liberacoes: documento?.liberacoes ?? {},
     ...montarBoletim({
-      notas: notasDocs.docs.map((doc) => doc.data() as Nota),
+      notas,
       recuperacoes: documento?.recuperacoes ?? {},
       dependencias: documento?.dependencias ?? [],
       percentualDeFrequencia: percentual,

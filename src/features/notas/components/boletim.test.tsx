@@ -175,3 +175,13 @@ describe("Boletim", () => {
     expect(container.querySelector("article.boletim")).toBeTruthy();
   });
 });
+
+describe("coluna META", () => {
+  it("não aparece no boletim", () => {
+    // Era um número fixo repetido em toda linha, que existia na planilha
+    // para alimentar o gráfico. Informação nenhuma para quem lê.
+    montar();
+
+    expect(screen.queryByText("META")).not.toBeInTheDocument();
+  });
+});

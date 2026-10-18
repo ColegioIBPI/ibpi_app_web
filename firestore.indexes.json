@@ -43,6 +43,24 @@
       ]
     },
     {
+      "collectionGroup": "notas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "matricula", "order": "ASCENDING" },
+        { "fieldPath": "anoLetivo", "order": "ASCENDING" },
+        { "fieldPath": "liberado", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "matricula", "order": "ASCENDING" },
+        { "fieldPath": "anoLetivo", "order": "ASCENDING" },
+        { "fieldPath": "trimestre", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "recibos",
       "queryScope": "COLLECTION",
       "fields": [

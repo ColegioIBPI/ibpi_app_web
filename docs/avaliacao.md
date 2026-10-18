@@ -21,6 +21,70 @@ no banco, e tem teste para cada caso.
 
 ---
 
+## 1b. A liberação do boletim
+
+**A família só vê o trimestre depois que a secretaria o libera**, aluno por
+aluno. Três caixas por aluno, uma por trimestre, em `/gestao/boletins`.
+
+As notas entram aos poucos ao longo do trimestre. Um boletim meio
+preenchido é lido como "meu filho está indo mal" por quem não sabe que
+faltam avaliações — e a ligação para a secretaria é exatamente o que a
+liberação evita.
+
+### O que não foi liberado não é escondido: não é entregue
+
+O recorte acontece em dois lugares, porque há dois caminhos de leitura:
+
+| Quem lê | Onde | Como |
+| --- | --- | --- |
+| Portal | `boletimDoAluno` | recorta as notas antes de montar |
+| Aplicativo | Firestore direto | a Security Rule nega a nota não liberada |
+
+Esconder só na interface deixaria o dado ao alcance de quem olhasse a
+resposta da rede.
+
+### Dois lugares guardam a liberação
+
+| Onde | O quê | Para quê |
+| --- | --- | --- |
+| `boletins.liberacoes` | `{em, porNome}` por trimestre | o registro do ato |
+| `notas.liberado` | `boolean` | a trava que a regra consegue ler |
+
+Os dois são escritos **no mesmo lote**: se o registro entrasse sem as
+notas, a secretaria veria "liberado" e a família continuaria sem ver nada.
+
+A denormalização existe porque a regra do Firestore teria de fazer um
+`get()` no boletim **por nota** para decidir, e uma consulta de quinze
+disciplinas estouraria o limite de acessos a documento.
+
+**Ausente conta como não liberada** — ao contrário de
+`visivelParaResponsavel` nas ocorrências. Aqui a assimetria é intencional:
+é justamente sobre as notas que já estavam lançadas que o colégio quer
+decidir quando mostrar.
+
+### O mapa é escrito por caminho de campo
+
+`set(..., { merge: true })` faz merge **profundo** de mapa: regravar
+`liberacoes` sem a chave do trimestre recolhido **não a apaga**.
+
+Uma verificação contra o banco real pegou isso — a secretaria desmarcava a
+caixa, as notas eram desmarcadas, e o registro seguia dizendo "liberado".
+A gravação usa `liberacoes.{trimestre}` com `FieldValue.delete()`, e de
+brinde duas pessoas liberando trimestres diferentes do mesmo aluno deixam
+de se sobrescrever.
+
+### Quem libera
+
+`notas: gerenciar` — secretaria, coordenação e administração. O professor
+lança nota, mas não decide o dia em que a família vê.
+
+Há também o botão de liberar a lista inteira: o trimestre fecha para todo
+mundo no mesmo dia, e marcar trinta caixas à mão é como três alunos ficam
+de fora sem ninguém notar. Ele vai aluno por aluno, cada um auditado, para
+que um erro não derrube a liberação dos outros.
+
+---
+
 ## 2. As contas
 
 ```
@@ -39,6 +103,13 @@ MÉDIA = TOTAL ÷ 2
 ---
 
 ## 3. Decisões que parecem detalhe e não são
+
+### A coluna META saiu do boletim
+
+Ela existia na planilha do colégio para alimentar o gráfico: um número fixo
+repetido em toda linha. Informação nenhuma para quem lê o boletim, e uma
+coluna a mais disputando largura num documento que já é apertado. O gráfico
+do Portal nunca a usou.
 
 ### Nota ausente não é zero
 

@@ -261,6 +261,22 @@ beforeEach(async () => {
       ibpiOnline: { usuario: "aluno@ibpi", senha: "classroom-2026" },
       plural: { usuario: "aluno", senha: "plural-2026" },
     });
+    await setDoc(doc(db, "notas/2026-t1-26031-portugues"), {
+      anoLetivo: 2026,
+      trimestre: 1,
+      matricula: FILHO,
+      turmaId: TURMA_DO_PROFESSOR,
+      disciplinaId: "portugues",
+      liberado: true,
+    });
+    await setDoc(doc(db, "notas/2026-t2-26031-portugues"), {
+      anoLetivo: 2026,
+      trimestre: 2,
+      matricula: FILHO,
+      turmaId: TURMA_DO_PROFESSOR,
+      disciplinaId: "portugues",
+      liberado: false,
+    });
     await setDoc(doc(db, "ocorrencias/publicada-para-os-dois"), {
       matricula: FILHO,
       turmaId: "2026-EM1A",
@@ -351,16 +367,24 @@ describe("acesso sem sessão", () => {
 });
 
 describe("aluno", () => {
-  it("lê o próprio cadastro, notas e frequência", async () => {
+  it("lê o próprio cadastro, boletim e frequência", async () => {
     const { aluno } = contextos();
     await assertSucceeds(ler(aluno, `alunos/${FILHO}`));
-    await assertSucceeds(ler(aluno, "notas/n1"));
     await assertSucceeds(ler(aluno, "boletins/b1"));
     await assertSucceeds(ler(aluno, "frequenciaDiaria/f1"));
   });
 
-  it("não lê a própria ocorrência disciplinar", async () => {
-    // Regra de negócio: ocorrência é tratada com o responsável e a equipe.
+  it("lê nota só depois de o trimestre ser liberado", async () => {
+    // `notas/n1` é anterior à liberação e não tem o campo. Ausente conta
+    // como não liberada — ver a seção "liberação do boletim".
+    const { aluno } = contextos();
+    await assertFails(ler(aluno, "notas/n1"));
+    await assertSucceeds(ler(aluno, "notas/2026-t1-26031-portugues"));
+  });
+
+  it("não lê a ocorrência que não foi marcada para ele", async () => {
+    // `ocorrencias/o1` é anterior à autorização de publicação e não tem os
+    // campos. O padrão continua sendo tratar a ocorrência com o adulto.
     const { aluno } = contextos();
     await assertFails(ler(aluno, "ocorrencias/o1"));
   });
@@ -381,7 +405,8 @@ describe("responsável", () => {
   it("lê tudo do filho, inclusive ocorrência e financeiro", async () => {
     const { responsavel } = contextos();
     await assertSucceeds(ler(responsavel, `alunos/${FILHO}`));
-    await assertSucceeds(ler(responsavel, "notas/n1"));
+    // Nota entra aqui só se liberada — ver "liberação do boletim".
+    await assertSucceeds(ler(responsavel, "notas/2026-t1-26031-portugues"));
     await assertSucceeds(ler(responsavel, "frequenciaDiaria/f1"));
     await assertSucceeds(ler(responsavel, "ocorrencias/o1"));
     await assertSucceeds(ler(responsavel, "cobrancas/c1"));
@@ -858,6 +883,47 @@ describe("acessos às plataformas", () => {
         plural: { senha: "x" },
       }),
     );
+  });
+});
+
+describe("liberação do boletim", () => {
+  it("a família lê a nota do trimestre liberado", async () => {
+    const { responsavel, aluno } = contextos();
+
+    await assertSucceeds(ler(responsavel, "notas/2026-t1-26031-portugues"));
+    await assertSucceeds(ler(aluno, "notas/2026-t1-26031-portugues"));
+  });
+
+  it("a família NÃO lê a nota do trimestre em andamento", async () => {
+    // É o ponto da funcionalidade: boletim meio preenchido é lido como
+    // "meu filho está indo mal" por quem não sabe que faltam avaliações.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "notas/2026-t2-26031-portugues"));
+    await assertFails(ler(aluno, "notas/2026-t2-26031-portugues"));
+  });
+
+  it("nota antiga, sem o campo, não vaza", async () => {
+    // Ausente conta como não liberada: é justamente sobre o que já estava
+    // lançado que o colégio quer decidir quando mostrar.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "notas/n1"));
+    await assertFails(ler(aluno, "notas/n1"));
+  });
+
+  it("a equipe lê qualquer nota, liberada ou não", async () => {
+    // É ela que lança e que decide o dia da liberação.
+    const { secretaria, coordenacao, admin, professor } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, admin, professor]) {
+      await assertSucceeds(ler(contexto, "notas/2026-t2-26031-portugues"));
+    }
+  });
+
+  it("a liberação não abre a nota de outro aluno", async () => {
+    const { outroResponsavel } = contextos();
+    await assertFails(ler(outroResponsavel, "notas/2026-t1-26031-portugues"));
   });
 });
 

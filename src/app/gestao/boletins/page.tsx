@@ -13,6 +13,11 @@ import {
   turmasDaLista,
 } from "@/features/alunos/domain/busca";
 import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
+import { pode } from "@/core/auth/roles";
+import { getAdminDb } from "@/core/firebase/admin";
+import { COLECOES, type Boletim } from "@/core/modelo";
+import { LiberacaoDeBoletins } from "@/features/notas/components/liberacao-de-boletins";
+import { idDoBoletim } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletins" };
 
@@ -32,6 +37,36 @@ export default async function BoletinsPage({
     }),
   );
 
+  /**
+   * As liberações dos alunos encontrados, em uma leitura só.
+   *
+   * `getAll` com os ids, e não uma consulta por aluno: a lista tem a turma
+   * inteira, e trinta idas ao banco deixariam a tela lenta justamente no
+   * dia em que a secretaria abre para liberar todo mundo.
+   */
+  const podeLiberar = pode(sessao.role, "notas", "gerenciar");
+
+  const db = getAdminDb();
+  const boletins =
+    podeLiberar && encontrados.length > 0
+      ? await db.getAll(
+          ...encontrados.map((aluno) =>
+            db
+              .collection(COLECOES.boletins)
+              .doc(idDoBoletim(ano, aluno.matricula)),
+          ),
+        )
+      : [];
+
+  const liberacoesPorMatricula = new Map(
+    boletins
+      .filter((doc) => doc.exists)
+      .map((doc) => {
+        const boletim = doc.data() as Boletim;
+        return [boletim.matricula, boletim.liberacoes ?? {}] as const;
+      }),
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -47,6 +82,23 @@ export default async function BoletinsPage({
           <FiltrosDeAlunos turmas={turmasDaLista(todos)} />
         </Suspense>
       </Card>
+
+      {podeLiberar && encontrados.length > 0 && (
+        <Card
+          title="Liberação para a família"
+          description="A família só vê o trimestre depois que a caixa é marcada. Antes disso, nem o Portal nem o aplicativo entregam as notas."
+        >
+          <LiberacaoDeBoletins
+            anoLetivo={ano}
+            alunos={encontrados.map((aluno) => ({
+              matricula: aluno.matricula,
+              nome: aluno.nome,
+              turmaCodigo: aluno.turmaCodigo ?? null,
+              liberacoes: liberacoesPorMatricula.get(aluno.matricula) ?? {},
+            }))}
+          />
+        </Card>
+      )}
 
       <Card>
         {encontrados.length === 0 ? (

@@ -261,6 +261,16 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.19 Liberação do boletim e coluna META
+
+- [x] Remover a coluna META da visualização do boletim
+- [x] Liberar o boletim por aluno e por trimestre, com três checks
+- [x] Liberar a lista inteira de uma vez, auditando aluno por aluno
+- [x] Recortar as notas não liberadas no Portal e na Security Rule
+- [x] Avisar a família quando ainda não há trimestre liberado
+- [x] Publicar a Security Rule e os índices
+- [x] Atualizar o contrato do app com `liberado` e a consulta filtrada
+
 ### 3.18 Saída antecipada e publicação de ocorrências
 
 - [x] Saída antecipada como situação de presença (P/F/A/S), contando como presença

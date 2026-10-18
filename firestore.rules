@@ -203,10 +203,27 @@ service cloud.firestore {
     // ---------------------------------------------------------- notas
 
     match /notas/{id} {
+      // A família lê **só o que foi liberado**. As notas entram aos poucos
+      // ao longo do trimestre, e um boletim meio preenchido é lido como
+      // "meu filho está indo mal" por quem não sabe que faltam avaliações.
+      //
+      // `liberado` é denormalizado de `boletins.liberacoes` e escrito no
+      // mesmo lote. A regra decide por aqui, e não buscando o boletim,
+      // porque um `get()` por nota estouraria o limite de acessos a
+      // documento numa consulta de quinze disciplinas.
+      //
+      // **Ausente conta como não liberada**: as notas lançadas antes desta
+      // mudança não têm o campo, e é justamente sobre elas que o colégio
+      // quer decidir quando mostrar.
+      //
+      // Consequência para o aplicativo: a consulta da família precisa
+      // trazer `where('liberado', '==', true)`, senão a regra nega o lote
+      // inteiro. Ver docs/app-mobile.md, seção 4.
       allow read: if secretariaOuCoordenacao()
                   || professorDaTurma(resource.data.turmaId)
-                  || ehProprioAluno(resource.data.matricula)
-                  || ehFilho(resource.data.matricula);
+                  || ((ehProprioAluno(resource.data.matricula)
+                       || ehFilho(resource.data.matricula))
+                      && resource.data.get('liberado', false) == true);
       allow write: if false;
     }
 

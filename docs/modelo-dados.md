@@ -315,6 +315,11 @@ resultado porque alguém salvou uma tela.
 
 Rascunho (`publicado: false`) só a equipe lê.
 
+> **Liberação do boletim.** `boletins.liberacoes` guarda, por trimestre,
+> quem liberou e quando; `notas.liberado` repete a decisão como booleano
+> para a Security Rule. Escritos no mesmo lote. Ausente = não liberada.
+> Ver [avaliacao.md](avaliacao.md), seção 1b.
+
 ### `turmas/{ano-codigo}`
 
 `codigo` (`EM1A`, `E.J.A. EM`) · `anoLetivo` · `segmento` · `turno` ·
