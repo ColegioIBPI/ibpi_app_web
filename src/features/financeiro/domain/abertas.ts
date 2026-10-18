@@ -116,6 +116,51 @@ export function aVencerAte<T extends Pick<ParcelaAberta, "vencimento">>(
   return parcelas.filter((parcela) => parcela.vencimento <= ate);
 }
 
+export interface GrupoPorAluno<T> {
+  matricula: string;
+  nome: string;
+  turmaCodigo: string | null;
+  parcelas: T[];
+  total: number;
+}
+
+/**
+ * Agrupa as parcelas por aluno, com o total de cada um.
+ *
+ * É o formato do relatório impresso: a família aparece uma vez, com a
+ * lista dos vencimentos embaixo. O total é do **saldo**, e não do valor —
+ * pagamento parcial já abatido, senão o relatório cobraria o que já entrou.
+ */
+export function agruparPorAluno<
+  T extends Pick<ParcelaAberta, "matricula" | "nome" | "turmaCodigo" | "saldo">,
+>(parcelas: T[]): Array<GrupoPorAluno<T>> {
+  const grupos = new Map<string, GrupoPorAluno<T>>();
+
+  for (const parcela of parcelas) {
+    const grupo = grupos.get(parcela.matricula);
+
+    if (grupo) {
+      grupo.parcelas.push(parcela);
+      grupo.total += parcela.saldo;
+      continue;
+    }
+
+    grupos.set(parcela.matricula, {
+      matricula: parcela.matricula,
+      nome: parcela.nome,
+      turmaCodigo: parcela.turmaCodigo,
+      parcelas: [parcela],
+      total: parcela.saldo,
+    });
+  }
+
+  // Por nome: a folha impressa é conferida lendo de cima a baixo, e a
+  // ordem por vencimento espalharia o mesmo aluno pela página inteira.
+  return [...grupos.values()].sort((a, b) =>
+    a.nome.localeCompare(b.nome, "pt-BR"),
+  );
+}
+
 /**
  * O tipo do responsável, com o padrão de quem veio do Access.
  *

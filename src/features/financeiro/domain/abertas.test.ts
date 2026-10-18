@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Cobranca } from "@/core/modelo";
 import {
+  agruparPorAluno,
   aVencerAte,
   descreverResponsaveis,
   ehFinanceiro,
@@ -197,5 +198,53 @@ describe("CPF", () => {
     // Melhor mostrar o número torto que esconder o cadastro errado.
     expect(formatarCPF("123")).toBe("123");
     expect(formatarCPF(null)).toBe("");
+  });
+});
+
+describe("agrupar por aluno — o relatório impresso", () => {
+  const linhas = parcelasAbertas(
+    [
+      cobranca({ id: "a", vencimento: "2026-04-10", valor: 100 }),
+      cobranca({ id: "b", vencimento: "2026-05-10", valor: 200 }),
+      cobranca({ id: "c", matricula: "26099", vencimento: "2026-04-10", valor: 50 }),
+    ],
+    new Map([
+      ...ALUNOS,
+      ["26099", { matricula: "26099", nome: "Ana Souza", turmaCodigo: "EF6A" }],
+    ]),
+    HOJE,
+  );
+
+  it("a família aparece uma vez, com as parcelas embaixo", () => {
+    const grupos = agruparPorAluno(linhas);
+
+    expect(grupos).toHaveLength(2);
+    expect(grupos.find((g) => g.matricula === "26031")?.parcelas).toHaveLength(2);
+  });
+
+  it("o total é do saldo, não do valor", () => {
+    // Pagamento parcial já abatido: senão o relatório cobraria o que já
+    // entrou.
+    const comParcial = parcelasAbertas(
+      [cobranca({ id: "a", valor: 1000, valorPago: 400 })],
+      ALUNOS,
+      HOJE,
+    );
+
+    expect(agruparPorAluno(comParcial)[0].total).toBe(600);
+  });
+
+  it("soma as parcelas do mesmo aluno", () => {
+    expect(
+      agruparPorAluno(linhas).find((g) => g.matricula === "26031")?.total,
+    ).toBe(300);
+  });
+
+  it("ordena por nome, que é como a folha é conferida", () => {
+    // Por vencimento, o mesmo aluno se espalharia pela página inteira.
+    expect(agruparPorAluno(linhas).map((g) => g.nome)).toEqual([
+      "Alice Vianna",
+      "Ana Souza",
+    ]);
   });
 });

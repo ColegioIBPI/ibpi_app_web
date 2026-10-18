@@ -165,6 +165,19 @@ matrícula, data de matrícula, nome, nascimento, curso, série e turno.
 | **Matrículas** | todos, em qualquer situação | Status e **Data do status** |
 | **Alunos ativos** | só matrícula ativa | — |
 | **Alunos cancelados** | só `cancelada` | **Data de cancelamento** |
+| **Alunos concluídos** | só `concluida` | **Data de conclusão** |
+| **Alunos transferidos** | só `transferida` | **Data de transferência** |
+
+As três últimas saem da mesma fábrica, trocando situação e título da data.
+São **documentos distintos** e não um com coluna de motivo: a secretaria os
+emite em momentos diferentes e para destinatários diferentes — a de
+concluídos acompanha a certificação, a de transferidos vai para a escola
+que recebe.
+
+> ⚠️ **Hoje as atas de concluídos e transferidos saem vazias**: a base tem
+> 62 ativos e 11 cancelados, e ninguém nessas duas situações. A ata impressa
+> do Access mostra concluídos, então a migração não trouxe esse status — a
+> secretaria o marca na edição do aluno, junto com a data.
 
 A ata de ativos **não tem coluna de situação**: todos nela têm a mesma, e
 repetir "Ativa" em todas as linhas só ocupa largura.
@@ -262,6 +275,72 @@ duas, com **linhas de tipos diferentes** — guardá-las numa lista apagaria o
 tipo das duas. Então a aba virou uma função (`aba()`), e `montarLivro()`
 recebe quantas forem. `montarPlanilha` continua existindo para o caso de
 uma aba, que é o de quase todos os relatórios.
+
+---
+
+## 4f. Os documentos impressos
+
+Três relatórios **não são planilha**: são folha para imprimir, pelo
+navegador, como o boletim. Gerar PDF no servidor exigiria manter uma
+segunda descrição de cada um em sincronia com a tela.
+
+### Relatório diário de inadimplentes
+
+`/gestao/financeiro/relatorio` — **agrupado por aluno, uma linha por
+parcela, total por família**, no formato da folha que o colégio já imprime.
+
+Substituiu a versão que somava o aluno numa linha. O cabeçalho traz
+`Ref.: {ano}` e **`Posição até: {data}`** — parcelas não pagas vencidas até
+aquele dia, que é o que "posição" quer dizer. Sem parâmetro, hoje, no fuso
+do colégio.
+
+Os **responsáveis vão embaixo do nome**, com CPF e tipo, e não em colunas:
+são quem a escola liga, e caberiam mal numa coluna estreita numa folha já
+cheia. A descrição traz a parcela (`Mensalidade 2/12`), como foi pedido.
+
+Cada aluno é um `<tbody>` com `break-inside: avoid`: um bloco partido ao
+meio faria o total aparecer sozinho no alto da folha seguinte.
+
+> A planilha e a folha leem **o mesmo serviço**
+> (`financeiro/services/abertas.server.ts`). Duas leituras separadas é como
+> elas passam a discordar — e a conversa com a família seria sobre qual das
+> duas vale.
+
+> Conferido: 43 alunos, 129 parcelas, R$ 414.893 em aberto na posição de
+> hoje.
+
+### Ficha cadastral
+
+`/gestao/alunos/{matricula}/ficha` — reproduz a folha que o colégio usa, nos
+mesmos blocos e na mesma ordem, porque é assim que a secretaria lê e
+confere.
+
+**Campo vazio vira linha em branco, e não some.** A ficha é impressa para
+ser completada à mão no que falta; esconder o vazio tiraria justamente o
+espaço onde se escreve. Pelo mesmo motivo, há **duas linhas de responsável**
+mesmo quando só existe um.
+
+Exige `cadastros: gerenciar`: ela reúne filiação, documentos e endereço num
+documento só, e isso é mais do que o professor precisa para dar aula.
+
+### Ficha financeira
+
+`/gestao/financeiro/{matricula}/ficha` — **todas** as parcelas do aluno,
+pagas e não pagas, com data, valor, forma e recibo de cada pagamento.
+
+Não é o extrato nem o relatório de inadimplentes. Aqui a pergunta é "o que
+esta família pagou e quando?", e mostrar só o que falta responderia outra
+coisa. Inclui o plano acordado; **a anotação interna não entra** — ela é da
+equipe, e a ficha vai para a família.
+
+Usa o mesmo `extratoDoAluno` da tela: dois caminhos para o mesmo dado é como
+a ficha entregue à família passa a discordar do extrato que a secretaria
+olha.
+
+> ⚠️ **Tudo imprime em A4 paisagem**, que é o `@page` padrão do sistema —
+> escolhido pelo boletim, que não cabe em retrato. Para a ficha cadastral o
+> retrato seria melhor; inverter o padrão exigiria tratar boletim e
+> relatórios largos à parte. Anotado no TASKS.
 
 ---
 

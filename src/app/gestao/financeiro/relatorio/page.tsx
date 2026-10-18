@@ -3,50 +3,52 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { formatCurrency, formatDate } from "@/core/lib/format";
+import { anoLetivoAtual } from "@/core/lib/ano-letivo";
 import { Card } from "@/core/ui/card";
-import { EmptyState } from "@/core/ui/states";
 import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
-import {
-  filtrarLinhas,
-  recorteDaQuery,
-  resumir,
-} from "@/features/financeiro/domain/lista";
-import { situacaoFinanceiraDaEscola } from "@/features/financeiro/services/financeiro.server";
+import { agruparPorAluno, aVencerAte } from "@/features/financeiro/domain/abertas";
+import { RelatorioDeInadimplentes } from "@/features/financeiro/components/relatorio-de-inadimplentes";
+import { parcelasEmAbertoDaEscola } from "@/features/financeiro/services/abertas.server";
 
-export const metadata: Metadata = { title: "Relatório de inadimplência" };
-
-const ROTULOS = {
-  vencidas: "Alunos com parcela vencida",
-  "em-aberto": "Alunos com saldo em aberto",
-  todos: "Todos os alunos",
-} as const;
+export const metadata: Metadata = { title: "Relatório de inadimplentes" };
 
 /**
- * Relatório de inadimplência pronto para imprimir.
+ * Relatório diário de inadimplentes, pronto para imprimir.
  *
- * O PDF sai pela impressão do navegador, como o boletim: gerar no servidor
- * exigiria manter uma segunda descrição do relatório em sincronia com a
- * tela, e é assim que as duas acabam divergindo.
+ * Substituiu a versão que somava o aluno numa linha. Esta é a folha que o
+ * colégio já imprime: agrupada por aluno, uma linha por parcela e um total
+ * por família.
+ *
+ * `ate` é a **posição**: parcelas não pagas vencidas até aquele dia. Sem
+ * parâmetro, hoje — que é o uso diário e o que o nome do relatório diz.
  */
-export default async function RelatorioDeInadimplenciaPage({
+export default async function RelatorioDeInadimplentesPage({
   searchParams,
 }: PageProps<"/gestao/financeiro/relatorio">) {
   const sessao = await exigirPermissao("financeiro", "ler");
   const filtros = await searchParams;
 
   const turma = typeof filtros.turma === "string" ? filtros.turma : undefined;
-  const recorte = recorteDaQuery(filtros.situacao);
+  const ate =
+    typeof filtros.ate === "string" && filtros.ate
+      ? filtros.ate
+      : hojeNoBrasil();
 
-  const todas = await situacaoFinanceiraDaEscola(sessao);
-  const linhas = filtrarLinhas(todas, { turma, recorte });
-  const resumo = resumir(linhas);
+  const { parcelas, responsaveisPorAluno } = await parcelasEmAbertoDaEscola(
+    sessao,
+    { turma },
+  );
+
+  const grupos = agruparPorAluno(aVencerAte(parcelas, ate)).map((grupo) => ({
+    ...grupo,
+    responsaveis: responsaveisPorAluno.get(grupo.matricula) ?? [],
+  }));
 
   return (
     <div className="flex flex-col gap-6">
       <div
         data-impressao="ocultar"
-        className="flex flex-wrap items-start justify-between gap-4"
+        className="flex flex-wrap items-center justify-between gap-4"
       >
         <Link
           href="/gestao/financeiro"
@@ -56,134 +58,52 @@ export default async function RelatorioDeInadimplenciaPage({
           Financeiro
         </Link>
 
-        <BotaoDeImpressao />
+        <div className="flex flex-wrap items-end gap-3">
+          {/*
+            A posição é um GET no próprio relatório, sem JavaScript: a
+            secretaria muda a data e imprime, e o link continua servindo
+            para repetir a mesma folha depois.
+          */}
+          <form className="flex items-end gap-2">
+            {turma && <input type="hidden" name="turma" value={turma} />}
+            <label className="flex flex-col gap-1">
+              <span className="text-ink-muted text-xs">Posição até</span>
+              <input
+                type="date"
+                name="ate"
+                defaultValue={ate}
+                className="border-line bg-surface text-ink h-10 rounded-md border px-3 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              className="border-line bg-surface text-ink hover:bg-surface-subtle h-10 rounded-md border px-4 text-sm font-medium"
+            >
+              Atualizar
+            </button>
+          </form>
+
+          <BotaoDeImpressao />
+        </div>
       </div>
 
       <Card>
-        <header className="border-line mb-4 border-b pb-3">
-          <h1 className="text-ink text-lg font-semibold">
-            Relatório de inadimplência
-          </h1>
-          <p className="text-ink-muted mt-1 text-sm">
-            Colégio IBPI · {ROTULOS[recorte]}
-            {turma ? ` · Turma ${turma}` : " · Todas as turmas"} · Emitido em{" "}
-            {formatDate(new Date())}
-          </p>
-        </header>
-
-        <dl className="border-line mb-4 grid gap-4 border-b pb-4 sm:grid-cols-3">
-          <div>
-            <dt className="text-ink-muted text-sm">Alunos no relatório</dt>
-            <dd className="text-ink text-lg font-semibold tabular-nums">
-              {linhas.length}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-ink-muted text-sm">Total em aberto</dt>
-            <dd className="text-ink text-lg font-semibold tabular-nums">
-              {formatCurrency(resumo.emAberto)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-ink-muted text-sm">Total vencido</dt>
-            <dd className="text-danger text-lg font-semibold tabular-nums">
-              {formatCurrency(resumo.vencido)}
-            </dd>
-          </div>
-        </dl>
-
-        {linhas.length === 0 ? (
-          <EmptyState
-            title="Nada a relatar"
-            description="Nenhum aluno se encaixa neste recorte."
-          />
-        ) : (
-          <table className="w-full border-collapse text-sm">
-            <caption className="sr-only">Situação financeira por aluno</caption>
-            <thead>
-              <tr className="border-line border-b text-left">
-                <th
-                  scope="col"
-                  className="text-ink-muted py-2 pr-3 font-medium"
-                >
-                  Aluno
-                </th>
-                <th
-                  scope="col"
-                  className="text-ink-muted py-2 pr-3 font-medium"
-                >
-                  Turma
-                </th>
-                <th
-                  scope="col"
-                  className="text-ink-muted py-2 pr-3 text-right font-medium"
-                >
-                  Pago
-                </th>
-                <th
-                  scope="col"
-                  className="text-ink-muted py-2 pr-3 text-right font-medium"
-                >
-                  Em aberto
-                </th>
-                <th
-                  scope="col"
-                  className="text-ink-muted py-2 pr-3 text-right font-medium"
-                >
-                  Vencido
-                </th>
-                <th scope="col" className="text-ink-muted py-2 font-medium">
-                  Vencida desde
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-line divide-y">
-              {linhas.map((linha) => (
-                <tr key={linha.matricula}>
-                  <th
-                    scope="row"
-                    className="text-ink py-2 pr-3 text-left font-normal"
-                  >
-                    {linha.nome}
-                    <span className="text-ink-muted block text-xs">
-                      {linha.matricula}
-                    </span>
-                  </th>
-                  <td className="text-ink-muted py-2 pr-3">
-                    {linha.turmaCodigo ?? "—"}
-                  </td>
-                  <td className="text-ink-muted py-2 pr-3 text-right tabular-nums">
-                    {formatCurrency(linha.totais.pago)}
-                  </td>
-                  <td className="text-ink py-2 pr-3 text-right tabular-nums">
-                    {formatCurrency(linha.totais.emAberto)}
-                  </td>
-                  <td className="text-danger py-2 pr-3 text-right font-medium tabular-nums">
-                    {formatCurrency(linha.totais.vencido)}
-                  </td>
-                  <td className="text-ink-muted py-2 tabular-nums">
-                    {linha.vencidaDesde ? formatDate(linha.vencidaDesde) : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-line border-t-2 font-medium">
-                <td className="text-ink py-2 pr-3" colSpan={3}>
-                  Total
-                </td>
-                <td className="text-ink py-2 pr-3 text-right tabular-nums">
-                  {formatCurrency(resumo.emAberto)}
-                </td>
-                <td className="text-danger py-2 pr-3 text-right tabular-nums">
-                  {formatCurrency(resumo.vencido)}
-                </td>
-                <td />
-              </tr>
-            </tfoot>
-          </table>
-        )}
+        <RelatorioDeInadimplentes
+          grupos={grupos}
+          anoLetivo={anoLetivoAtual()}
+          posicaoAte={ate}
+        />
       </Card>
     </div>
   );
+}
+
+/** `AAAA-MM-DD` no fuso do colégio — a Vercel roda em UTC. */
+function hojeNoBrasil(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }

@@ -144,9 +144,9 @@ export function totalizar(
 }
 
 /** Vencimento crescente — a ordem do extrato e do carnê. */
-export function ordenarPorVencimento(
-  cobrancas: readonly Cobranca[],
-): Cobranca[] {
+export function ordenarPorVencimento<
+  T extends Pick<Cobranca, "vencimento" | "parcela">,
+>(cobrancas: readonly T[]): T[] {
   return [...cobrancas].sort(
     (a, b) =>
       a.vencimento.localeCompare(b.vencimento) ||

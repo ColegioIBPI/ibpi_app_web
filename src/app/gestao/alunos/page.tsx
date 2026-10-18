@@ -68,6 +68,14 @@ export default async function AlunosPage({
             href={`/api/exportacoes/alunos-cancelados?${parametros(filtros).toString()}`}
             rotulo="Ata de cancelados"
           />
+          <BotaoDeExportacao
+            href={`/api/exportacoes/alunos-concluidos?${parametros(filtros).toString()}`}
+            rotulo="Ata de concluídos"
+          />
+          <BotaoDeExportacao
+            href={`/api/exportacoes/alunos-transferidos?${parametros(filtros).toString()}`}
+            rotulo="Ata de transferidos"
+          />
         </div>
       </div>
 

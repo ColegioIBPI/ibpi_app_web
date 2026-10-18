@@ -5,6 +5,7 @@ import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
 import {
   ROTULOS_DE_SITUACAO_DA_MATRICULA,
   ROTULOS_DE_TURNO,
+  type SituacaoDaMatricula,
 } from "@/core/modelo";
 import {
   dataDoStatus,
@@ -140,34 +141,63 @@ export async function ataDeAlunosAtivos(
 }
 
 /**
- * Ata de alunos cancelados.
+ * Atas de quem saiu, por motivo.
  *
- * Filtra pela situação **`cancelada`**, e não por "tudo que não está
- * ativo": o colégio tem cinco situações, e juntar transferido e concluído
- * numa ata chamada "cancelados" faria o documento afirmar o que não é. As
- * outras situações merecem atas próprias quando forem pedidas.
+ * Concluído, transferido e cancelado são **três documentos**, e não um com
+ * uma coluna de motivo: a secretaria os emite em momentos diferentes e
+ * para destinatários diferentes — a de concluídos acompanha a certificação,
+ * a de transferidos vai para a escola que recebe.
  *
- * A **data de cancelamento** é `dataDaSituacao`, que é gravada justamente
- * quando a matrícula deixa de ser ativa.
+ * Cada uma traz a data do próprio fato, que é sempre `dataDaSituacao`: o
+ * dia em que a matrícula deixou de ser ativa.
  */
-export async function ataDeAlunosCancelados(
-  sessao: SessionUser,
-  filtro: { turma?: string } = {},
-): Promise<Buffer> {
-  const alunos = (await listarAlunosVisiveis(sessao))
-    .filter((aluno) => aluno.situacaoMatricula === "cancelada")
-    .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma);
+function ataDeSaida(
+  situacao: SituacaoDaMatricula,
+  nomeDaAba: string,
+  tituloDaData: string,
+) {
+  return async (
+    sessao: SessionUser,
+    filtro: { turma?: string } = {},
+  ): Promise<Buffer> => {
+    const alunos = (await listarAlunosVisiveis(sessao))
+      .filter((aluno) => aluno.situacaoMatricula === situacao)
+      .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma);
 
-  return montarPlanilha({
-    aba: "Alunos cancelados",
-    colunas: colunasDaAta([
-      {
-        titulo: "Data de cancelamento",
-        tipo: "data",
-        largura: 20,
-        valor: (l) => l.aluno.dataDaSituacao ?? null,
-      },
-    ]),
-    linhas: await montarLinhas(alunos),
-  });
+    return montarPlanilha({
+      aba: nomeDaAba,
+      colunas: colunasDaAta([
+        {
+          titulo: tituloDaData,
+          tipo: "data",
+          largura: 20,
+          valor: (l) => l.aluno.dataDaSituacao ?? null,
+        },
+      ]),
+      linhas: await montarLinhas(alunos),
+    });
+  };
 }
+
+export const ataDeAlunosConcluidos = ataDeSaida(
+  "concluida",
+  "Alunos concluídos",
+  "Data de conclusão",
+);
+
+export const ataDeAlunosTransferidos = ataDeSaida(
+  "transferida",
+  "Alunos transferidos",
+  "Data de transferência",
+);
+
+/**
+ * Cada ata filtra pela **própria** situação, e não por "tudo que não está
+ * ativo": juntar transferido e concluído numa chamada "cancelados" faria o
+ * documento afirmar o que não é.
+ */
+export const ataDeAlunosCancelados = ataDeSaida(
+  "cancelada",
+  "Alunos cancelados",
+  "Data de cancelamento",
+);

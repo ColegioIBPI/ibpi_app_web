@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, FileText, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -70,6 +70,15 @@ export default async function AlunoPage({
 
         {/* Professor e financeiro leem o cadastro, mas não editam. */}
         {pode(sessao.role, "cadastros", "gerenciar") && (
+          <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/gestao/alunos/${aluno.matricula}/ficha`}
+            className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <FileText className="size-4" aria-hidden />
+            Ficha cadastral
+          </Link>
+
           <Link
             href={`/gestao/alunos/${aluno.matricula}/editar`}
             className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
@@ -77,6 +86,7 @@ export default async function AlunoPage({
             <Pencil className="size-4" aria-hidden />
             Editar
           </Link>
+          </div>
         )}
       </div>
 

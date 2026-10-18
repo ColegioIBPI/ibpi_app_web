@@ -2,22 +2,18 @@ import "server-only";
 
 import type { SessionUser } from "@/core/auth/session";
 import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
-import { getAdminDb } from "@/core/firebase/admin";
-import { COLECOES, type Responsavel } from "@/core/modelo";
-import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
 import {
   aVencerAte,
   descreverResponsaveis,
   formatarCPF,
-  parcelasAbertas,
   responsavelParaCobranca,
   somenteVencidas,
   telefoneDoResponsavel,
   tipoDoResponsavel,
-  type CobrancaComId,
   type ParcelaAberta,
   type ResponsavelDoRelatorio,
 } from "@/features/financeiro/domain/abertas";
+import { parcelasEmAbertoDaEscola } from "@/features/financeiro/services/abertas.server";
 import { ROTULOS_DE_TIPO_DE_RESPONSAVEL } from "@/core/modelo";
 
 /**
@@ -94,57 +90,17 @@ const COLUNAS: Coluna<LinhaDeCobranca>[] = [
   },
 ];
 
-/**
- * Carrega parcelas, alunos e responsáveis e cruza em memória.
- *
- * O escopo da sessão é aplicado pelos **alunos**: a planilha é cópia de
- * dado pessoal saindo do sistema, e parcela de aluno fora do escopo não
- * pode aparecer nem com o nome em branco.
- */
+/** As linhas do relatório: a parcela com os responsáveis anexados. */
 async function linhas(
   sessao: SessionUser,
   filtro: { turma?: string } = {},
-  hoje = new Date(),
 ): Promise<LinhaDeCobranca[]> {
-  const db = getAdminDb();
-
-  const [alunos, cobrancasDocs, responsaveisDocs] = await Promise.all([
-    listarAlunosVisiveis(sessao),
-    db.collection(COLECOES.cobrancas).get(),
-    db.collection(COLECOES.responsaveis).get(),
-  ]);
-
-  const noEscopo = alunos.filter(
-    (aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma,
+  const { parcelas, responsaveisPorAluno } = await parcelasEmAbertoDaEscola(
+    sessao,
+    filtro,
   );
 
-  const porMatricula = new Map(
-    noEscopo.map((aluno) => [
-      aluno.matricula,
-      {
-        matricula: aluno.matricula,
-        nome: aluno.nome,
-        turmaCodigo: aluno.turmaCodigo ?? null,
-      },
-    ]),
-  );
-
-  const responsaveisPorAluno = new Map<string, ResponsavelDoRelatorio[]>();
-  for (const doc of responsaveisDocs.docs) {
-    const responsavel = doc.data() as Responsavel;
-
-    for (const matricula of responsavel.alunosVinculados ?? []) {
-      const atuais = responsaveisPorAluno.get(matricula) ?? [];
-      atuais.push(responsavel);
-      responsaveisPorAluno.set(matricula, atuais);
-    }
-  }
-
-  const cobrancas = cobrancasDocs.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }) as CobrancaComId)
-    .filter((cobranca) => porMatricula.has(cobranca.matricula));
-
-  return parcelasAbertas(cobrancas, porMatricula, hoje).map((parcela) => ({
+  return parcelas.map((parcela) => ({
     ...parcela,
     responsaveis: responsaveisPorAluno.get(parcela.matricula) ?? [],
   }));

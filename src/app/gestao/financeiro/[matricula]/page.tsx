@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,11 +48,25 @@ export default async function ExtratoDoAlunoPage({
           Financeiro
         </Link>
 
-        <h1 className="text-ink mt-2 text-xl font-semibold">{extrato.nome}</h1>
-        <p className="text-ink-muted mt-1 text-sm">
-          Matrícula {extrato.matricula}
-          {extrato.turmaCodigo ? ` · Turma ${extrato.turmaCodigo}` : ""}
-        </p>
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-ink text-xl font-semibold">{extrato.nome}</h1>
+            <p className="text-ink-muted mt-1 text-sm">
+              Matrícula {extrato.matricula}
+              {extrato.turmaCodigo ? ` · Turma ${extrato.turmaCodigo}` : ""}
+            </p>
+          </div>
+
+          {/* A ficha reúne tudo o que esta família pagou e quando — é o
+              documento que ela pede, e o extrato da tela não imprime. */}
+          <Link
+            href={`/gestao/financeiro/${extrato.matricula}/ficha`}
+            className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <FileText className="size-4" aria-hidden />
+            Ficha financeira
+          </Link>
+        </div>
       </div>
 
       <Card>
