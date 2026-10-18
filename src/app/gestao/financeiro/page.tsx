@@ -7,6 +7,7 @@ import { exigirPermissao } from "@/core/auth/guards";
 import { cn } from "@/core/lib/cn";
 import { formatCurrency, formatDate } from "@/core/lib/format";
 import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
+import { ValoresAReceber } from "@/features/financeiro/components/valores-a-receber";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { FiltrosDoFinanceiro } from "@/features/financeiro/components/filtros-do-financeiro";
@@ -69,7 +70,10 @@ export default async function FinanceiroPage({
 
           <BotaoDeExportacao
             href={`/api/exportacoes/inadimplencia?${exportacao.toString()}`}
+            rotulo="Inadimplentes"
           />
+
+          <ValoresAReceber turma={exportacao.get("turma") ?? undefined} />
         </div>
       </div>
 

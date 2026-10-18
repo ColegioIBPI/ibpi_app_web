@@ -48,9 +48,19 @@ export default async function AlunosPage({
         {/* A planilha sai com os mesmos filtros da tela — exportar algo
             diferente do que está à vista é como a secretaria manda a lista
             errada. */}
-        <BotaoDeExportacao
-          href={`/api/exportacoes/alunos?${parametros(filtros).toString()}`}
-        />
+        <div className="flex flex-wrap gap-2">
+          <BotaoDeExportacao
+            href={`/api/exportacoes/alunos?${parametros(filtros).toString()}`}
+            rotulo="Planilhão"
+          />
+
+          {/* A ata sai da mesma tela, com o mesmo filtro de turma: quem
+              precisa dela já está olhando a lista de alunos. */}
+          <BotaoDeExportacao
+            href={`/api/exportacoes/alunos-cancelados?${parametros(filtros).toString()}`}
+            rotulo="Ata de cancelados"
+          />
+        </div>
       </div>
 
       <Card>

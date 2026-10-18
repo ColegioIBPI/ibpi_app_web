@@ -15,11 +15,6 @@ import {
   listarAlunosVisiveis,
   type AlunoComId,
 } from "@/features/alunos/services/alunos.server";
-import { filtrarLinhas, type RecorteFinanceiro } from "@/features/financeiro/domain/lista";
-import {
-  situacaoFinanceiraDaEscola,
-  type LinhaDeInadimplencia,
-} from "@/features/financeiro/services/financeiro.server";
 
 /**
  * As listas que a secretaria exporta.
@@ -98,42 +93,12 @@ export async function planilhaDeAlunos(
   });
 }
 
-const COLUNAS_DE_INADIMPLENCIA: Coluna<LinhaDeInadimplencia>[] = [
-  { titulo: "Matrícula", tipo: "texto", largura: 12, valor: (l) => l.matricula },
-  { titulo: "Aluno", tipo: "texto", largura: 38, valor: (l) => l.nome },
-  { titulo: "Turma", tipo: "texto", valor: (l) => l.turmaCodigo },
-  {
-    titulo: "Parcelas",
-    tipo: "numero",
-    valor: (l) => l.totais.parcelas,
-  },
-  { titulo: "Contratado", tipo: "moeda", largura: 16, valor: (l) => l.totais.contratado },
-  { titulo: "Pago", tipo: "moeda", largura: 16, valor: (l) => l.totais.pago },
-  { titulo: "Em aberto", tipo: "moeda", largura: 16, valor: (l) => l.totais.emAberto },
-  { titulo: "Vencido", tipo: "moeda", largura: 16, valor: (l) => l.totais.vencido },
-  {
-    titulo: "Vencida desde",
-    tipo: "data",
-    largura: 16,
-    valor: (l) => l.vencidaDesde,
-  },
-];
-
-export async function planilhaDeInadimplencia(
-  sessao: SessionUser,
-  filtro: { turma?: string; recorte?: RecorteFinanceiro } = {},
-): Promise<Buffer> {
-  const linhas = filtrarLinhas(await situacaoFinanceiraDaEscola(sessao), {
-    turma: filtro.turma,
-    recorte: filtro.recorte,
-  });
-
-  return montarPlanilha({
-    aba: "Inadimplência",
-    colunas: COLUNAS_DE_INADIMPLENCIA,
-    linhas,
-  });
-}
+/*
+ * A planilha de inadimplência saiu daqui.
+ *
+ * Ela somava o aluno inteiro numa linha. Agora é uma linha por parcela, com
+ * os responsáveis anexados, e vive em `exportacoes/services/financeiro.server.ts`.
+ */
 
 export interface LinhaDeFrequencia extends FrequenciaDiaria {
   nome: string;

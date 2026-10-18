@@ -261,6 +261,16 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.21 Relatórios
+
+- [x] Inadimplentes por parcela, não somando o aluno
+- [x] Responsáveis no relatório, com CPF e tipo
+- [x] Valores a receber até uma data, por parcela
+- [x] Ata de alunos cancelados, com a data de cancelamento
+- [ ] Preencher a data de cancelamento dos 11 migrados (o Access não a trazia)
+- [ ] Atas de matrículas, de alunos ativos e de resultado final
+- [ ] Pauta por turma, disciplina e curso
+
 ### 3.20 Administração de usuários
 
 - [x] Tela de usuários: quem acessa, com que perfil e qual alcance

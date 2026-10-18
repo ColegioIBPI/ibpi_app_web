@@ -111,6 +111,75 @@ contadores do aluno.
 
 ---
 
+## 4b. Relatórios de cobrança — uma linha por parcela
+
+**Inadimplentes** e **Valores a receber** saem com **uma linha por
+parcela**, não um total por aluno.
+
+O relatório antigo somava: "Fulano deve R$ 5.769". Quem vai cobrar precisa
+do contrário — qual parcela, de que mês, vencida há quanto tempo. Um total
+não diz se são três mensalidades atrasadas ou a taxa de material de março, e
+a conversa com a família é sobre a parcela.
+
+| Relatório | O que traz |
+| --- | --- |
+| Inadimplentes | parcelas **já vencidas** |
+| Valores a receber | parcelas em aberto que vencem **até a data informada** |
+
+**Valores a receber inclui as já vencidas**, de propósito: quem pergunta
+"quanto entra até o dia 30" quer o que ainda não entrou, e separar o
+atrasado numa lista à parte faria somar duas planilhas para responder uma
+pergunta. A coluna de dias de atraso distingue.
+
+A rota **recusa sem a data** em vez de assumir hoje ou o fim do ano: o
+relatório é "de acordo com data especificada", e uma data chutada sai numa
+planilha que ninguém confere antes de levar para a reunião.
+
+### Os responsáveis vão junto
+
+Com **nome, CPF e tipo** (acadêmico, financeiro ou ambos).
+
+O responsável financeiro ganha colunas próprias — nome, CPF, tipo e
+telefone — **além** da célula com todos. É o dado que a pessoa procura ao
+abrir a planilha, e caçá-lo no meio de uma célula com três nomes é o atrito
+que faz alguém ligar para a mãe errada.
+
+**Responsável migrado sem `tipo` conta como "ambos"**, que é o padrão do
+schema. O relatório lê o documento cru, e indexar o rótulo com `undefined`
+imprimiria vazio justamente na coluna que diz a quem ligar. Sem ninguém
+marcado como financeiro, cai no primeiro: célula vazia não diz "não há
+responsável financeiro", diz "o relatório falhou".
+
+> Conferido contra a base real: 129 parcelas vencidas de 43 alunos — onde
+> antes saíam 43 linhas somadas —, todas com responsável e CPF.
+
+---
+
+## 4c. Ata de alunos cancelados
+
+Número sequencial, matrícula, data de matrícula, nome, nascimento, curso,
+série, turno e **data de cancelamento**.
+
+O **sequencial** não é dado do aluno: é a posição na ata, e existe porque é
+por ele que as linhas são citadas na conferência ("o nº 14 está com a data
+errada").
+
+Filtra pela situação **`cancelada`**, e não por "tudo que não está ativo": o
+colégio tem cinco situações, e juntar transferido e concluído numa ata
+chamada "cancelados" faria o documento afirmar o que não é.
+
+> ⚠️ **Os 11 cancelados migrados não têm data de cancelamento.** O Access
+> guardava o status, não a data, então não houve o que migrar — a coluna sai
+> vazia para eles. Ela é preenchida sozinha nos cancelamentos feitos pelo
+> Portal, e a secretaria pode completar os antigos pelo campo "data da
+> situação" na edição do aluno.
+
+As atas de **matrículas**, **alunos ativos** e **resultado final** ainda não
+existem; a maior parte da estrutura está nesta, e sai barato quando forem
+pedidas.
+
+---
+
 ## 5. Índices do Firestore
 
 A consulta de frequência filtra por **turma e intervalo de datas ao mesmo

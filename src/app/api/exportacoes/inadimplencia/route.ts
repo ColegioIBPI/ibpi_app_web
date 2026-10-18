@@ -6,10 +6,16 @@ import {
   cabecalhosDaPlanilha,
   nomeDoArquivo,
 } from "@/core/exportacao/planilha";
-import { recorteDaQuery } from "@/features/financeiro/domain/lista";
-import { planilhaDeInadimplencia } from "@/features/exportacoes/services/exportacoes.server";
+import { planilhaDeInadimplentes } from "@/features/exportacoes/services/financeiro.server";
 
-/** Relatório de inadimplência em `.xlsx`, com os mesmos filtros da tela. */
+/**
+ * Inadimplentes em `.xlsx`, **uma linha por parcela**.
+ *
+ * O recorte por situação da tela não vem para cá: a planilha é sempre das
+ * parcelas vencidas. Somar um filtro de "em aberto" devolveria o que ainda
+ * não venceu numa lista chamada inadimplentes — para isso existe valores a
+ * receber.
+ */
 export async function GET(requisicao: Request) {
   const sessao = await lerSessao();
   if (!sessao) return new NextResponse(null, { status: 401 });
@@ -20,9 +26,8 @@ export async function GET(requisicao: Request) {
 
   const filtros = new URL(requisicao.url).searchParams;
 
-  const planilha = await planilhaDeInadimplencia(sessao, {
+  const planilha = await planilhaDeInadimplentes(sessao, {
     turma: filtros.get("turma") ?? undefined,
-    recorte: recorteDaQuery(filtros.get("situacao")),
   });
 
   return new NextResponse(new Uint8Array(planilha), {
