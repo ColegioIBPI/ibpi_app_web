@@ -2,7 +2,14 @@ import "server-only";
 
 import type { SessionUser } from "@/core/auth/session";
 import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
-import { ROTULOS_DE_TURNO } from "@/core/modelo";
+import {
+  ROTULOS_DE_SITUACAO_DA_MATRICULA,
+  ROTULOS_DE_TURNO,
+} from "@/core/modelo";
+import {
+  dataDoStatus,
+  ehMatriculaAtiva,
+} from "@/features/alunos/domain/situacao";
 import {
   listarAlunosVisiveis,
   type AlunoComId,
@@ -72,6 +79,64 @@ async function montarLinhas(
       aluno,
       cursoRotulo: rotuloDoCurso(aluno.segmento, cursos),
     }));
+}
+
+/**
+ * Ata de matrículas — **todos**, qualquer que seja a situação.
+ *
+ * É a lista completa do ano, com a situação de cada um. Por isso traz duas
+ * colunas que a ata de ativos não tem.
+ */
+export async function ataDeMatriculas(
+  sessao: SessionUser,
+  filtro: { turma?: string } = {},
+): Promise<Buffer> {
+  const alunos = (await listarAlunosVisiveis(sessao)).filter(
+    (aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma,
+  );
+
+  return montarPlanilha({
+    aba: "Matrículas",
+    colunas: colunasDaAta([
+      {
+        titulo: "Status",
+        tipo: "texto",
+        largura: 16,
+        valor: (l) =>
+          ROTULOS_DE_SITUACAO_DA_MATRICULA[l.aluno.situacaoMatricula],
+      },
+      {
+        titulo: "Data do status",
+        tipo: "data",
+        largura: 16,
+        // Em branco para quem está ativo, como o colégio pediu — a regra
+        // mora em `domain/situacao.ts`, com teste.
+        valor: (l) => dataDoStatus(l.aluno),
+      },
+    ]),
+    linhas: await montarLinhas(alunos),
+  });
+}
+
+/**
+ * Ata de alunos ativos.
+ *
+ * Sem colunas de situação: todos nela têm a mesma, e uma coluna que repete
+ * "Ativa" em todas as linhas só ocupa largura.
+ */
+export async function ataDeAlunosAtivos(
+  sessao: SessionUser,
+  filtro: { turma?: string } = {},
+): Promise<Buffer> {
+  const alunos = (await listarAlunosVisiveis(sessao))
+    .filter((aluno) => ehMatriculaAtiva(aluno.situacaoMatricula))
+    .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma);
+
+  return montarPlanilha({
+    aba: "Alunos ativos",
+    colunas: colunasDaAta(),
+    linhas: await montarLinhas(alunos),
+  });
 }
 
 /**

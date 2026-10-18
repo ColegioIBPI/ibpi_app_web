@@ -268,7 +268,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Valores a receber até uma data, por parcela
 - [x] Ata de alunos cancelados, com a data de cancelamento
 - [ ] Preencher a data de cancelamento dos 11 migrados (o Access não a trazia)
-- [ ] Atas de matrículas, de alunos ativos e de resultado final
+- [x] Atas de matrículas, de alunos ativos e de resultado final
 - [ ] Pauta por turma, disciplina e curso
 
 ### 3.20 Administração de usuários

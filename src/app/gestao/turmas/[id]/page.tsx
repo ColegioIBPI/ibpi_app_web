@@ -8,6 +8,7 @@ import { pode } from "@/core/auth/roles";
 import { ROTULOS_DE_TURNO } from "@/core/modelo";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
+import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import {
@@ -66,15 +67,27 @@ export default async function TurmaPage({
           </p>
         </div>
 
-        {podeEditar && (
-          <Link
-            href={`/gestao/turmas/${turma.id}/editar`}
-            className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
-          >
-            <Pencil className="size-4" aria-hidden />
-            Editar
-          </Link>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {/* A ata de resultado final é por turma porque as colunas são as
+              disciplinas desta grade. Por isso ela mora aqui, e não na
+              lista de exportações geral. */}
+          {pode(sessao.role, "notas", "ler") && (
+            <BotaoDeExportacao
+              href={`/api/exportacoes/resultado-final?turma=${turma.id}&ano=${turma.anoLetivo}`}
+              rotulo="Ata de resultado final"
+            />
+          )}
+
+          {podeEditar && (
+            <Link
+              href={`/gestao/turmas/${turma.id}/editar`}
+              className="border-line text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+            >
+              <Pencil className="size-4" aria-hidden />
+              Editar
+            </Link>
+          )}
+        </div>
       </div>
 
       <Card

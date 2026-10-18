@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SituacaoDaMatricula } from "@/core/modelo";
 import {
+  dataDoStatus,
   dataQueVale,
   ehMatriculaAtiva,
   exigeDataPropria,
@@ -103,5 +104,44 @@ describe("cadastro migrado do Access", () => {
     // uma pessoa.
     expect(situacaoDoMigrado(false)).toBe("cancelada");
     expect(situacaoDoMigrado(true)).toBe("ativa");
+  });
+});
+
+describe("data do status — ata de matrículas", () => {
+  it("fica em branco para quem está ativo", () => {
+    // A data da matrícula já está na coluna ao lado; repeti-la faria
+    // parecer que todo aluno teve mudança de situação.
+    expect(
+      dataDoStatus({
+        situacaoMatricula: "ativa",
+        dataMatricula: "2026-01-16",
+        dataDaSituacao: "2026-05-10",
+      }),
+    ).toBeNull();
+  });
+
+  it("traz a data quando o status mudou", () => {
+    for (const situacao of ["cancelada", "transferida", "concluida", "abandono"] as const) {
+      expect(
+        dataDoStatus({
+          situacaoMatricula: situacao,
+          dataMatricula: "2026-01-16",
+          dataDaSituacao: "2026-05-10",
+        }),
+      ).toBe("2026-05-10");
+    }
+  });
+
+  it("cancelado sem data devolve null, e não a da matrícula", () => {
+    // Os 11 migrados do Access não têm a data — o sistema antigo guardava
+    // o status e não a data. Cair na data de matrícula inventaria um
+    // cancelamento no dia em que o aluno entrou.
+    expect(
+      dataDoStatus({
+        situacaoMatricula: "cancelada",
+        dataMatricula: "2026-01-16",
+        dataDaSituacao: null,
+      }),
+    ).toBeNull();
   });
 });

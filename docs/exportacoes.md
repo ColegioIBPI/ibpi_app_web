@@ -155,10 +155,26 @@ responsável financeiro", diz "o relatório falhou".
 
 ---
 
-## 4c. Ata de alunos cancelados
+## 4c. As atas de alunos
 
-Número sequencial, matrícula, data de matrícula, nome, nascimento, curso,
-série, turno e **data de cancelamento**.
+Três documentos de secretaria com a mesma espinha: número sequencial,
+matrícula, data de matrícula, nome, nascimento, curso, série e turno.
+
+| Ata | Quem entra | Colunas a mais |
+| --- | --- | --- |
+| **Matrículas** | todos, em qualquer situação | Status e **Data do status** |
+| **Alunos ativos** | só matrícula ativa | — |
+| **Alunos cancelados** | só `cancelada` | **Data de cancelamento** |
+
+A ata de ativos **não tem coluna de situação**: todos nela têm a mesma, e
+repetir "Ativa" em todas as linhas só ocupa largura.
+
+**A data do status fica em branco para quem está ativo**, como o colégio
+pediu. A data da matrícula já está na coluna ao lado, e repeti-la aqui faria
+parecer que todo aluno teve uma mudança de situação. A regra é
+`dataDoStatus()`, com teste — inclusive o caso do cancelado sem data, que
+devolve vazio em vez de cair na data de matrícula e inventar um
+cancelamento no dia em que o aluno entrou.
 
 O **sequencial** não é dado do aluno: é a posição na ata, e existe porque é
 por ele que as linhas são citadas na conferência ("o nº 14 está com a data
@@ -174,9 +190,33 @@ chamada "cancelados" faria o documento afirmar o que não é.
 > Portal, e a secretaria pode completar os antigos pelo campo "data da
 > situação" na edição do aluno.
 
-As atas de **matrículas**, **alunos ativos** e **resultado final** ainda não
-existem; a maior parte da estrutura está nesta, e sai barato quando forem
-pedidas.
+---
+
+## 4d. Ata de resultado final
+
+As notas finais de **uma turma**, uma linha por aluno: sequencial,
+matrícula, nome, **uma coluna por disciplina**, frequência e situação.
+
+**É por turma, e não poderia ser de outro jeito**: as colunas são as
+disciplinas, e turmas diferentes têm grades diferentes. Uma planilha só com
+todas as turmas teria uma coluna por disciplina do colégio inteiro e um mar
+de células vazias. Por isso o botão fica na tela da turma, e não na lista
+geral de exportações.
+
+A coluna mostra a **média final** — a que decide — e cai na **anual** quando
+não houve recuperação. Mostrar vazio esconderia a nota do aluno aprovado
+direto, que é a maioria.
+
+A turma inteira é carregada **de uma vez**: `boletimDoAluno` faz cinco
+consultas por aluno, e chamá-lo trinta vezes numa exportação seriam cento e
+cinquenta idas ao banco. Cada coleção é lida uma vez e cruzada em memória,
+como no relatório financeiro.
+
+> ⚠️ **A ata depende dos vínculos e das notas.** As colunas vêm das
+> **alocações** da turma (Configurações › Vínculos) e os valores, das notas
+> lançadas. Hoje a turma com mais alunos tem **2 disciplinas alocadas** e 12
+> notas no ano — a ata sai com duas colunas e quase tudo em branco. Não é
+> defeito do relatório: é o ano letivo ainda não montado.
 
 ---
 

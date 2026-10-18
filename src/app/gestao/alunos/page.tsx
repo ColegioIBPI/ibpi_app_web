@@ -54,8 +54,16 @@ export default async function AlunosPage({
             rotulo="Planilhão"
           />
 
-          {/* A ata sai da mesma tela, com o mesmo filtro de turma: quem
-              precisa dela já está olhando a lista de alunos. */}
+          {/* As atas saem da mesma tela, com o mesmo filtro de turma: quem
+              precisa delas já está olhando a lista de alunos. */}
+          <BotaoDeExportacao
+            href={`/api/exportacoes/matriculas?${parametros(filtros).toString()}`}
+            rotulo="Ata de matrículas"
+          />
+          <BotaoDeExportacao
+            href={`/api/exportacoes/alunos-ativos?${parametros(filtros).toString()}`}
+            rotulo="Ata de ativos"
+          />
           <BotaoDeExportacao
             href={`/api/exportacoes/alunos-cancelados?${parametros(filtros).toString()}`}
             rotulo="Ata de cancelados"

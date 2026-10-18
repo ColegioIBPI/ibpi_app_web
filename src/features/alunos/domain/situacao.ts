@@ -44,6 +44,23 @@ export function dataQueVale(dados: DadosDaSituacao): string | null {
     : (dados.dataDaSituacao ?? null);
 }
 
+/**
+ * A data do status, **só quando o status não é "ativa"**.
+ *
+ * É o que a ata de matrículas pede. Para quem está ativo a coluna fica em
+ * branco: a data da matrícula já está na coluna ao lado, e repeti-la aqui
+ * faria parecer que todo aluno teve uma mudança de situação.
+ *
+ * Não se confunde com `dataQueVale`, que escolhe **uma** data para mostrar
+ * — matrícula para o ativo, situação para o resto. Aqui a pergunta é
+ * outra: "quando mudou?", e para o ativo a resposta é "não mudou".
+ */
+export function dataDoStatus(dados: DadosDaSituacao): string | null {
+  return ehMatriculaAtiva(dados.situacaoMatricula)
+    ? null
+    : (dados.dataDaSituacao ?? null);
+}
+
 export interface SituacaoNormalizada {
   ativo: boolean;
   situacaoMatricula: SituacaoDaMatricula;
