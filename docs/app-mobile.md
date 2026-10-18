@@ -35,7 +35,7 @@ HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
 Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os
 quatro primeiros itens **quebram código que já existe**; o resto é adição.
 
-### 0. A consulta de notas precisa filtrar `liberado` — quebra tudo
+### 1. A consulta de notas precisa filtrar `liberado` — quebra tudo
 
 **Este é o mais urgente.** O colégio passou a liberar o boletim por aluno e
 por trimestre: a família só vê o trimestre depois que a secretaria libera.
@@ -58,7 +58,7 @@ lê todas.
 grade com traços: diga que ainda não foi liberado. Ver `app-telas.md`,
 seção 6.
 
-### 1. `segmento` deixou de ser lista fechada — quebra
+### 2. `segmento` deixou de ser lista fechada — quebra
 
 Era `fundamental | medio | eja-fundamental | eja-medio`. O colégio passou a
 cadastrar os próprios cursos e pode abrir um técnico amanhã, sem publicar
@@ -68,13 +68,13 @@ Trate como **string opaca** e pegue o rótulo na coleção `cursos`. Um `when`
 exaustivo sobre os quatro compila hoje e estoura no dia em que a secretaria
 criar o quinto. **Seção 5.**
 
-### 2. A presença tem quatro valores — quebra
+### 3. A presença tem quatro valores — quebra
 
 Entrou `saida-antecipada`, ao lado de `presente`, `falta` e `atraso`. Ela
 **conta como presença**, igual ao atraso: não some às faltas. **Seções 3 e
 5.**
 
-### 3. O aluno passou a ter a aba Ocorrências — quebra
+### 4. O aluno passou a ter a aba Ocorrências — quebra
 
 A versão anterior dizia, com ⚠️, que o perfil `aluno` nunca via a própria
 ocorrência. **Não vale mais.**
@@ -94,7 +94,7 @@ Três cuidados que não são opcionais:
 
 **Seção 2.**
 
-### 4. Critério de avaliação publicado — novo
+### 5. Critério de avaliação publicado — novo
 
 `criteriosDeAvaliacao/{ano}` e `{ano}-{curso}`: o colégio publica em texto
 como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
@@ -103,7 +103,7 @@ como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
 **Isto não muda a conta do boletim**, que continua a da seção 4. **Seção
 4b.**
 
-### 5. Boleto do aluno — novo
+### 6. Boleto do aluno — novo
 
 Um PDF por aluno, baixado por rota autenticada. **Seção 8.**
 
@@ -566,7 +566,7 @@ conta própria. **O app não calcula média** — ver a seção 4.
 ### De onde ler
 
 > ⚠️ **A consulta da família precisa de `where("liberado", "==", true)`.**
-> Sem isso a regra nega o lote inteiro — ver o item 0 no topo.
+> Sem isso a regra nega o lote inteiro — ver o item 1 de "O que mudou", no topo.
 
 ```
 notas/{ano}-t{trimestre}-{matricula}-{disciplina} = {
