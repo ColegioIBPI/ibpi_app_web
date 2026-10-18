@@ -261,6 +261,17 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.20 Administração de usuários
+
+- [x] Tela de usuários: quem acessa, com que perfil e qual alcance
+- [x] Trocar perfil, com revogação de token e claim antes do documento
+- [x] Suspender de verdade — desativa no Auth, não só no documento
+- [x] Travas: não mexer em si mesmo nem no último administrador ativo
+- [x] Criar conta de equipe, com link de primeira senha
+- [x] Marcar a conta de família que entra e não vê nada
+- [ ] Buscar e filtrar a lista por perfil e situação
+- [ ] Mostrar o histórico da conta na própria tela
+
 ### 3.19 Liberação do boletim e coluna META
 
 - [x] Remover a coluna META da visualização do boletim

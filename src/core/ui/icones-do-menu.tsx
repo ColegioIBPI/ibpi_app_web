@@ -13,6 +13,7 @@ import {
   School,
   ScrollText,
   Settings,
+  ShieldCheck,
   Send,
   SquarePen,
   Users,
@@ -51,6 +52,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/gestao/financeiro": Wallet,
   "/gestao/recibos": ReceiptText,
   "/gestao/configuracoes": Settings,
+  "/gestao/usuarios": ShieldCheck,
 
   "/portal/avisos": Megaphone,
   "/portal/boletim": ScrollText,

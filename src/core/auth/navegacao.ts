@@ -159,6 +159,16 @@ const ITENS: ItemDeNavegacao[] = [
     disponivel: true,
   },
   {
+    href: "/gestao/usuarios",
+    rotulo: "Usuários",
+    area: "gestao",
+    // Recurso próprio: a secretaria suspende acesso, mas só a
+    // administração distribui perfil. Ver `roles.ts`.
+    recurso: "usuarios",
+    minimo: "ler",
+    disponivel: true,
+  },
+  {
     href: "/gestao/configuracoes",
     rotulo: "Configurações",
     area: "gestao",

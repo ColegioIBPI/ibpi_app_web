@@ -59,6 +59,7 @@ describe("navegacaoPara", () => {
       "Solicitações",
       "Informações úteis",
       "Financeiro",
+      "Usuários",
       "Configurações",
       "Recibos",
     ]);

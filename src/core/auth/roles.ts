@@ -36,7 +36,8 @@ export type Recurso =
   | "financeiro"
   | "avisos"
   | "solicitacoes"
-  | "recibos";
+  | "recibos"
+  | "usuarios";
 
 /**
  * Níveis de acesso, cumulativos: quem gerencia também lança, quem lança
@@ -66,6 +67,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     avisos: "gerenciar",
     solicitacoes: "gerenciar",
     recibos: "gerenciar",
+    usuarios: "gerenciar",
   },
   secretaria: {
     cadastros: "gerenciar",
@@ -89,6 +91,15 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     // Atende a fila: muda a situação do pedido e o recusa quando for o caso.
     solicitacoes: "gerenciar",
     recibos: "gerenciar",
+    /**
+     * **Suspende acesso, mas não distribui papel.**
+     *
+     * Ela precisa cortar o acesso do professor que saiu hoje, sem esperar
+     * a administração — mas trocar papel é outra coisa: com `gerenciar`,
+     * a própria secretaria poderia se promover a administração, e a
+     * matriz inteira deixaria de significar o que diz.
+     */
+    usuarios: "lancar",
   },
   coordenacao: {
     cadastros: "gerenciar",
@@ -100,6 +111,8 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     solicitacoes: "gerenciar",
     // Confere e reimprime a 2ª via; quem emite é quem recebe o dinheiro.
     recibos: "ler",
+    // Enxerga quem tem acesso — é ela que atende quando alguém não entra.
+    usuarios: "ler",
   },
   // Quem cuida de mensalidade não precisa ver nota, falta nem ocorrência
   // disciplinar. Lê o cadastro apenas para contato e cobrança.
@@ -114,6 +127,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     // Pedido de declaração e de saída não passa pelo caixa.
     solicitacoes: "nenhum",
     recibos: "gerenciar",
+    usuarios: "nenhum",
   },
   professor: {
     cadastros: "ler",
@@ -125,6 +139,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     avisos: "lancar",
     solicitacoes: "nenhum",
     recibos: "nenhum",
+    usuarios: "nenhum",
   },
   aluno: {
     cadastros: "ler",
@@ -142,6 +157,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
      * matriz diz o recurso, não o documento.
      */
     ocorrencias: "ler",
+    usuarios: "nenhum",
     notas: "ler",
     financeiro: "nenhum",
     avisos: "ler",
@@ -169,6 +185,7 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     // A família recebe o recibo em papel. Mostrá-lo no aplicativo é
     // desejável e não foi pedido — ver TASKS.
     recibos: "nenhum",
+    usuarios: "nenhum",
   },
 };
 

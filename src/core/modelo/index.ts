@@ -30,6 +30,7 @@ export * from "@/core/modelo/entrega";
 export * from "@/core/modelo/recibo";
 export * from "@/core/modelo/curso";
 export * from "@/core/modelo/criterio";
+export * from "@/core/modelo/usuario";
 
 /** Nome de cada coleção no Firestore, em um lugar só. */
 export const COLECOES = {

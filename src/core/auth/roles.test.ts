@@ -272,3 +272,26 @@ describe("integridade da matriz", () => {
     }
   });
 });
+
+describe("administração de usuários", () => {
+  it("só a administração distribui perfil", () => {
+    // Com `gerenciar`, a própria secretaria poderia se promover a
+    // administração, e a matriz deixaria de significar o que diz.
+    expect(pode("admin", "usuarios", "gerenciar")).toBe(true);
+    expect(pode("secretaria", "usuarios", "gerenciar")).toBe(false);
+    expect(pode("coordenacao", "usuarios", "gerenciar")).toBe(false);
+  });
+
+  it("a secretaria suspende acesso sem distribuir perfil", () => {
+    // Ela precisa cortar o acesso do professor que saiu hoje, sem esperar
+    // a administração.
+    expect(pode("secretaria", "usuarios", "lancar")).toBe(true);
+    expect(pode("coordenacao", "usuarios", "lancar")).toBe(false);
+  });
+
+  it("a família e o professor não chegam perto", () => {
+    for (const role of ["aluno", "responsavel", "professor", "financeiro"] as const) {
+      expect(podeVer(role, "usuarios")).toBe(false);
+    }
+  });
+});
