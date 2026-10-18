@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { exigirPermissao } from "@/core/auth/guards";
 import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
 import { Card } from "@/core/ui/card";
+import { PaginaEmRetrato } from "@/core/ui/pagina-em-retrato";
 import { FichaCadastral } from "@/features/alunos/components/ficha-cadastral";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
@@ -35,6 +36,10 @@ export default async function FichaCadastralPage({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* A ficha é um formulário vertical: em paisagem sobraria meia folha
+          em branco à direita. */}
+      <PaginaEmRetrato />
+
       <div
         data-impressao="ocultar"
         className="flex flex-wrap items-center justify-between gap-4"

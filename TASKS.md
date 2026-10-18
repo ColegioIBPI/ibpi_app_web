@@ -272,8 +272,7 @@ Referência de requisitos: [README.md](README.md).
 - [x] Ficha cadastral e ficha financeira do aluno, para imprimir
 - [ ] Preencher a data de cancelamento dos 11 migrados (o Access não a trazia)
 - [ ] Marcar os alunos concluídos e transferidos — a migração não trouxe esses status
-- [ ] Decidir a orientação da impressão: tudo sai em paisagem por causa do
-      boletim, e a ficha cadastral ficaria melhor em retrato
+- [x] Ficha cadastral em retrato, com o resto seguindo em paisagem
 - [x] Atas de matrículas, de alunos ativos e de resultado final
 - [x] Pauta por turma e disciplina, com chamada e conteúdo
 

@@ -337,10 +337,23 @@ Usa o mesmo `extratoDoAluno` da tela: dois caminhos para o mesmo dado é como
 a ficha entregue à família passa a discordar do extrato que a secretaria
 olha.
 
-> ⚠️ **Tudo imprime em A4 paisagem**, que é o `@page` padrão do sistema —
-> escolhido pelo boletim, que não cabe em retrato. Para a ficha cadastral o
-> retrato seria melhor; inverter o padrão exigiria tratar boletim e
-> relatórios largos à parte. Anotado no TASKS.
+### A orientação do papel
+
+O `@page` do sistema é **A4 paisagem**, escolhido pelo boletim: três
+trimestres × quatro colunas não cabem em retrato sem encolher o texto a um
+tamanho ilegível.
+
+A **ficha cadastral é a exceção** — é um formulário vertical, e em paisagem
+sobraria meia folha em branco à direita. Ela imprime em **retrato**.
+
+`@page` **não aceita seletor**: não existe "retrato dentro desta div", a
+regra é do documento inteiro. A única forma de trocá-la por rota é a rota
+declarar a sua, que vence a do `globals.css` por vir depois — é o que
+`PaginaEmRetrato` faz, e o `<style>` sai do DOM quando a rota sai, senão
+navegar da ficha para o boletim levaria o retrato junto.
+
+> Conferido no navegador: as duas regras convivem no documento, a da rota
+> fica por último e é a que vale.
 
 ---
 

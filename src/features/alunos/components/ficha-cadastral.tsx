@@ -65,7 +65,7 @@ export function FichaCadastral({
         <Campo rotulo="Turma" valor={aluno.turmaCodigo} />
       </Bloco>
 
-      <Bloco largo>
+      <Bloco>
         <Campo rotulo="Aluno" valor={aluno.nome} span={3} />
         <Campo
           rotulo="Nascimento"
@@ -73,7 +73,7 @@ export function FichaCadastral({
         />
       </Bloco>
 
-      <Bloco largo>
+      <Bloco>
         <Campo rotulo="Mãe" valor={filiacao?.mae} span={2} />
         <Campo rotulo="Pai" valor={filiacao?.pai} span={2} />
       </Bloco>
@@ -107,7 +107,7 @@ export function FichaCadastral({
       </Bloco>
 
       <Titulo>Contato</Titulo>
-      <Bloco largo>
+      <Bloco>
         <Campo
           rotulo="Telefones"
           valor={(contato?.telefones ?? []).map(formatarTelefone).join("  ·  ")}
@@ -120,7 +120,7 @@ export function FichaCadastral({
         />
       </Bloco>
 
-      <Bloco largo>
+      <Bloco>
         <Campo rotulo="Endereço" valor={contato?.endereco?.logradouro} span={3} />
         <Campo rotulo="Complemento" valor={contato?.endereco?.complemento} />
       </Bloco>
@@ -142,7 +142,7 @@ export function FichaCadastral({
         const responsavel = responsaveis[indice];
 
         return (
-          <Bloco key={indice} largo>
+          <Bloco key={indice}>
             <Campo rotulo="Responsável" valor={responsavel?.nome} span={2} />
             <Campo rotulo="Parentesco" valor={responsavel?.parentesco} />
             <Campo rotulo="CPF" valor={formatarCPF(responsavel?.cpf)} />
@@ -187,19 +187,13 @@ function Titulo({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Bloco({
-  largo = false,
-  children,
-}: {
-  largo?: boolean;
-  children: React.ReactNode;
-}) {
+/**
+ * Uma faixa de campos. Sempre quatro colunas — é a largura que o formulário
+ * do colégio usa, e em retrato ela cabe sem apertar.
+ */
+function Bloco({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={`mb-1.5 grid gap-x-3 gap-y-1.5 ${largo ? "grid-cols-4" : "grid-cols-4"}`}
-    >
-      {children}
-    </div>
+    <div className="mb-1.5 grid grid-cols-4 gap-x-3 gap-y-1.5">{children}</div>
   );
 }
 
