@@ -270,7 +270,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Atas de alunos concluídos e transferidos
 - [x] Relatório diário de inadimplentes impresso, por parcela e com total por aluno
 - [x] Ficha cadastral e ficha financeira do aluno, para imprimir
-- [ ] Preencher a data de cancelamento dos 11 migrados (o Access não a trazia)
+- [x] Recuperar a data de cancelamento do Access — 10 dos 11; o outro foi
+      cancelado no Portal e a secretaria preenche
 - [x] Tela de mudança de situação em lote, para marcar concluídos e transferidos
 - [x] Ficha cadastral em retrato, com o resto seguindo em paisagem
 - [x] Atas de matrículas, de alunos ativos e de resultado final

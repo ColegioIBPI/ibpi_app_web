@@ -3,6 +3,33 @@
 Como os dados do sistema atual do colégio (`SISIBPIDADOS2026.accdb`) viram
 documentos no Firestore.
 
+
+## Reparo: a data de cancelamento
+
+A migração leu `Status` da `Tabela_Aluno` e **não leu `DataStatus`**. Os
+cancelados ficaram sem `dataDaSituacao`, e a coluna "Data de cancelamento"
+da ata saía em branco para todos.
+
+A data estava na origem o tempo todo — é a mesma que aparece na ata que o
+colégio imprime do Access. `scripts/migrate-access/reparar-situacao.mts`
+recupera: **10 alunos** preenchidos.
+
+```bash
+npm run migrar:reparar-situacao            # mostra o que faria
+npm run migrar:reparar-situacao -- --aplicar
+```
+
+Como o reparo das cobranças, ele **não toca em quem o Portal já
+preencheu**: sobrescrever a data digitada na secretaria por uma do sistema
+antigo apagaria a correção, e a correção é que está certa, porque foi feita
+olhando o papel. Rodar de novo não faz nada.
+
+> O **11º cancelado** não tem data no Access: a matrícula foi encerrada no
+> Portal, depois da migração, e lá o aluno ainda consta como ativo. O
+> script o lista pelo nome e a secretaria preenche em
+> `/gestao/alunos/situacao`.
+
+
 ## Como rodar
 
 ```bash

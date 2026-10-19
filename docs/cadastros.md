@@ -76,8 +76,12 @@ espera o fim do ano.
 
 ---
 
-## 3. Pendência
+## 3. A data dos cancelados migrados
 
-- **Os 11 cancelados migrados seguem sem data.** Dá para completá-los por
-  esta tela, filtrando por "Cancelada" e reaplicando a situação com a data
-  certa — mas a data real de cada um está no papel, não no sistema.
+Estava no Access o tempo todo, na coluna `DataStatus` que a migração não
+leu. Recuperada para **10 dos 11** por
+`scripts/migrate-access/reparar-situacao.mts` — ver
+[migracao.md](migracao.md).
+
+O 11º foi cancelado no Portal depois da migração e não tem data em lugar
+nenhum. É o único caso para a secretaria preencher à mão.
