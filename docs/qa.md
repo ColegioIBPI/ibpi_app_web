@@ -189,9 +189,9 @@ ano letivo ainda não foi montada.
 
 | O quê | Quanto existe | Efeito |
 | --- | --- | --- |
-| Vínculos professor × turma × disciplina | **4** | a ata de resultado final sai com poucas colunas |
+| Vínculos professor × turma × disciplina | **110** — montados | ver abaixo |
 | Notas lançadas | **13** | boletins quase em branco |
-| Diários de classe | **3**, o maior com 1 aula | a pauta sai com uma coluna |
+| Diários de classe | **3**, o maior com 1 aula | a pauta sai com poucas colunas de aula |
 | Boletins fechados | **0** | — |
 | Cursos cadastrados | **0** | os quatro padrões aparecem; grave-os em Configurações › Cursos para editar |
 | Critérios de avaliação | **0** | o bloco "Como o aluno é avaliado" não aparece até publicar um |
@@ -201,6 +201,24 @@ ano letivo ainda não foi montada.
 Em compensação, há dado de sobra em: **alunos (74)**, **responsáveis
 (120)**, **cobranças (852)**, **disciplinas (46)**, **turmas (10)** e
 **documentos solicitáveis (10)**.
+
+### Os vínculos são andaime
+
+As **10 turmas têm grade completa** — as 11 disciplinas do boletim cada
+uma —, então a ata de resultado final, a pauta e o diário têm colunas e o
+QA consegue lançar nota.
+
+Mas **o quadro de professores é de mentira**. O colégio não informou quem
+leciona o quê, e o banco só tinha dois professores. Os nomes
+`QA Professor — Linguagens`, `— Exatas`, `— Humanas` e `— Diversificada`
+existem só para a alocação ter um responsável.
+
+**Não reporte os nomes como errados**, e não os use para conferir horário.
+O professor real já cadastrado e as turmas dele não foram tocados.
+
+O **Professor de Teste** ficou só com **EM2A e EM3A**, de propósito: é a
+conta que o QA usa, e o escopo dele precisa continuar estreito para o teste
+de permissão da seção 4.1 significar alguma coisa.
 
 Um detalhe conhecido: **um aluno cancelado não tem data de cancelamento** —
 foi encerrado no Portal e a data não existe em lugar nenhum. Os outros dez
@@ -231,6 +249,7 @@ Para cada defeito:
 
 ```bash
 npm run qa:sandbox -- --apagar     # leva o aluno QA, o talão e tudo o que ele gerou
+npm run qa:vinculos -- --apagar    # leva os professores de andaime e as alocações deles
 npm run conta:teste -- --perfil <perfil> --apagar
 ```
 

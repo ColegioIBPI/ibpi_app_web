@@ -266,6 +266,8 @@ Referência de requisitos: [README.md](README.md).
 - [x] Contas de teste para os sete perfis
 - [x] Sandbox: aluno `QA-0001`, responsável, parcelas e talão de recibos `QA`
 - [x] Guia de teste em `docs/qa.md`
+- [x] Grade das 10 turmas montada, para as telas de nota e diário não abrirem vazias
+- [ ] Substituir os professores de andaime pelo quadro real quando o colégio informar
 - [ ] Projeto `colegioibpi-dev`, para o QA deixar de testar em produção
 
 ### 3.21 Relatórios

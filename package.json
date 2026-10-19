@@ -26,7 +26,8 @@
     "alunos:situacao": "tsx --conditions=react-server --env-file=.env.local scripts/migrar-situacao.mts",
     "avisos:limpar": "tsx --conditions=react-server --env-file=.env.local scripts/limpar-chaves.mts",
     "migrar:reparar-situacao": "tsx --conditions=react-server --env-file=.env.local scripts/migrate-access/reparar-situacao.mts",
-    "qa:sandbox": "tsx --conditions=react-server --env-file=.env.local scripts/qa-sandbox.mts"
+    "qa:sandbox": "tsx --conditions=react-server --env-file=.env.local scripts/qa-sandbox.mts",
+    "qa:vinculos": "tsx --conditions=react-server --env-file=.env.local scripts/qa-vinculos.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.3",

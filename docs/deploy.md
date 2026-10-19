@@ -205,6 +205,7 @@ recibo não encostem em aluno real nem queimem número da série de verdade.
 
 ```bash
 npm run qa:sandbox                 # cria a área de sacrifício
+npm run qa:vinculos                # monta a grade das turmas (andaime)
 npm run conta:teste -- --perfil admin
 ```
 
