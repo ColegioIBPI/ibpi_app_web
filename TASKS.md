@@ -261,6 +261,13 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.22 Liberação para o QA
+
+- [x] Contas de teste para os sete perfis
+- [x] Sandbox: aluno `QA-0001`, responsável, parcelas e talão de recibos `QA`
+- [x] Guia de teste em `docs/qa.md`
+- [ ] Projeto `colegioibpi-dev`, para o QA deixar de testar em produção
+
 ### 3.21 Relatórios
 
 - [x] Inadimplentes por parcela, não somando o aluno

@@ -84,7 +84,63 @@ const FINANCEIRO = {
   nome: "Financeiro de Teste",
 };
 
-const PERFIS = ["professor", "responsavel", "financeiro"] as const;
+/**
+ * O aluno de teste.
+ *
+ * Aponta para uma matrícula real, como a conta de um aluno de verdade
+ * apontaria — é a única forma de a tela ter boletim, frequência e
+ * ocorrência para mostrar. Nada no cadastro dele é alterado.
+ */
+const ALUNO = {
+  email: "aluno.teste@ibpi.com.br",
+  nome: "Aluno de Teste",
+  matricula: "26029",
+};
+
+/**
+ * Os perfis de equipe sem cadastro próprio.
+ *
+ * Secretaria, coordenação e administração enxergam a escola inteira: a
+ * conta de acesso já basta para a tela funcionar, e inventar um cadastro
+ * de funcionário só criaria um registro para alguém apagar depois.
+ */
+const DE_EQUIPE = {
+  secretaria: {
+    email: "secretaria.teste@ibpi.com.br",
+    nome: "Secretaria de Teste",
+    detalhes: [
+      "Gerencia cadastro, avisos, documentos, solicitações, boletins e recibos.",
+      "Lê o financeiro; dá baixa só emitindo recibo.",
+      "Suspende acesso de usuário, mas não distribui perfil.",
+    ],
+  },
+  coordenacao: {
+    email: "coordenacao.teste@ibpi.com.br",
+    nome: "Coordenação de Teste",
+    detalhes: [
+      "Mesmo alcance da secretaria, menos a emissão de recibo.",
+      "Única que atende pedido de saída antecipada.",
+    ],
+  },
+  admin: {
+    email: "admin.teste@ibpi.com.br",
+    nome: "Administração de Teste",
+    detalhes: [
+      "Chave mestra: enxerga e lança em tudo, inclusive distribuir perfil.",
+      "Não vira família: não lê o que depende de vínculo com aluno.",
+    ],
+  },
+} as const;
+
+const PERFIS = [
+  "professor",
+  "responsavel",
+  "financeiro",
+  "aluno",
+  "secretaria",
+  "coordenacao",
+  "admin",
+] as const;
 
 type PerfilDeTeste = (typeof PERFIS)[number];
 
@@ -106,6 +162,19 @@ const ACOES: Record<
   professor: { criar: criarProfessor, apagar: apagarProfessor },
   responsavel: { criar: criarResponsavel, apagar: apagarResponsavel },
   financeiro: { criar: criarFinanceiro, apagar: apagarFinanceiro },
+  aluno: { criar: criarAluno, apagar: () => apagarSimples(ALUNO.email) },
+  secretaria: {
+    criar: () => criarDeEquipe("secretaria"),
+    apagar: () => apagarSimples(DE_EQUIPE.secretaria.email),
+  },
+  coordenacao: {
+    criar: () => criarDeEquipe("coordenacao"),
+    apagar: () => apagarSimples(DE_EQUIPE.coordenacao.email),
+  },
+  admin: {
+    criar: () => criarDeEquipe("admin"),
+    apagar: () => apagarSimples(DE_EQUIPE.admin.email),
+  },
 };
 
 await (apagando ? ACOES[perfil].apagar() : ACOES[perfil].criar());
@@ -203,6 +272,52 @@ async function criarResponsavel() {
     `Filhos vinculados: ${nomes.join(" e ")}`,
     `Alcance de avisos e informações: ${chaves.join(", ")}`,
   ]);
+}
+
+async function criarAluno() {
+  const senha = novaSenha();
+
+  const conta = await criarOuAtualizarConta({
+    email: ALUNO.email,
+    nome: ALUNO.nome,
+    role: "aluno",
+    matricula: ALUNO.matricula,
+    senha,
+  });
+
+  // Sem as chaves, o aluno de teste não receberia aviso de turma — e o
+  // vazio na tela seria da conta, não do Portal.
+  const chaves = await sincronizarChavesPorUid(conta.uid);
+
+  const doc = await db.collection(COLECOES.alunos).doc(ALUNO.matricula).get();
+  const aluno = doc.data();
+
+  anunciar("aluno", ALUNO.email, senha, [
+    `Vê os dados de: ${aluno?.nome ?? ALUNO.matricula} (${aluno?.turmaCodigo ?? "sem turma"})`,
+    `Alcance de avisos: ${chaves.join(", ")}`,
+    "Não vê financeiro. Vê ocorrência só se marcada para o aluno.",
+    "Boletim só com o trimestre liberado em /gestao/boletins.",
+  ]);
+}
+
+async function criarDeEquipe(perfil: keyof typeof DE_EQUIPE) {
+  const senha = novaSenha();
+  const dados = DE_EQUIPE[perfil];
+
+  await criarOuAtualizarConta({
+    email: dados.email,
+    nome: dados.nome,
+    role: perfil,
+    senha,
+  });
+
+  anunciar(perfil, dados.email, senha, [...dados.detalhes]);
+}
+
+/** Conta sem cadastro nem vínculo: só a conta sai. */
+async function apagarSimples(email: string) {
+  await apagarConta(email);
+  console.log("\n  O que a conta lançou continua no banco — é do aluno.\n");
 }
 
 async function criarFinanceiro() {
