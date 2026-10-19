@@ -371,9 +371,10 @@ Referência de requisitos: [README.md](README.md).
 - [x] Download por rota autenticada, que aceita cookie e token do app
 - [x] Publicar a Security Rule: família, secretaria, coordenação e financeiro
 - [x] Corrigir o domínio no contrato do app — `conecta.colegioibpi.com.br`
-- [ ] Investigar as falhas intermitentes sob carga em testes de componente
-      (`grade-de-aulas`, `extrato`, `formulario` de recibo) — passam isolados
-      e na reexecução; parecem timeout do `userEvent` com a suíte cheia
+- [x] Falhas intermitentes sob carga resolvidas: eram **timeout**, não
+      asserção. `testTimeout` foi para 15 s e a espera entre teclas do
+      `userEvent` saiu dos testes que digitam. Três execuções seguidas
+      limpas
 
 ### 3.13 Correções do cadastro de alunos
 

@@ -16,6 +16,16 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
+/**
+ * `delay: null` desliga a espera entre as teclas.
+ *
+ * O `userEvent` aguarda um tick a cada caractere, e o teste que digita
+ * `1.923,00` e depois `77,50` estourava os 5 s de limite com a suíte
+ * inteira rodando em paralelo — não por lentidão do componente, e sim pela
+ * digitação simulada. Sem a espera, o mesmo teste leva milissegundos.
+ */
+const digitando = () => userEvent.setup({ delay: null });
+
 function montar(series = [{ serie: "A", descricao: null, proximoNumero: 848 }]) {
   return render(
     <FormularioDeRecibo
@@ -29,7 +39,7 @@ describe("formulário de recibo", () => {
   it("soma os itens enquanto a pessoa digita", async () => {
     // O total na tela é a conferência antes de emitir: depois de emitido,
     // o recibo não se edita.
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.type(screen.getByLabelText("Valor"), "1.923,00");
@@ -44,7 +54,7 @@ describe("formulário de recibo", () => {
   });
 
   it("não emite sem aluno", async () => {
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.type(screen.getByLabelText("Valor"), "100");
@@ -59,7 +69,7 @@ describe("formulário de recibo", () => {
   it("não emite item com valor zerado", async () => {
     // Um recibo com item de R$ 0,00 passaria pela impressão e só apareceria
     // na conferência do caixa.
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.selectOptions(screen.getByLabelText("Aluno"), "26031");
@@ -85,7 +95,7 @@ describe("formulário de recibo", () => {
       },
     ] as never);
 
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.selectOptions(screen.getByLabelText("Aluno"), "26031");
@@ -124,7 +134,7 @@ describe("formulário de recibo", () => {
       },
     ] as never);
 
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.selectOptions(screen.getByLabelText("Aluno"), "26031");
@@ -152,7 +162,7 @@ describe("formulário de recibo", () => {
   it("remove um item sem embaralhar os outros", async () => {
     // As linhas são identificadas por chave própria, não pelo índice:
     // remover a primeira não pode levar o valor digitado na segunda.
-    const usuario = userEvent.setup();
+    const usuario = digitando();
     montar();
 
     await usuario.type(screen.getByLabelText("Valor"), "10");

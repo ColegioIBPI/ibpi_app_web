@@ -30,7 +30,7 @@ describe("publicação na lista de ocorrências", () => {
     // O ponto sutil: cada caixa grava as **duas**, e o lado que não foi
     // tocado precisa ir como está na tela. Mandá-lo `undefined` faria o
     // schema devolver o padrão e republicar o que ninguém pediu.
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
 
     render(
       <PublicacaoDaOcorrencia
@@ -50,7 +50,7 @@ describe("publicação na lista de ocorrências", () => {
   });
 
   it("liberar para o aluno preserva a retenção do responsável", async () => {
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
 
     render(
       <PublicacaoDaOcorrencia
@@ -75,7 +75,7 @@ describe("publicação na lista de ocorrências", () => {
       erro: "Esta ocorrência não é de uma turma sua.",
     } as never);
 
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
 
     render(
       <PublicacaoDaOcorrencia

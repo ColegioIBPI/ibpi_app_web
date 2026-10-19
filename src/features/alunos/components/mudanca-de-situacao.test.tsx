@@ -51,7 +51,7 @@ describe("mudança de situação em lote", () => {
   });
 
   it("manda só os selecionados", async () => {
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
     render(<MudancaDeSituacao alunos={ALUNOS} />);
 
     await usuario.click(
@@ -70,7 +70,7 @@ describe("mudança de situação em lote", () => {
   it("selecionar todos marca as caixas, que continuam à vista", async () => {
     // A turma inteira conclui no mesmo dia, e marcar trinta uma a uma é
     // como três ficam para trás. Mas os nomes seguem na tela.
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
     render(<MudancaDeSituacao alunos={ALUNOS} />);
 
     await usuario.click(screen.getByRole("button", { name: "Selecionar todos" }));
@@ -83,7 +83,7 @@ describe("mudança de situação em lote", () => {
   });
 
   it("a data muda de nome conforme a situação", async () => {
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
     render(<MudancaDeSituacao alunos={ALUNOS} />);
 
     expect(screen.getByLabelText(/Data de conclusão/)).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("mudança de situação em lote", () => {
   it("matrícula ativa não pede data", async () => {
     // Voltar alguém para ativo é correção de engano, e não tem "data do
     // fato" — a data que vale volta a ser a da matrícula.
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
     render(<MudancaDeSituacao alunos={ALUNOS} />);
 
     await usuario.selectOptions(screen.getByLabelText("Nova situação"), "ativa");
@@ -110,7 +110,7 @@ describe("mudança de situação em lote", () => {
   it("avisa quando ninguém mudou", async () => {
     alterar.mockResolvedValueOnce({ ok: true, alterados: 0 });
 
-    const usuario = userEvent.setup();
+    const usuario = userEvent.setup({ delay: null });
     render(<MudancaDeSituacao alunos={ALUNOS} />);
 
     await usuario.click(screen.getByRole("checkbox", { name: /Alice Vianna/ }));
