@@ -261,6 +261,13 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.23 Painel da tela inicial
+
+- [x] Trocar a lista de módulos por pendências com ação
+- [x] Sete indicadores, cada um guardado pela permissão do recurso
+- [x] Escopo do professor também nos números de contexto
+- [ ] Documento de resumo por gatilho, se os ~900 ms incomodarem
+
 ### 3.22 Treinamento da equipe
 
 > Não é QA caçando defeito: são os **usuários** aprendendo o sistema, no

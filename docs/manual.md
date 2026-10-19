@@ -35,6 +35,19 @@ A família usa o **aplicativo**; a equipe usa o **Portal**.
 
 ---
 
+## 1b. A tela inicial
+
+Ao entrar, o sistema mostra **o que está esperando você** — pedidos da
+família na fila, chamada do dia não lançada, boletim por liberar, vencido
+em aberto, aluno em risco de reprovar por falta.
+
+Cada cartão leva à tela onde se resolve. **Cartão que não aparece é porque
+está em dia** — o painel não mostra zeros.
+
+Vermelho é o que tem prazo e não volta atrás. O resto espera sem piorar.
+
+---
+
 ## 2. Começando o ano — na ordem
 
 `Gestão › Configurações` reúne isto na ordem em que se monta. A ordem
