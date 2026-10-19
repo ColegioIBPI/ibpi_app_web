@@ -174,10 +174,9 @@ emite em momentos diferentes e para destinatários diferentes — a de
 concluídos acompanha a certificação, a de transferidos vai para a escola
 que recebe.
 
-> ⚠️ **Hoje as atas de concluídos e transferidos saem vazias**: a base tem
-> 62 ativos e 11 cancelados, e ninguém nessas duas situações. A ata impressa
-> do Access mostra concluídos, então a migração não trouxe esse status — a
-> secretaria o marca na edição do aluno, junto com a data.
+> A migração **não trouxe** concluído nem transferido: o Access só tinha
+> ativo e cancelado no campo migrado. Quem marca é a secretaria, em
+> `/gestao/alunos/situacao` — ver [cadastros.md](cadastros.md).
 
 A ata de ativos **não tem coluna de situação**: todos nela têm a mesma, e
 repetir "Ativa" em todas as linhas só ocupa largura.

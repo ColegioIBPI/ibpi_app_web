@@ -1,4 +1,6 @@
+import { ClipboardCheck } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { exigirPermissao } from "@/core/auth/guards";
@@ -49,6 +51,16 @@ export default async function AlunosPage({
             diferente do que está à vista é como a secretaria manda a lista
             errada. */}
         <div className="flex flex-wrap gap-2">
+          {/* Marcar concluído e transferido tem tela própria: caixas que
+              encerram matrícula não convivem bem com a busca do dia a dia. */}
+          <Link
+            href="/gestao/alunos/situacao"
+            className="border-line bg-surface text-ink hover:bg-surface-subtle inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <ClipboardCheck className="size-4" aria-hidden />
+            Situação das matrículas
+          </Link>
+
           <BotaoDeExportacao
             href={`/api/exportacoes/alunos?${parametros(filtros).toString()}`}
             rotulo="Planilhão"
