@@ -216,7 +216,13 @@ src/
 scripts/
   migrate-access/           # importação do Access para o Firestore
 docs/                       # documentação por módulo
+  manual.md                 # como o sistema funciona, para a equipe do colégio
 ```
+
+> [`docs/manual.md`](docs/manual.md) é o único documento escrito **para
+> quem usa**, e não para quem desenvolve: explica as regras que surpreendem
+> — a liberação do boletim, a autorização da ocorrência, o recibo que não
+> se edita — porque é delas que nasce quase todo telefonema.
 
 Regra que sustenta a organização: **cálculo de média, situação e frequência ficam em `domain/`, como funções puras testáveis** — nunca dentro de componente React. É a regra do boletim que mais vai mudar, e ela precisa estar num lugar só.
 

@@ -196,19 +196,23 @@ Serve para separar "o código está errado" de "o serviço não foi ligado", que
 > dias. Com dado de menor de idade isso não é aceitável nem temporariamente —
 > comece em modo de produção; as regras reais entram na FASE 2.
 
-## Testes do QA
+## Treinamento da equipe
 
-O QA testa **em produção**, porque ambiente é um só. A contenção está em
-[qa.md](qa.md): contas por perfil, um aluno de sacrifício (`QA-0001`) e um
-talão de recibos próprio (`QA`), para que cancelar matrícula e emitir
-recibo não encostem em aluno real nem queimem número da série de verdade.
+A equipe do colégio aprende o sistema **no ambiente de verdade** — é ela
+quem vai cadastrar, e o que cadastrar vale. A explicação de como o sistema
+funciona está em [manual.md](manual.md).
+
+Os scripts abaixo põem dado na tela para a pessoa ter o que olhar enquanto
+aprende. Nada disso precisa sobreviver: o cadastro de verdade substitui.
 
 ```bash
-npm run qa:sandbox                 # cria a área de sacrifício
-npm run qa:vinculos                # monta a grade das turmas (andaime)
-npm run qa:notas                   # semeia notas, diários e frequência
+npm run qa:vinculos                # grade das turmas, com professores de andaime
+npm run qa:notas                   # notas, diários e frequência em EM2A e EM3A
+npm run qa:sandbox                 # aluno e talão de recibos descartáveis
 npm run conta:teste -- --perfil admin
 ```
+
+Cada um aceita `-- --apagar`.
 
 ## Ambientes
 

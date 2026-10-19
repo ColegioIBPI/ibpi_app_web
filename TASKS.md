@@ -261,16 +261,19 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
-### 3.22 Liberação para o QA
+### 3.22 Treinamento da equipe
 
-- [x] Contas de teste para os sete perfis
-- [x] Sandbox: aluno `QA-0001`, responsável, parcelas e talão de recibos `QA`
-- [x] Guia de teste em `docs/qa.md`
-- [x] Grade das 10 turmas montada, para as telas de nota e diário não abrirem vazias
-- [x] Notas, diários, frequência e recuperações semeados em EM2A e EM3A
-- [ ] Rodar `qa:notas --apagar` e `qa:vinculos --apagar` quando o QA terminar
-- [ ] Substituir os professores de andaime pelo quadro real quando o colégio informar
-- [ ] Projeto `colegioibpi-dev`, para o QA deixar de testar em produção
+> Não é QA caçando defeito: são os **usuários** aprendendo o sistema, no
+> ambiente de verdade. O que eles cadastrarem vale, e substitui o que foi
+> semeado para treino.
+
+- [x] Manual de uso em `docs/manual.md`, explicando as regras invisíveis
+- [x] Contas de treino para os sete perfis
+- [x] Grade das 10 turmas, para as telas não abrirem vazias
+- [x] Notas, diários, frequência e recuperações em EM2A e EM3A
+- [x] Aluno e talão descartáveis, para quem quiser experimentar sem medo
+- [ ] Substituir os professores de andaime pelo quadro real
+- [ ] Projeto `colegioibpi-dev`, para um dia haver onde testar sem ser em produção
 
 ### 3.21 Relatórios
 
