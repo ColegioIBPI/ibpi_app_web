@@ -65,10 +65,10 @@ Dados extraídos do Access em 22/09/2026 — é um colégio pequeno, e isso just
 
 ### 3.1 Matriz de acesso
 
-**Seis perfis de trabalho**, os mesmos do app MyIBPI, mais a
-**Administração**. Cada célula vale dentro do escopo definido em 3.2 — "lê"
-para o professor significa "lê dos alunos que ele leciona", não da escola
-inteira.
+**Sete perfis de trabalho** — seis são os do app MyIBPI, e o **Inspetor**
+nasceu no Portal —, mais a **Administração**. Cada célula vale dentro do
+escopo definido em 3.2 — "lê" para o professor significa "lê dos alunos que
+ele leciona", não da escola inteira.
 
 | Perfil          | Cadastros              | Frequência      | Ocorrências     | Notas/Boletim    | Financeiro      | Avisos                    |
 | --------------- | ---------------------- | --------------- | --------------- | ---------------- | --------------- | ------------------------- |
@@ -80,9 +80,10 @@ inteira.
 
 > A coluna **Solicitações** não cabe na tabela acima: o **responsável abre o próprio pedido** — a única escrita da família no sistema — e atende a fila a secretaria, a coordenação e a administração. Com uma exceção: **saída antecipada é só da coordenação e da administração**, porque quem responde por tirar um aluno da aula é a coordenação. Aluno, professor e financeiro não participam.
 | **Secretaria**  | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
-| **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | Lê              | Lê e **gerencia**         |
+| **Coordenação** | Lê e **gerencia**      | Lê e **lança**  | Lê e **lança**  | Lê e **corrige** | ❌ Sem acesso   | Lê e **gerencia**         |
 | **Financeiro**  | Lê (dados de contato)  | ❌ Sem acesso   | ❌ Sem acesso   | ❌ Sem acesso    | Lê e **lança**  | **Publica** (família)     |
 | **Professor**   | Lê (alunos das turmas) | Lê e **lança**  | Lê e **lança**  | Lê e **lança**   | ❌ Sem acesso   | **Publica** (suas turmas) |
+| **Inspetor**    | Lê (todos os alunos)   | Lê e **lança**  | Lê e **lança**  | ❌ Sem acesso    | ❌ Sem acesso   | ❌ Sem acesso             |
 | **Aluno**       | Lê (próprio cadastro)  | Lê (própria)    | Lê **só as liberadas** | Lê (próprio)     | ❌ Sem acesso   | Lê (os dele)              |
 | **Responsável** | Lê (dos filhos)        | Lê (dos filhos) | Lê (dos filhos) | Lê (dos filhos)  | Lê (dos filhos) | Lê (dele e dos filhos)    |
 
@@ -112,34 +113,58 @@ precisa ver nota, falta nem ocorrência disciplinar de aluno. É o mesmo
 recorte que o app MyIBPI já adota, e reduz a superfície de exposição de dado
 de menor de idade.
 
-**Secretaria e coordenação têm hoje a mesma permissão.** Ficam como perfis
-separados mesmo assim, porque o recorte entre elas tende a aparecer com o uso
-(quem fecha boletim, quem publica comunicado), e separar depois um perfil que
-nasceu unificado exige mexer em conta de usuário — separar agora não custa
-nada.
+**A coordenação não enxerga o financeiro.** Ela tem o alcance da secretaria
+em tudo o que é pedagógico, e nada do que a família deve: mensalidade,
+boleto, plano acordado e anotação interna ficam fora. É decisão do colégio,
+e o motivo é o mesmo da separação acima, do outro lado — saber que o aluno
+está inadimplente ao decidir sobre ele é o cruzamento que não se quer. O
+**recibo** continua: é o que já foi pago no balcão, e ela confere e
+reimprime a 2ª via sem poder emitir.
+
+Com isso, secretaria e coordenação divergem em três linhas, e **só nelas**:
+financeiro, recibos e usuários. É um teste, não uma observação — ver
+`src/core/auth/roles.test.ts`.
+
+**O Inspetor é o perfil mais estreito da equipe.** Ele faz a chamada de
+qualquer turma — é o ponto: a diferença para o professor não é ter menos
+permissão, é não ter recorte de turma. Marca atraso e saída antecipada, lê
+o cadastro para reconhecer quem está no corredor, e não enxerga nota,
+boletim, financeiro nem a fila de solicitações.
+
+Ele **lança ocorrência** sem que isso tenha sido pedido à parte: a
+ocorrência marcada na chamada vira registro próprio na mesma gravação, e
+sem a permissão ele escreveria um documento que não poderia abrir depois.
+Não abre o **diário de classe**, que é da alocação — quem não leciona
+abriria a tela vazia.
 
 ### 3.2 Regras de escopo
 
 - **Professor** enxerga exclusivamente os alunos das **turmas e disciplinas que leciona**. A restrição é validada no servidor, nunca só na interface.
 - **Responsável** pode ter **vários filhos matriculados**. A interface tem um **seletor de aluno** que troca o contexto de todas as telas ao mesmo tempo.
-- **Aluno** não vê ocorrências disciplinares — elas ficam restritas ao responsável e à equipe escolar. Mesma regra já adotada no app.
-- **Financeiro** é invisível para o perfil aluno: a seção some do menu, não aparece vazia.
+- **Aluno** vê o próprio boletim, a própria frequência, a **carteirinha** e as **ocorrências marcadas para ele**. O padrão continua sendo não mostrar ocorrência ao aluno; o que mudou é que a escola pode autorizar caso a caso, por documento.
+- **Inspetor** não tem recorte de turma: ele faz a chamada de qualquer uma.
+- **Financeiro** é invisível para o perfil aluno: a seção some do menu, não aparece vazia. Para a **coordenação**, idem.
 - Um aluno pode ter **mais de um responsável** (pai e mãe com acessos independentes). O vínculo é modelado como muitos-para-muitos.
 
 ### 3.3 Compatibilidade de perfis com o app MyIBPI
 
-O portal e o app usam **exatamente os mesmos seis perfis**, gravados no campo
-`role` do documento em `users`:
+O portal e o app compartilham **os seis perfis originais**, gravados no
+campo `role` do documento em `users`:
 
 `aluno` · `responsavel` · `professor` · `secretaria` · `coordenacao` · `financeiro`
+
+O **`inspetor`** existe só no Portal. Ele não quebra nada no app: não é
+perfil de família e não tem vínculo com aluno, então nunca chega lá — só
+precisa estar previsto em quem trate `role` de forma exaustiva. Ver
+[`docs/app-mobile.md`](docs/app-mobile.md).
 
 O valor também vai para as _custom claims_ do Firebase Auth, o que permite às
 Security Rules do Firestore decidirem o acesso sem precisar ler o documento do
 usuário a cada consulta.
 
 Onde o portal fala em "área de gestão", entenda secretaria, coordenação,
-financeiro e professor; "área de consulta" é aluno e responsável. É uma
-divisão de navegação, não um sétimo perfil.
+financeiro, professor e inspetor; "área de consulta" é aluno e responsável.
+É uma divisão de navegação, não um perfil a mais.
 
 ### 3.4 Criação de contas
 
@@ -256,6 +281,27 @@ O Access tem ~100 campos por aluno. Eles são reorganizados em blocos, mantendo 
 | Observações             | Campo livre e histórico de ocorrências                                                             |
 
 Funções: criar, editar, buscar (por nome, matrícula ou turma), inativar (nunca excluir — o histórico escolar precisa sobreviver), upload de foto.
+
+### 5.2b Carteirinha estudantil
+
+O aluno vê a dele na área de consulta; o responsável, a de cada filho — é
+ele quem está com o celular na portaria. Foto, nome, turma, curso,
+matrícula, nascimento e validade, e imprime com `Ctrl+P`.
+
+**Não há coleção nova**: tudo sai do cadastro, e a foto da mesma rota
+autenticada da ficha.
+
+A única regra que o cartão acrescenta é a **validade**: vale enquanto a
+matrícula estiver **ativa**, e vence em 31/12 do ano letivo. Fora disso o
+cartão **continua sendo desenhado, com o aviso por cima** — esconder a tela
+não explicaria nada a quem está na portaria, e um cartão que continua
+bonito depois que o aluno saiu transformaria o sistema em emissor de
+documento falso.
+
+A situação vem antes do vencimento: para quem cancelou em março, "vencida"
+seria meia-verdade, e seria lida como "só precisa renovar".
+
+Sem QR code: não existe, hoje, nada contra o que conferir.
 
 ### 5.3 Turmas, disciplinas e professores
 

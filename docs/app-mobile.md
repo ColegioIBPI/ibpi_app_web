@@ -1,8 +1,8 @@
 # Contrato de dados para o app MyIBPI
 
 O que o aplicativo Android precisa saber para as abas **Frequência,
-Boletim, Ocorrências, Avisos, Informações úteis, Financeiro e
-Solicitações**.
+Boletim, Ocorrências, Avisos, Informações úteis, Financeiro,
+Solicitações e Carteirinha**.
 
 O Portal e o app falam com o **mesmo projeto Firebase** (`colegioibpi`) e as
 **mesmas coleções**. Quem define a forma dos dados é o Portal — este
@@ -133,6 +133,53 @@ como o aluno é avaliado. Mostrem junto do boletim e na aba de informações
 ### 7. Boleto do aluno — novo
 
 Um PDF por aluno, baixado por rota autenticada. **Seção 8.**
+
+### 8. Carteirinha estudantil — nova tela, sem coleção nova
+
+O Portal ganhou a carteirinha, e **a família é quem mais precisa dela**: é
+o celular na portaria, na excursão e na biblioteca. Vale a pena no app.
+
+**Não há coleção nova para ler.** Tudo vem do que vocês já leem:
+
+| No cartão      | De onde                                          |
+| -------------- | ------------------------------------------------ |
+| Foto           | `GET /api/alunos/{matricula}/foto` (seção 6)      |
+| Nome           | `alunos/{matricula}.nome`                         |
+| Turma e série  | `turmaCodigo` e `serie`                           |
+| Turno          | `turno`                                           |
+| Curso          | `segmento` → `cursos/{codigo}.nome` (seção 5)     |
+| Nascimento     | `dataNascimento`                                  |
+| Validade       | 31/12 do ano letivo                               |
+
+**A regra que não pode ficar de fora:** a carteirinha **só vale com
+`situacaoMatricula == "ativa"`**, e vence em 31 de dezembro do ano letivo.
+Fora disso, desenhem o cartão **com o aviso por cima** — "Sem validade —
+matrícula cancelada", "Sem validade — vencida em 31/12/2026" — em vez de
+esconder a tela.
+
+Duas razões para não esconder: a tela vazia não explica nada a quem está
+na portaria, e um cartão que continua bonito depois que o aluno saiu
+transforma o app em emissor de documento falso.
+
+A situação vem **antes** do vencimento: para quem cancelou em março, dizer
+"vencida" seria meia-verdade, e a portaria leria como "só precisa renovar".
+
+> **Sem foto no cadastro, a carteirinha não identifica ninguém.** Mostrem
+> o cartão assim mesmo, com uma linha dizendo para procurar a secretaria —
+> quem vai mostrar precisa saber antes de chegar lá.
+
+Não há QR code nem código de verificação: não existe, hoje, nada contra o
+que conferir. Quando existir, entra aqui.
+
+### 9. Perfil novo no sistema: `inspetor` — não é do app
+
+Entrou um perfil `inspetor` (faz a chamada de qualquer turma, no Portal).
+Ele **nunca aparece no aplicativo**: não é perfil de família, e não tem
+vínculo com aluno.
+
+Só importa para quem tratar `role` com `when` exaustivo em Kotlin: o valor
+existe no enum do sistema. Caso cheguem a vê-lo, o tratamento é o mesmo de
+`secretaria` — não é família, não tem tela aqui.
 
 ### Ainda não entrou
 
@@ -662,10 +709,11 @@ Detalhe completo, com exemplos: [`avaliacao.md`](avaliacao.md).
 turno:     manha | tarde | flex
 situacao (presença):  presente | falta | atraso | saida-antecipada
 situacao (cobrança):  calculada, não gravada — ver seção 8
-role:      aluno | responsavel | professor | secretaria | coordenacao
-           | financeiro | admin        // admin = administração do sistema,
-                                       // enxerga tudo; o app não precisa
-                                       // tratar, não é perfil de família
+role:      aluno | responsavel | professor | inspetor | secretaria
+           | coordenacao | financeiro | admin
+           // inspetor = faz a chamada no Portal; não é perfil de família
+           // admin    = administração do sistema, enxerga tudo
+           // Nenhum dos dois chega ao app: não têm vínculo com aluno.
 ```
 
 Datas puras são **string `AAAA-MM-DD`**, nunca `Timestamp`. Ao converter

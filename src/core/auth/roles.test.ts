@@ -16,12 +16,22 @@ import {
   type Role,
 } from "@/core/auth/roles";
 
+/** O núcleo da vida escolar — o que quase todo teste daqui compara. */
 const RECURSOS: Recurso[] = [
   "cadastros",
   "frequencia",
   "ocorrencias",
   "notas",
   "financeiro",
+];
+
+/** A matriz inteira, para os testes que não podem deixar linha de fora. */
+const TODOS_OS_RECURSOS: Recurso[] = [
+  ...RECURSOS,
+  "avisos",
+  "solicitacoes",
+  "recibos",
+  "usuarios",
 ];
 
 describe("isRole", () => {
@@ -104,12 +114,69 @@ describe("matriz de acesso — README seção 3.1", () => {
     expect(podeVer("professor", "financeiro")).toBe(false);
   });
 
-  it("secretaria e coordenação têm hoje a mesma permissão", () => {
-    for (const recurso of RECURSOS) {
+  it("secretaria e coordenação divergem em três linhas, e só nelas", () => {
+    // O teste era de igualdade pura. Virou lista de exceções quando o
+    // colégio tirou o financeiro da coordenação: uma divergência que não
+    // esteja declarada aqui é uma que entrou sem ninguém decidir.
+    //
+    // Varre **todos** os recursos, e não o `RECURSOS` parcial usado nos
+    // outros testes: era justamente em `recibos` e `usuarios` que as duas
+    // já divergiam sem este teste perceber.
+    const EXCECOES: Recurso[] = ["financeiro", "recibos", "usuarios"];
+
+    for (const recurso of TODOS_OS_RECURSOS) {
+      if (EXCECOES.includes(recurso)) continue;
+
       expect(nivelDeAcesso("secretaria", recurso)).toBe(
         nivelDeAcesso("coordenacao", recurso),
       );
     }
+
+    for (const recurso of EXCECOES) {
+      expect(nivelDeAcesso("secretaria", recurso)).not.toBe(
+        nivelDeAcesso("coordenacao", recurso),
+      );
+    }
+  });
+
+  it("a coordenação não enxerga o financeiro", () => {
+    // Decisão do colégio: ela é pedagógica, e saber o que a família deve
+    // ao decidir sobre o aluno é o cruzamento que se quis evitar.
+    expect(podeVer("coordenacao", "financeiro")).toBe(false);
+    expect(pode("coordenacao", "financeiro", "lancar")).toBe(false);
+
+    // O que já foi pago no balcão ela confere — emitir é que não.
+    expect(podeVer("coordenacao", "recibos")).toBe(true);
+    expect(pode("coordenacao", "recibos", "lancar")).toBe(false);
+  });
+
+  it("o inspetor faz a chamada e nada mais", () => {
+    expect(pode("inspetor", "frequencia", "lancar")).toBe(true);
+    // Ocorrência não é permissão extra: a chamada escreve uma, e quem
+    // escreve precisa poder abrir depois.
+    expect(pode("inspetor", "ocorrencias", "lancar")).toBe(true);
+    // Lê o cadastro para reconhecer quem está no corredor.
+    expect(podeVer("inspetor", "cadastros")).toBe(true);
+    expect(pode("inspetor", "cadastros", "gerenciar")).toBe(false);
+
+    for (const recurso of [
+      "notas",
+      "financeiro",
+      "avisos",
+      "solicitacoes",
+      "recibos",
+      "usuarios",
+    ] as const) {
+      expect(podeVer("inspetor", recurso)).toBe(false);
+    }
+  });
+
+  it("o inspetor cobre a escola inteira — é o ponto do perfil", () => {
+    expect(escopoDeAlunos("inspetor")).toBe("todos");
+    expect(areaDoPerfil("inspetor")).toBe("gestao");
+    // Mas não administra: não abre alocação alheia nem publica para
+    // qualquer destino.
+    expect(administraEscola("inspetor")).toBe(false);
   });
 
   it("nenhum perfil de trabalho além de secretaria e coordenação gerencia cadastro", () => {
@@ -224,6 +291,7 @@ describe("área e rota inicial", () => {
       "coordenacao",
       "financeiro",
       "professor",
+      "inspetor",
       "admin",
     ] as Role[]) {
       expect(areaDoPerfil(role)).toBe("gestao");
@@ -248,6 +316,7 @@ describe("rótulos", () => {
       "Aluno",
       "Responsável",
       "Professor",
+      "Inspetor",
       "Secretaria",
       "Coordenação",
       "Financeiro",
@@ -290,7 +359,13 @@ describe("administração de usuários", () => {
   });
 
   it("a família e o professor não chegam perto", () => {
-    for (const role of ["aluno", "responsavel", "professor", "financeiro"] as const) {
+    for (const role of [
+      "aluno",
+      "responsavel",
+      "professor",
+      "inspetor",
+      "financeiro",
+    ] as const) {
       expect(podeVer(role, "usuarios")).toBe(false);
     }
   });

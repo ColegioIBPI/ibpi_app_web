@@ -222,7 +222,7 @@ export async function removerAula(
 
 /** Carrega o contexto e verifica o escopo — usado por todas as ações. */
 async function abrir(alocacaoId: string, trimestre: Trimestre) {
-  const sessao = await exigirPermissao("frequencia", "lancar");
+  const sessao = await exigirPermissao("notas", "lancar");
   const db = getAdminDb();
 
   const alocacao = await obterAlocacao(sessao, alocacaoId);

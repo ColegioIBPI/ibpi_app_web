@@ -119,7 +119,16 @@ const DE_EQUIPE = {
     nome: "Coordenação de Teste",
     detalhes: [
       "Mesmo alcance da secretaria, menos a emissão de recibo.",
+      "Não enxerga o financeiro: nem mensalidade, nem boleto, nem plano.",
       "Única que atende pedido de saída antecipada.",
+    ],
+  },
+  inspetor: {
+    email: "inspetor.teste@ibpi.com.br",
+    nome: "Inspetor de Teste",
+    detalhes: [
+      "Faz a chamada de qualquer turma, e marca atraso e saída antecipada.",
+      "Não vê nota, boletim, financeiro nem a fila de solicitações.",
     ],
   },
   admin: {
@@ -139,6 +148,7 @@ const PERFIS = [
   "aluno",
   "secretaria",
   "coordenacao",
+  "inspetor",
   "admin",
 ] as const;
 
@@ -170,6 +180,10 @@ const ACOES: Record<
   coordenacao: {
     criar: () => criarDeEquipe("coordenacao"),
     apagar: () => apagarSimples(DE_EQUIPE.coordenacao.email),
+  },
+  inspetor: {
+    criar: () => criarDeEquipe("inspetor"),
+    apagar: () => apagarSimples(DE_EQUIPE.inspetor.email),
   },
   admin: {
     criar: () => criarDeEquipe("admin"),

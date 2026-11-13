@@ -4,7 +4,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import { FormularioDeRecibo } from "@/features/recibos/components/formulario";
 
-const emitir = vi.hoisted(() => vi.fn());
+/**
+ * O mock responde como a Server Action responde.
+ *
+ * `vi.fn()` puro devolve `undefined`, e o componente faz
+ * `resultado.ok` logo depois do `await` — o teste passava e a suíte
+ * terminava com um "Unhandled Rejection" solto, do tipo que um dia vira
+ * falha intermitente em outro arquivo.
+ */
+const emitir = vi.hoisted(() =>
+  vi.fn(async () => ({ ok: true, id: "A-000848" })),
+);
 const listarParcelas = vi.hoisted(() => vi.fn(async () => []));
 
 vi.mock("@/features/recibos/actions/recibos", () => ({

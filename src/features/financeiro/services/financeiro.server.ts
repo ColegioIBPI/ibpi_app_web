@@ -8,7 +8,7 @@ import {
   type PlanoDePagamento,
   type SituacaoDaCobranca,
 } from "@/core/modelo";
-import { isEquipe } from "@/core/auth/roles";
+import { pode } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
@@ -71,10 +71,16 @@ export async function extratoDoAluno(
   // para o dia em que a matriz mudar.
   const vePlano = sessao.role !== "aluno";
 
-  // A anotação interna nem sai do banco para a família: o extrato do Portal
-  // não pode conter o que a equipe escreveu sobre ela, e não depender de a
-  // tela lembrar de esconder é mais seguro do que depender.
-  const veAnotacao = isEquipe(sessao.role);
+  // A anotação interna nem sai do banco para quem não é do financeiro: o
+  // extrato do Portal não pode conter o que a equipe escreveu sobre a
+  // família, e não depender de a tela lembrar de esconder é mais seguro do
+  // que depender.
+  //
+  // `financeiro: ler`, e não `isEquipe`: a coordenação é equipe e saiu do
+  // financeiro. As telas que chegam aqui já exigem o recurso, então hoje a
+  // troca não muda resultado nenhum — ela impede que a próxima tela que
+  // chamar esta função traga a anotação de brinde.
+  const veAnotacao = pode(sessao.role, "financeiro", "ler");
 
   const [cobrancasDocs, contratosDocs, planoDoc, anotacaoDoc] =
     await Promise.all([

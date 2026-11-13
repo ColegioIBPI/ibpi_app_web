@@ -36,8 +36,8 @@ O app é da **família**. Dois perfis entram:
 
 | Perfil        | Abas                                                                                            |
 | ------------- | ----------------------------------------------------------------------------------------------- |
-| `responsavel` | Boletim · Frequência · Ocorrências · Financeiro · **Solicitações** · Avisos · Informações úteis |
-| `aluno`       | Boletim · Frequência · **Ocorrências** · Avisos · Informações úteis                            |
+| `responsavel` | Boletim · Frequência · Ocorrências · **Carteirinha** · Financeiro · **Solicitações** · Avisos · Informações úteis |
+| `aluno`       | Boletim · Frequência · **Ocorrências** · **Carteirinha** · Avisos · Informações úteis |
 
 O aluno **não** tem Financeiro nem Solicitações. Não é tela escondida: as
 regras negam, e uma consulta dessas falha para ele.
@@ -55,8 +55,8 @@ junto do seletor de aluno, e valem para os dois perfis.
 - **Mensalidade** é assunto de quem paga.
 - **Pedido** é ato do adulto por um menor de idade.
 
-Perfis de funcionário (`professor`, `secretaria`, `coordenacao`,
-`financeiro`, `admin`) **não usam o app**. Se um deles entrar, mostre uma
+Perfis de funcionário (`professor`, `inspetor`, `secretaria`,
+`coordenacao`, `financeiro`, `admin`) **não usam o app**. Se um deles entrar, mostre uma
 tela única dizendo que o acesso dele é pelo Portal, com o endereço — é
 melhor que uma tela vazia que parece defeito.
 
@@ -531,6 +531,52 @@ e-mail de acesso e aponta para a redefinição.
 
 > **Não guarde essas senhas em cache no aparelho** e não as registre em
 > log. Leia quando a tela abrir.
+
+---
+
+## 12c. Carteirinha
+
+Tela nova, para os **dois perfis**. É o celular na portaria, na excursão e
+na biblioteca — e é a tela que mais vai ser aberta em pé, de relance, por
+alguém que olha de longe.
+
+```
+┌──────────────────────────────────────┐
+│ Colégio IBPI                         │
+│ Carteirinha estudantil · 2026        │
+├──────────────────────────────────────┤
+│ ┌──────┐  Maria Eduarda Vianna       │
+│ │ foto │  1ª série · EM1A · Manhã    │
+│ └──────┘  Ensino Médio               │
+├──────────────────────────────────────┤
+│ Matrícula       Nascimento           │
+│ 26007           14/03/2009           │
+│ Validade                             │
+│ 31/12/2026                           │
+└──────────────────────────────────────┘
+```
+
+Ordem de leitura deliberada: **foto, nome e turma primeiro**. O resto é
+confirmação, e quem confere olha nessa ordem.
+
+Regras da tela:
+
+- **Só vale com `situacaoMatricula == "ativa"`**, e vence em 31/12 do ano
+  letivo. Fora disso, desenhem o cartão **com uma tarja por cima** — "Sem
+  validade — matrícula cancelada" — em vez de esconder a tela.
+- **A situação vem antes do vencimento.** Para quem cancelou em março,
+  "vencida" seria meia-verdade, lida como "só precisa renovar".
+- **Sem foto, mostre assim mesmo**, com uma linha dizendo para procurar a
+  secretaria. Quem vai mostrar precisa saber antes de chegar lá.
+- **Deixem claro o que é série e o que é turma.** Quando os dois campos
+  trazem o mesmo texto — acontece no cadastro migrado —, mostrem uma vez.
+- **Sem QR code.** Não existe, hoje, nada contra o que conferir. Um código
+  que não verifica nada é pior que nenhum: parece que verifica.
+
+O responsável com mais de um filho vê **um cartão por filho**, pelo
+seletor de aluno da seção 2 — não um cartão com um seletor dentro.
+
+Dados e rota da foto: `app-mobile.md`, item 8 das mudanças.
 
 ---
 

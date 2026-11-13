@@ -261,6 +261,26 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.24 Perfis: coordenação, aluno e o novo inspetor
+
+> Três pedidos do colégio na mesma mensagem, e os três mexem na matriz de
+> acesso — por isso vieram juntos. Ver `README.md` 3.1 e
+> `docs/permissoes.md`.
+
+- [x] Coordenação **sem o financeiro**: as cinco coleções do dinheiro
+      negadas na regra, não só escondidas no menu
+- [x] Coordenação mantém o recibo — o que já foi pago no balcão
+- [x] Teste que lista as **três** divergências entre secretaria e
+      coordenação, em vez de exigir igualdade
+- [x] Perfil `inspetor`: chamada de qualquer turma, sem alocação
+- [x] Inspetor fora do diário de classe, que é da alocação
+- [x] Carteirinha estudantil no portal da família, com a regra de validade
+- [x] Boleto: a rota servia o PDF ao professor, porque perguntava
+      `isEquipe` em vez do recurso — achado ao tirar a coordenação
+- [ ] Decidir se a coordenação também suspende acesso (hoje só a
+      secretaria; o pedido dizia "mesmas permissões")
+- [ ] Carteirinha no app Android — contrato já entregue
+
 ### 3.23 Painel da tela inicial
 
 - [x] Trocar a lista de módulos por pendências com ação

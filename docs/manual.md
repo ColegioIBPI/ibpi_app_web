@@ -15,21 +15,31 @@ aqui nasce de uma regra que faz sentido, mas que ninguém contou.
 
 ## 1. Quem entra e o que vê
 
-Sete perfis. Cada um abre um menu diferente, e **ninguém vê o que não é da
+Oito perfis. Cada um abre um menu diferente, e **ninguém vê o que não é da
 sua função** — não é a tela que esconde, é o sistema que não entrega.
 
 | Perfil | O que faz |
 | --- | --- |
 | **Administração** | tudo, inclusive criar usuários e distribuir perfil |
 | **Secretaria** | cadastro, avisos, documentos, solicitações, boletins, recibos |
-| **Coordenação** | o mesmo da secretaria, menos emitir recibo |
+| **Coordenação** | o mesmo da secretaria, menos emitir recibo e **sem o financeiro** |
 | **Financeiro** | mensalidade, carnê, baixa e recibo |
 | **Professor** | frequência, diário e nota — **só das turmas dele** |
-| **Responsável** | boletim, frequência, ocorrência, financeiro e pedidos dos filhos |
-| **Aluno** | o próprio boletim e frequência. Não vê financeiro |
+| **Inspetor** | chamada, atraso e saída antecipada — **de todas as turmas** |
+| **Responsável** | boletim, frequência, ocorrência, carteirinha, financeiro e pedidos dos filhos |
+| **Aluno** | o próprio boletim, frequência, ocorrências e carteirinha. Não vê financeiro |
 
 O professor enxerga apenas os alunos das turmas em que está **alocado**. Se
 ele diz que "sumiu a turma", quase sempre é vínculo que falta — seção 2.
+
+**O inspetor é o contrário do professor**: sem alocação nenhuma, e por isso
+mesmo faz a chamada de qualquer turma. Ele não abre o diário de classe, que
+é da disciplina de um professor, e não enxerga nota nem boletim.
+
+**A coordenação não enxerga o financeiro.** Nem mensalidade, nem boleto,
+nem o plano acordado. Se a coordenadora precisa saber se uma família está
+em dia, é com a secretaria ou o financeiro — a tela não existe para ela, e
+não é falha de permissão.
 
 A família usa o **aplicativo**; a equipe usa o **Portal**.
 
@@ -100,6 +110,20 @@ pelo aplicativo quando esquece.
 
 A **senha do Meu IBPI não fica aqui** — ninguém a conhece, nem o colégio.
 Quem esqueceu usa "Esqueci minha senha".
+
+### Carteirinha
+
+O aluno e o responsável abrem a carteirinha no Portal — foto, nome, turma,
+curso, matrícula e validade. Imprime com Ctrl+P.
+
+Vocês não emitem nada: **ela se monta sozinha do cadastro**. O que depende
+de vocês é a foto, e um cadastro sem foto gera um cartão que não identifica
+ninguém — o próprio cartão avisa isso à família.
+
+**A carteirinha só vale com matrícula ativa**, e vence em 31 de dezembro.
+Quem cancelou ou se transferiu continua enxergando o cartão, com "Sem
+validade" escrito por cima: a família precisa entender por que a portaria
+recusou, e uma tela vazia não explicaria.
 
 ---
 
@@ -244,7 +268,7 @@ enxerga**.
 sessões abertas caem. Trocar o perfil também derruba a sessão: a pessoa
 entra de novo já com o acesso novo.
 
-Quatro coisas o sistema recusa, e todas por um motivo:
+Três coisas o sistema recusa, e todas por um motivo:
 
 - trocar o **próprio** perfil;
 - suspender o **próprio** acesso;

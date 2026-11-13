@@ -13,7 +13,10 @@ export const metadata: Metadata = { title: "Diário de classe" };
 export default async function DiarioPage({
   searchParams,
 }: PageProps<"/gestao/diario">) {
-  const sessao = await exigirPermissao("frequencia", "lancar");
+  // `notas`, e não `frequencia`, embora o diário tenha chamada: ele é da
+  // alocação, e quem não leciona nem confere nota não tem o que abrir aqui.
+  // Ver `core/auth/navegacao.ts`.
+  const sessao = await exigirPermissao("notas", "lancar");
   const filtros = await searchParams;
   const trimestre = trimestreDaQuery(filtros.trimestre);
 

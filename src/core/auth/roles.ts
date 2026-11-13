@@ -6,10 +6,11 @@
  * mesma matriz no servidor — o cliente é substituível, então a restrição não
  * pode viver só aqui. Ao mudar uma linha desta tabela, mude a regra também.
  *
- * Os seis perfis de trabalho são os mesmos do app MyIBPI. Ver README,
- * seção 3.
+ * Sete perfis de trabalho. Seis são os do app MyIBPI (ver README, seção 3);
+ * o sétimo, `inspetor`, nasceu no Portal e não existe no aplicativo — a
+ * família nunca fala com ele.
  *
- * O sétimo, `admin`, é a administração do sistema: enxerga e lança em tudo.
+ * O oitavo, `admin`, é a administração do sistema: enxerga e lança em tudo.
  * Ele existe para quem mantém o Portal e para o colégio pequeno, onde a
  * mesma pessoa faz secretaria e caixa. Não é um perfil de trabalho — é a
  * chave mestra, e deve ser dada a poucas contas.
@@ -19,6 +20,7 @@ export const ROLES = [
   "aluno",
   "responsavel",
   "professor",
+  "inspetor",
   "secretaria",
   "coordenacao",
   "financeiro",
@@ -106,7 +108,20 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     frequencia: "lancar",
     ocorrencias: "lancar",
     notas: "gerenciar",
-    financeiro: "ler",
+    /**
+     * **Não enxerga o financeiro.** Decisão do colégio.
+     *
+     * A coordenação é pedagógica: ela responde por nota, falta e
+     * disciplina, e o que a família deve não entra nessa conversa. Saber
+     * que um aluno está inadimplente ao decidir sobre ele é exatamente o
+     * cruzamento que o colégio não quer.
+     *
+     * Era `ler`, igual à secretaria. É a única linha em que as duas
+     * divergem além do recibo — e por isso o teste que as comparava
+     * passou a listar as exceções por extenso, em vez de exigir
+     * igualdade.
+     */
+    financeiro: "nenhum",
     avisos: "gerenciar",
     solicitacoes: "gerenciar",
     // Confere e reimprime a 2ª via; quem emite é quem recebe o dinheiro.
@@ -137,6 +152,37 @@ const PERMISSOES: Record<Role, Record<Recurso, Nivel>> = {
     financeiro: "nenhum",
     // Publica para as turmas que leciona — o escopo vale aqui também.
     avisos: "lancar",
+    solicitacoes: "nenhum",
+    recibos: "nenhum",
+    usuarios: "nenhum",
+  },
+  /**
+   * Quem cuida do corredor: chamada, atraso e saída antecipada.
+   *
+   * É o perfil mais estreito da equipe. A diferença para o professor não é
+   * ter menos permissão — é o **escopo**: o inspetor faz a chamada de
+   * qualquer turma, e não enxerga nota, financeiro nem o que a família
+   * pede à secretaria.
+   */
+  inspetor: {
+    // Precisa do nome e da foto para fazer a chamada e reconhecer quem
+    // está no corredor. É o mesmo `ler` do professor: os blocos sensíveis
+    // da ficha (senha de plataforma, documentos da matrícula, pasta do
+    // Drive) estão todos atrás de `cadastros: gerenciar`.
+    cadastros: "ler",
+    frequencia: "lancar",
+    /**
+     * **Consequência da chamada, não permissão extra.**
+     *
+     * A ocorrência marcada na chamada vira registro próprio dentro da
+     * mesma gravação (`actions/chamada.ts`). Deixar isto em `nenhum` faria
+     * o inspetor escrever um documento que ele não pode abrir depois — e
+     * "chegou atrasado pela terceira vez" é justamente o que ele registra.
+     */
+    ocorrencias: "lancar",
+    notas: "nenhum",
+    financeiro: "nenhum",
+    avisos: "nenhum",
     solicitacoes: "nenhum",
     recibos: "nenhum",
     usuarios: "nenhum",
@@ -204,6 +250,8 @@ const ESCOPOS: Record<Role, EscopoDeAlunos> = {
   secretaria: "todos",
   coordenacao: "todos",
   financeiro: "todos",
+  // É o ponto do perfil: ele atende o corredor inteiro, não uma turma.
+  inspetor: "todos",
   professor: "turmas-lecionadas",
   responsavel: "filhos",
   aluno: "proprio",
@@ -218,6 +266,7 @@ const AREAS: Record<Role, Area> = {
   coordenacao: "gestao",
   financeiro: "gestao",
   professor: "gestao",
+  inspetor: "gestao",
   aluno: "consulta",
   responsavel: "consulta",
 };
@@ -227,6 +276,7 @@ const ROTULOS: Record<Role, string> = {
   admin: "Administração",
   responsavel: "Responsável",
   professor: "Professor",
+  inspetor: "Inspetor",
   secretaria: "Secretaria",
   coordenacao: "Coordenação",
   financeiro: "Financeiro",

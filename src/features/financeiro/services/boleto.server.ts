@@ -1,24 +1,16 @@
 import "server-only";
 
-import { isEquipe } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb, getAdminStorage } from "@/core/firebase/admin";
 import { COLECOES, type Boleto } from "@/core/modelo";
+import { podeVerBoleto } from "@/features/financeiro/domain/boleto";
 
 /**
  * Leitura do boleto do aluno.
  *
- * Mesmo escopo do resto do financeiro: a família vê o dos filhos, a equipe
- * vê o de todos. **O aluno não** — mensalidade é assunto de quem paga, e é
- * a mesma regra que já vale para o extrato.
+ * Quem pode ver é decidido em `domain/boleto.ts` — regra pura, testada
+ * sem subir nada.
  */
-
-export function podeVerBoleto(sessao: SessionUser, matricula: string): boolean {
-  if (sessao.role === "aluno") return false;
-  if (isEquipe(sessao.role)) return true;
-
-  return sessao.alunosVinculados.includes(matricula);
-}
 
 /** `null` para quem não tem direito — quem chama responde 404. */
 export async function obterBoleto(

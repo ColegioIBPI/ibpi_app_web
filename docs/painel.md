@@ -34,7 +34,7 @@ vencida. O resto espera sem piorar.
 | --- | --- | --- |
 | **Pedidos da família esperando** | quem atende a fila | mostra há quantos dias o mais antigo está parado |
 | **Chamada de hoje** | quem lança frequência | turmas sem nenhum lançamento |
-| **Risco de reprovação por falta** | quem lê notas | abaixo de 75%, com o pior caso nomeado |
+| **Risco de reprovação por falta** | quem lê frequência | abaixo de 75%, com o pior caso nomeado |
 | **Boletins não liberados** | quem fecha boletim | enquanto não libera, a família não vê nota nenhuma |
 | **Vencido em aberto** | quem lê financeiro | valor, parcelas e quantos alunos |
 | **Pagamentos a confirmar** | quem lança financeiro | a família pagou, falta conferir no extrato |
@@ -46,6 +46,12 @@ Reprovação por falta **não tem recuperação**. Hoje o colégio só descobre 
 fim do ano, quando não há mais o que fazer — então o aviso só serve se
 chegar com meses de antecedência. É o único indicador do painel que previne
 em vez de lembrar.
+
+Ele era guardado por `notas: ler` e passou a ser por `frequencia: ler`:
+reprovação por falta sai inteira da frequência, e quem faz a chamada é
+quem pode fazer algo a respeito. Para secretaria, coordenação, professor e
+administração não mudou nada — o **inspetor** passou a vê-lo, e é
+justamente dele o trabalho de ligar para a família.
 
 ### Fim de semana não cobra chamada
 

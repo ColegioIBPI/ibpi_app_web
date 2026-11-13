@@ -83,6 +83,7 @@ describe("navegacaoPara", () => {
       "Boletim",
       "Frequência",
       "Ocorrências",
+      "Carteirinha",
       "Informações úteis",
     ]);
     expect(rotulos("aluno")).not.toContain("Financeiro");
@@ -94,10 +95,42 @@ describe("navegacaoPara", () => {
       "Boletim",
       "Frequência",
       "Ocorrências",
+      "Carteirinha",
       "Financeiro",
       "Solicitações",
       "Informações úteis",
     ]);
+  });
+
+  it("a coordenação não vê o financeiro", () => {
+    // Ela é pedagógica: responde por nota, falta e disciplina. O que a
+    // família deve não entra nessa conversa.
+    const itens = rotulos("coordenacao");
+
+    expect(itens).not.toContain("Financeiro");
+    // Recibos continua: ela confere e reimprime a 2ª via do que já foi
+    // pago no balcão. O que ela perdeu é o que a família **deve**.
+    expect(itens).toContain("Recibos");
+    expect(itens).toContain("Boletins");
+  });
+
+  it("o inspetor vê a frequência e nada além do que a chamada precisa", () => {
+    expect(rotulos("inspetor")).toEqual([
+      "Alunos",
+      "Frequência",
+      "Ocorrências",
+    ]);
+  });
+
+  it("o inspetor não abre o diário, que é da alocação", () => {
+    // Ele faz a chamada do dia em qualquer turma, mas não leciona: o
+    // diário abriria vazio, e item de menu sem conteúdo ensina a ignorar
+    // o menu.
+    expect(rotulos("inspetor")).not.toContain("Diário de classe");
+    expect(rotulos("inspetor")).not.toContain("Notas");
+    expect(rotulos("inspetor")).not.toContain("Boletins");
+    expect(rotulos("inspetor")).not.toContain("Financeiro");
+    expect(rotulos("inspetor")).not.toContain("Solicitações");
   });
 
   it("cada perfil só recebe itens da própria área", () => {

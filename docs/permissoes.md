@@ -5,14 +5,34 @@ tomada.
 
 ## 1. Os perfis
 
-Seis de trabalho, os mesmos do app MyIBPI, gravados no campo `role` do
-documento `users/{uid}` e replicados nas _custom claims_ do Firebase Auth:
+Sete de trabalho, gravados no campo `role` do documento `users/{uid}` e
+replicados nas _custom claims_ do Firebase Auth:
 
-`aluno` · `responsavel` · `professor` · `secretaria` · `coordenacao` · `financeiro`
+`aluno` · `responsavel` · `professor` · `inspetor` · `secretaria` · `coordenacao` · `financeiro`
 
-E um sétimo, `admin` — a **administração do sistema**, que enxerga e lança em
+Seis são os do app MyIBPI. O sétimo, **`inspetor`**, nasceu no Portal: é
+quem faz a chamada de qualquer turma, marca atraso e saída antecipada, e
+não enxerga nota, financeiro nem a fila da secretaria. Ele não aparece no
+aplicativo — a família nunca fala com ele.
+
+E um oitavo, `admin` — a **administração do sistema**, que enxerga e lança em
 tudo. Existe para quem mantém o Portal e para o colégio pequeno, onde a mesma
 pessoa faz secretaria e caixa.
+
+### Duas decisões que não se deduzem da tabela
+
+**A coordenação não enxerga o financeiro.** Ela tem o alcance da
+secretaria em tudo o que é pedagógico, e `financeiro: nenhum` — nem
+mensalidade, nem boleto, nem plano acordado, nem anotação interna. É
+decisão do colégio: saber o que a família deve ao decidir sobre o aluno é
+o cruzamento que se quis evitar. Ela continua lendo **recibo**, que é o
+que já foi pago no balcão, e continua sem emiti-lo.
+
+**O inspetor lança ocorrência sem ter pedido por ela.** A ocorrência
+marcada na chamada vira registro próprio dentro da mesma gravação
+(`features/frequencia/actions/chamada.ts`), que exige apenas
+`frequencia: lancar`. Deixar `ocorrencias: nenhum` o faria escrever um
+documento que não poderia abrir depois.
 
 Três coisas que a chave mestra **não** faz:
 
@@ -64,12 +84,12 @@ uma lista impede a matriz ficar incoerente — alguém com "gerenciar" mas sem
 
 Permissão diz **o quê**; escopo diz **de quem**:
 
-| Perfil                                             | Enxerga os alunos      |
-| -------------------------------------------------- | ---------------------- |
-| Administração, secretaria, coordenação, financeiro | todos                  |
-| Professor                                          | das turmas que leciona |
-| Responsável                                        | dos filhos vinculados  |
-| Aluno                                              | apenas ele mesmo       |
+| Perfil                                                       | Enxerga os alunos      |
+| ------------------------------------------------------------ | ---------------------- |
+| Administração, secretaria, coordenação, financeiro, inspetor | todos                  |
+| Professor                                                    | das turmas que leciona |
+| Responsável                                                  | dos filhos vinculados  |
+| Aluno                                                        | apenas ele mesmo       |
 
 Sem o escopo, "professor lê frequência" viraria acesso à escola inteira.
 
@@ -111,6 +131,26 @@ professor leva só as turmas que leciona. Filtrar por turma na consulta **não
 basta**: é o escopo que garante o recorte.
 
 Ver [`exportacoes.md`](exportacoes.md), seção 3.
+
+### Rota que serve arquivo: o Admin SDK ignora as regras
+
+`/api/alunos/{matricula}/boleto` e `/api/alunos/{matricula}/foto` leem com
+o Admin SDK. A Security Rule **não roda** ali — quem repete o recorte é o
+código da rota, e divergir dela é um vazamento que nenhum teste de regra
+pega.
+
+Foi o que aconteceu com o boleto: a verificação era `isEquipe`, e isso
+servia o PDF ao **professor**, que a regra nega. A pergunta certa é a do
+recurso — `pode(role, "financeiro", "ler")` —, e a correção veio junto da
+saída da coordenação do financeiro, que teria herdado o mesmo descompasso.
+
+A regra agora mora em `features/financeiro/domain/boleto.ts`, testada sem
+subir nada. Do lado da família ela continua sendo o **vínculo**, e não a
+permissão: `pode` diria sim para qualquer responsável, inclusive o de
+outro aluno.
+
+> Ao escrever uma rota nova que entregue dado com o Admin SDK, a pergunta
+> é "qual recurso protege isto?", nunca "essa pessoa é da equipe?".
 
 ### Alcance de aviso: a regra lê uma lista pronta
 
@@ -183,9 +223,11 @@ esquecer a regra não deixa os dados abertos.
 npm run test:rules
 ```
 
-Sobe o emulador do Firestore e roda 19 cenários, incluindo os que mais
-importam: aluno não lê a própria ocorrência disciplinar, professor não lê
-aluno de outra turma, financeiro não enxerga nota, e ninguém escreve.
+Sobe o emulador do Firestore e roda os cenários que mais importam: aluno
+não lê a ocorrência que não foi marcada para ele, professor não lê aluno de
+outra turma, financeiro não enxerga nota, **coordenação não enxerga as cinco
+coleções do financeiro**, inspetor não enxerga nota nem senha de
+plataforma, e ninguém escreve.
 
 > O `firebase-tools` está fixado na versão 13 porque a 14+ exige Java 21, e a
 > máquina de desenvolvimento tem JDK 17. Ao migrar para o Java 21, dá para
@@ -299,6 +341,7 @@ Por perfil, os vínculos que importam:
 | `responsavel`                             | `--alunos 1001,1002` |
 | `professor`                               | `--turmas EM1A,EF7A` |
 | `secretaria`, `coordenacao`, `financeiro` | nenhum               |
+| `inspetor`                                | nenhum — cobre todas |
 
 Sem `--senha`, o script imprime um link para a pessoa criar a própria senha —
 o mesmo mecanismo do primeiro acesso de verdade. O parâmetro `--senha` existe

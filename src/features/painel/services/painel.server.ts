@@ -98,7 +98,11 @@ export async function montarPainel(
     if (chamada) pendencias.push(chamada);
   }
 
-  if (pode(sessao.role, "notas", "ler")) {
+  // Guardado por `frequencia`, e não por `notas`: reprovação por falta sai
+  // inteira da frequência, e quem faz a chamada é quem pode fazer algo a
+  // respeito. Era `notas` — para secretaria, coordenação, professor e
+  // administração não muda nada; o inspetor passa a ver.
+  if (pode(sessao.role, "frequencia", "ler")) {
     pendencias.push(
       await riscoDeReprovacaoPorFalta(alunos.map((a) => a.matricula), alunos),
     );

@@ -131,8 +131,9 @@ export function ordenarUsuarios(usuarios: UsuarioComId[]): UsuarioComId[] {
     coordenacao: 2,
     financeiro: 3,
     professor: 4,
-    responsavel: 5,
-    aluno: 6,
+    inspetor: 5,
+    responsavel: 6,
+    aluno: 7,
   };
 
   return [...usuarios].sort(

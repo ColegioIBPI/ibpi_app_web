@@ -48,6 +48,22 @@ service cloud.firestore {
       return temPerfil(['secretaria', 'coordenacao']);
     }
 
+    // Quem mexe com dinheiro: o caixa e o balcão que recebe mensalidade.
+    //
+    // A **coordenação ficou de fora**, por decisão do colégio: ela responde
+    // por nota, falta e disciplina, e o que a família deve não entra nessa
+    // conversa. Existe como função justamente porque a lista aparece em
+    // cinco `match` — trocá-la em quatro deixaria o quinto aberto.
+    function equipeFinanceira() {
+      return temPerfil(['secretaria', 'financeiro']);
+    }
+
+    // Quem faz chamada em qualquer turma. O professor **não** entra: ele
+    // tem a verificação própria, por turma lecionada.
+    function equipeDeFrequencia() {
+      return temPerfil(['secretaria', 'coordenacao', 'inspetor']);
+    }
+
     // Documento do próprio usuário: fonte dos vínculos. Custa uma leitura,
     // e é o preço de não confiar em nada que o cliente informa.
     function eu() {
@@ -96,8 +112,11 @@ service cloud.firestore {
     match /alunos/{matricula} {
       // O financeiro lê o cadastro para contato e cobrança — mas não tem
       // acesso a nota, frequência nem ocorrência (ver adiante).
+      //
+      // O inspetor lê pelo motivo oposto: ele precisa do nome e da foto
+      // para fazer a chamada, e de nada do financeiro.
       allow read: if secretariaOuCoordenacao()
-                  || temPerfil(['financeiro'])
+                  || temPerfil(['financeiro', 'inspetor'])
                   || professorDaTurma(resource.data.turmaId)
                   || ehProprioAluno(matricula)
                   || ehFilho(matricula);
@@ -154,7 +173,7 @@ service cloud.firestore {
     }
 
     match /matriculas/{id} {
-      allow read: if secretariaOuCoordenacao()
+      allow read: if equipeDeFrequencia()
                   || professorDaTurma(resource.data.turmaId)
                   || ehProprioAluno(resource.data.matricula)
                   || ehFilho(resource.data.matricula);
@@ -164,7 +183,7 @@ service cloud.firestore {
     // ----------------------------------------------------------- frequência
 
     match /frequenciaDiaria/{id} {
-      allow read: if secretariaOuCoordenacao()
+      allow read: if equipeDeFrequencia()
                   || professorDaTurma(resource.data.turmaId)
                   || ehProprioAluno(resource.data.matricula)
                   || ehFilho(resource.data.matricula);
@@ -191,7 +210,10 @@ service cloud.firestore {
       // ao contrário: o aluno nunca viu ocorrência nenhuma. A regra
       // espelha `features/frequencia/domain/publicacao.ts` — as duas têm
       // de bater.
-      allow read: if secretariaOuCoordenacao()
+      //
+      // O inspetor lê porque ele **lança**: a ocorrência marcada na
+      // chamada é dele, e quem escreve precisa poder conferir depois.
+      allow read: if equipeDeFrequencia()
                   || professorDaTurma(resource.data.turmaId)
                   || (ehFilho(resource.data.matricula)
                       && resource.data.get('visivelParaResponsavel', true) == true)
@@ -238,9 +260,9 @@ service cloud.firestore {
     // ------------------------------------------------------------ financeiro
 
     match /cobrancas/{id} {
-      // Professor e aluno não têm nada a ver com mensalidade.
-      allow read: if secretariaOuCoordenacao()
-                  || temPerfil(['financeiro'])
+      // Professor, inspetor, aluno e **coordenação** não têm nada a ver
+      // com mensalidade.
+      allow read: if equipeFinanceira()
                   || ehFilho(resource.data.matricula);
       allow write: if false;
     }
@@ -255,9 +277,7 @@ service cloud.firestore {
     // O id do documento é a matrícula, e a regra usa ele: assim o acesso não
     // depende de um campo dentro do documento estar preenchido.
     match /planosDePagamento/{matricula} {
-      allow read: if secretariaOuCoordenacao()
-                  || temPerfil(['financeiro'])
-                  || ehFilho(matricula);
+      allow read: if equipeFinanceira() || ehFilho(matricula);
       allow write: if false;
     }
 
@@ -272,7 +292,7 @@ service cloud.firestore {
     // Nem a família nem o professor leem. A equipe escolar, sim — e o aluno
     // não aparece em lugar nenhum desta regra.
     match /anotacoesFinanceiras/{matricula} {
-      allow read: if secretariaOuCoordenacao() || temPerfil(['financeiro']);
+      allow read: if equipeFinanceira();
       allow write: if false;
     }
 
@@ -285,9 +305,7 @@ service cloud.firestore {
     // sai por `/api/alunos/{matricula}/boleto`, que repete esta mesma
     // verificação. O bucket nega todo acesso de cliente.
     match /boletos/{matricula} {
-      allow read: if secretariaOuCoordenacao()
-                  || temPerfil(['financeiro'])
-                  || ehFilho(matricula);
+      allow read: if equipeFinanceira() || ehFilho(matricula);
       allow write: if false;
     }
 
@@ -295,9 +313,7 @@ service cloud.firestore {
     // dependência. Vieram da tabela `Fatos` do Access, cujo nome sugere
     // ocorrência disciplinar mas guarda financeiro.
     match /contratos/{id} {
-      allow read: if secretariaOuCoordenacao()
-                  || temPerfil(['financeiro'])
-                  || ehFilho(resource.data.matricula);
+      allow read: if equipeFinanceira() || ehFilho(resource.data.matricula);
       allow write: if false;
     }
 
@@ -352,6 +368,12 @@ service cloud.firestore {
     //
     // Lê a equipe de caixa e de balcão: financeiro, secretaria, coordenação
     // e administração. O **professor não** — recibo é dinheiro.
+    //
+    // A coordenação continua aqui mesmo tendo perdido o financeiro: ela
+    // confere e reimprime a 2ª via de uma declaração, e o colégio pediu
+    // que ela ficasse de fora do que a família **deve**, não do que já
+    // pagou no balcão. É o limite da decisão, e está escrito para não
+    // virar incoerência aparente.
     //
     // A **família não lê** por ora: ela recebe o papel na mão. Mostrar os
     // recibos no aplicativo é desejável e não foi pedido; quando for, é a

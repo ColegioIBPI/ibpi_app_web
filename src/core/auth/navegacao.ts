@@ -94,7 +94,19 @@ const ITENS: ItemDeNavegacao[] = [
     href: "/gestao/diario",
     rotulo: "Diário de classe",
     area: "gestao",
-    recurso: "frequencia",
+    /**
+     * `notas`, e não `frequencia`, embora o diário tenha chamada.
+     *
+     * O diário é **da alocação**: ele existe para um professor numa
+     * disciplina de uma turma, e quem não leciona nem confere nota abre a
+     * tela vazia. O inspetor faz a chamada do dia sem ter alocação
+     * nenhuma — com `frequencia` aqui, ele ganharia um item de menu que
+     * nunca teria conteúdo.
+     *
+     * Para os perfis que já existiam não muda nada: professor lança nota,
+     * secretaria e coordenação gerenciam.
+     */
+    recurso: "notas",
     minimo: "lancar",
     disponivel: true,
   },
@@ -218,6 +230,22 @@ const ITENS: ItemDeNavegacao[] = [
     rotulo: "Ocorrências",
     area: "consulta",
     recurso: "ocorrencias",
+    minimo: "ler",
+    disponivel: true,
+  },
+  {
+    href: "/portal/carteirinha",
+    rotulo: "Carteirinha",
+    area: "consulta",
+    /**
+     * É o cadastro do próprio aluno em forma de cartão — foto, nome,
+     * matrícula e turma, que o perfil já lê. Por isso `cadastros: ler`, e
+     * não um recurso novo.
+     *
+     * O responsável também chega: ele já enxerga todos esses dados do
+     * filho, e é ele quem está com o celular na portaria.
+     */
+    recurso: "cadastros",
     minimo: "ler",
     disponivel: true,
   },

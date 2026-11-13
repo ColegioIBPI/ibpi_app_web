@@ -138,6 +138,14 @@ lancar` porque é quem registra na chamada, mas a permissão vale dentro do
 escopo dele — e a verificação é no servidor, porque a lista dele nem mostra
 a ocorrência de outra turma, então nada na tela o impediria de tentar.
 
+**O inspetor tem `ocorrencias: lancar` sem escopo de turma**, e isso não é
+uma permissão que alguém pediu: `salvarChamada` exige apenas
+`frequencia: lancar`, e a ocorrência marcada na linha vira registro próprio
+dentro da mesma gravação. Com `ocorrencias: nenhum` ele escreveria um
+documento que não poderia abrir depois — e "chegou atrasado pela terceira
+vez" é exatamente o que ele registra. A regra do Firestore acompanha: ele
+lê `ocorrencias` de qualquer turma.
+
 ---
 
 ## 4. Pendências

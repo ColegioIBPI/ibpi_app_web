@@ -19,7 +19,7 @@ export default async function DiarioDaAlocacaoPage({
   params,
   searchParams,
 }: PageProps<"/gestao/diario/[id]">) {
-  const sessao = await exigirPermissao("frequencia", "lancar");
+  const sessao = await exigirPermissao("notas", "lancar");
   const { id } = await params;
   const filtros = await searchParams;
   const trimestre = trimestreDaQuery(filtros.trimestre);

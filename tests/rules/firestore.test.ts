@@ -34,6 +34,7 @@ const contextos = () => ({
   secretaria: testEnv.authenticatedContext("u-sec", { role: "secretaria" }),
   coordenacao: testEnv.authenticatedContext("u-coord", { role: "coordenacao" }),
   financeiro: testEnv.authenticatedContext("u-fin", { role: "financeiro" }),
+  inspetor: testEnv.authenticatedContext("u-insp", { role: "inspetor" }),
   professor: testEnv.authenticatedContext("u-prof", { role: "professor" }),
   outroProfessor: testEnv.authenticatedContext("u-prof2", {
     role: "professor",
@@ -78,6 +79,9 @@ beforeEach(async () => {
       nome: "Coord",
     });
     await setDoc(doc(db, "users/u-fin"), { role: "financeiro", nome: "Fin" });
+    // O inspetor não tem vínculo: ele cobre a escola inteira, e é a
+    // ausência de `turmas` aqui que prova o escopo vir só do perfil.
+    await setDoc(doc(db, "users/u-insp"), { role: "inspetor", nome: "Insp" });
     await setDoc(doc(db, "users/u-prof"), {
       role: "professor",
       nome: "Juarez",
@@ -143,6 +147,7 @@ beforeEach(async () => {
     });
 
     const vinculo = { matricula: FILHO, turmaId: TURMA_DO_PROFESSOR };
+    await setDoc(doc(db, "matriculas/m1"), { ...vinculo, anoLetivo: 2026 });
     await setDoc(doc(db, "notas/n1"), { ...vinculo, projeto: 8 });
     await setDoc(doc(db, "boletins/b1"), vinculo);
     await setDoc(doc(db, "frequenciaDiaria/f1"), { ...vinculo, situacao: "F" });
@@ -473,10 +478,103 @@ describe("secretaria e coordenação", () => {
       await assertSucceeds(ler(contexto, `alunos/${OUTRO_ALUNO}`));
       await assertSucceeds(ler(contexto, "notas/n1"));
       await assertSucceeds(ler(contexto, "ocorrencias/o1"));
-      await assertSucceeds(ler(contexto, "cobrancas/c1"));
       await assertSucceeds(ler(contexto, "auditoria/a1"));
       await assertSucceeds(ler(contexto, "users/u-aluno"));
     }
+  });
+
+  it("a mensalidade é da secretaria, não da coordenação", async () => {
+    const { secretaria, coordenacao } = contextos();
+
+    await assertSucceeds(ler(secretaria, "cobrancas/c1"));
+    await assertFails(ler(coordenacao, "cobrancas/c1"));
+  });
+});
+
+describe("coordenação sem o financeiro", () => {
+  it("não lê nada do que a família deve", async () => {
+    // Decisão do colégio: a coordenação é pedagógica, e saber o que a
+    // família deve ao decidir sobre o aluno é o cruzamento que se quis
+    // evitar. São cinco coleções, e deixar uma de fora não apareceria na
+    // tela — apareceria no console do navegador.
+    const { coordenacao } = contextos();
+
+    await assertFails(ler(coordenacao, "cobrancas/c1"));
+    await assertFails(ler(coordenacao, "contratos/ct1"));
+    await assertFails(ler(coordenacao, `planosDePagamento/${FILHO}`));
+    await assertFails(ler(coordenacao, `anotacoesFinanceiras/${FILHO}`));
+    await assertFails(ler(coordenacao, `boletos/${FILHO}`));
+  });
+
+  it("continua lendo tudo da vida escolar", async () => {
+    // O corte é no dinheiro, e só nele.
+    const { coordenacao } = contextos();
+
+    await assertSucceeds(ler(coordenacao, "notas/2026-t2-26031-portugues"));
+    await assertSucceeds(ler(coordenacao, "boletins/b1"));
+    await assertSucceeds(ler(coordenacao, "ocorrencias/retida"));
+    await assertSucceeds(ler(coordenacao, `credenciais/${FILHO}`));
+    await assertSucceeds(ler(coordenacao, `entregaDeDocumentos/${FILHO}`));
+  });
+
+  it("ainda lê o recibo — o que já foi pago no balcão", async () => {
+    // É o limite da decisão: ela confere e reimprime a 2ª via de uma
+    // declaração. O que saiu foi o que a família **deve**.
+    const { coordenacao } = contextos();
+
+    await assertSucceeds(ler(coordenacao, "recibos/A-000042"));
+  });
+});
+
+describe("inspetor", () => {
+  it("faz a chamada de qualquer turma, sem vínculo nenhum", async () => {
+    // O contraste com o professor: `users/u-insp` não tem `turmas`, e
+    // mesmo assim ele lê o aluno e a frequência de todas elas.
+    const { inspetor } = contextos();
+
+    await assertSucceeds(ler(inspetor, `alunos/${FILHO}`));
+    await assertSucceeds(ler(inspetor, `alunos/${OUTRO_ALUNO}`));
+    await assertSucceeds(ler(inspetor, "frequenciaDiaria/f1"));
+    await assertSucceeds(ler(inspetor, "matriculas/m1"));
+  });
+
+  it("lê a ocorrência, porque é ele quem a lança na chamada", async () => {
+    const { inspetor } = contextos();
+
+    await assertSucceeds(ler(inspetor, "ocorrencias/o1"));
+    await assertSucceeds(ler(inspetor, "ocorrencias/retida"));
+  });
+
+  it("não enxerga nota, boletim nem financeiro", async () => {
+    const { inspetor } = contextos();
+
+    await assertFails(ler(inspetor, "notas/n1"));
+    await assertFails(ler(inspetor, "notas/2026-t1-26031-portugues"));
+    await assertFails(ler(inspetor, "boletins/b1"));
+    await assertFails(ler(inspetor, "cobrancas/c1"));
+    await assertFails(ler(inspetor, `boletos/${FILHO}`));
+  });
+
+  it("não lê senha de plataforma, documento de matrícula nem auditoria", async () => {
+    // Ele lê o cadastro do aluno; o que mora em coleção separada
+    // justamente para não vir junto continua fora.
+    const { inspetor } = contextos();
+
+    await assertFails(ler(inspetor, `credenciais/${FILHO}`));
+    await assertFails(ler(inspetor, `entregaDeDocumentos/${FILHO}`));
+    await assertFails(ler(inspetor, "auditoria/a1"));
+    await assertFails(ler(inspetor, "solicitacoes/do-filho"));
+    await assertFails(ler(inspetor, "recibos/A-000042"));
+  });
+
+  it("não escreve pelo cliente", async () => {
+    const { inspetor } = contextos();
+
+    await assertFails(
+      setDoc(doc(inspetor.firestore(), "frequenciaDiaria/f1"), {
+        situacao: "P",
+      }),
+    );
   });
 });
 
@@ -592,9 +690,10 @@ describe("avisos", () => {
 
 describe("plano de pagamento acordado", () => {
   it("quem cuida do financeiro e da secretaria lê", async () => {
-    const { financeiro, secretaria, coordenacao } = contextos();
+    // A coordenação **não** entra: ver "coordenação sem o financeiro".
+    const { financeiro, secretaria } = contextos();
 
-    for (const contexto of [financeiro, secretaria, coordenacao]) {
+    for (const contexto of [financeiro, secretaria]) {
       await assertSucceeds(ler(contexto, `planosDePagamento/${FILHO}`));
     }
   });
@@ -633,10 +732,10 @@ describe("plano de pagamento acordado", () => {
 });
 
 describe("anotação interna do financeiro", () => {
-  it("a equipe escolar lê", async () => {
-    const { financeiro, secretaria, coordenacao } = contextos();
+  it("o caixa e o balcão leem", async () => {
+    const { financeiro, secretaria } = contextos();
 
-    for (const contexto of [financeiro, secretaria, coordenacao]) {
+    for (const contexto of [financeiro, secretaria]) {
       await assertSucceeds(ler(contexto, `anotacoesFinanceiras/${FILHO}`));
     }
   });
@@ -809,10 +908,9 @@ describe("solicitações da família", () => {
 
 describe("boleto do aluno", () => {
   it("a família e a equipe do financeiro leem", async () => {
-    const { responsavel, financeiro, secretaria, coordenacao, admin } =
-      contextos();
+    const { responsavel, financeiro, secretaria, admin } = contextos();
 
-    for (const contexto of [responsavel, financeiro, secretaria, coordenacao, admin]) {
+    for (const contexto of [responsavel, financeiro, secretaria, admin]) {
       await assertSucceeds(ler(contexto, `boletos/${FILHO}`));
     }
   });
@@ -1162,6 +1260,7 @@ describe("administração — a chave mestra", () => {
       "responsaveis/r-1",
       "professores/p-1",
       "turmas/EM1A",
+      "matriculas/m1",
       "notas/n1",
       "boletins/b1",
       "frequenciaDiaria/f1",

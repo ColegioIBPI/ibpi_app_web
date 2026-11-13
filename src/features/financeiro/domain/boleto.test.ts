@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { Role } from "@/core/auth/roles";
 import {
+  podeVerBoleto,
   TAMANHO_MAXIMO_DO_BOLETO,
   validarBoleto,
 } from "@/features/financeiro/domain/boleto";
@@ -47,5 +49,38 @@ describe("validarBoleto", () => {
   it("nomeia o arquivo no erro", () => {
     const r = validarBoleto({ type: "text/plain", size: 10, name: "x.txt" });
     expect(r.erro).toContain("x.txt");
+  });
+});
+
+describe("quem enxerga o boleto", () => {
+  const equipe = (role: Role) => ({ role, alunosVinculados: [] });
+
+  it("quem tem o recurso financeiro vê o de qualquer aluno", () => {
+    for (const role of ["secretaria", "financeiro", "admin"] as const) {
+      expect(podeVerBoleto(equipe(role), "26029")).toBe(true);
+    }
+  });
+
+  it("quem é equipe sem o recurso NÃO vê", () => {
+    // A rota serve o PDF com o Admin SDK, que ignora as Security Rules —
+    // então é esta função que repete o recorte. Com `isEquipe` aqui, o
+    // professor baixava o boleto que a regra do banco nega.
+    for (const role of ["professor", "inspetor", "coordenacao"] as const) {
+      expect(podeVerBoleto(equipe(role), "26029")).toBe(false);
+    }
+  });
+
+  it("o responsável vê o do filho, e só o dele", () => {
+    const mae = { role: "responsavel" as const, alunosVinculados: ["26029"] };
+
+    expect(podeVerBoleto(mae, "26029")).toBe(true);
+    expect(podeVerBoleto(mae, "26031")).toBe(false);
+  });
+
+  it("o aluno não vê o próprio boleto", () => {
+    // Mensalidade é assunto de quem paga.
+    expect(
+      podeVerBoleto({ role: "aluno", alunosVinculados: ["26029"] }, "26029"),
+    ).toBe(false);
   });
 });
