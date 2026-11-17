@@ -15,6 +15,7 @@ import type { Topico } from "@/features/ajuda/domain/topico";
 export const TOPICOS: Topico[] = [
   {
     id: "quem-entra-e-o-que-ve",
+    rotas: ["/gestao/responsaveis"],
     titulo: "Quem entra e o que vê",
     resumo: "Os oito perfis e o que cada um alcança.",
     perfis: "todos",
@@ -88,6 +89,12 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "a-tela-inicial",
+    /*
+      Sem rota de propósito. `/gestao` é prefixo de **todas** as telas, e
+      declará-lo faria qualquer tela ainda sem assunto cair aqui — ajuda
+      errada, que é pior que o índice. Quem está no painel e clica em
+      ajuda chega ao índice, que é um bom destino para quem está ali.
+    */
     titulo: "A tela inicial",
     resumo: "O painel mostra o que está esperando por você — e só isso.",
     perfis: "todos",
@@ -113,6 +120,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "comecando-o-ano",
+    rotas: ["/gestao/configuracoes", "/gestao/turmas", "/gestao/disciplinas", "/gestao/professores"],
     titulo: "Começando o ano, na ordem",
     resumo: "Cursos, turmas, disciplinas, professores, vínculos e critérios.",
     perfis: ["secretaria", "coordenacao", "admin"],
@@ -145,6 +153,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "trocar-professor",
+    rotas: ["/gestao/configuracoes/vinculos"],
     titulo: "Trocar o professor de uma disciplina no meio do ano",
     resumo: "Dá, e as notas já lançadas continuam lá.",
     perfis: ["secretaria", "coordenacao", "admin"],
@@ -175,6 +184,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "situacao-da-matricula",
+    rotas: ["/gestao/alunos"],
     titulo: "A situação da matrícula",
     resumo: "Ativa, concluída, transferida, cancelada e abandono.",
     perfis: ["secretaria", "coordenacao", "admin"],
@@ -270,6 +280,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "frequencia",
+    rotas: ["/gestao/frequencia", "/gestao/diario"],
     titulo: "As quatro marcações da chamada",
     resumo: "P, F, A e S — e por que atraso conta como presença.",
     perfis: ["professor", "inspetor", "secretaria", "coordenacao", "admin"],
@@ -299,6 +310,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "publicacao-da-ocorrencia",
+    rotas: ["/gestao/ocorrencias"],
     titulo: "A ocorrência tem autorização de publicação",
     resumo: "Duas caixas decidem quem lê cada ocorrência.",
     perfis: ["professor", "inspetor", "secretaria", "coordenacao", "admin"],
@@ -333,6 +345,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "liberacao-do-boletim",
+    rotas: ["/gestao/boletins"],
     titulo: "A família só vê o boletim depois que você libera",
     resumo: "Três caixas por aluno, uma por trimestre.",
     perfis: ["secretaria", "coordenacao", "admin", "professor"],
@@ -359,6 +372,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "o-que-o-boletim-calcula",
+    rotas: ["/gestao/notas"],
     titulo: "O que o boletim calcula",
     resumo: "Média, recuperação e reprovação por falta.",
     perfis: ["professor", "secretaria", "coordenacao", "admin"],
@@ -383,6 +397,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "situacao-da-parcela",
+    rotas: ["/gestao/financeiro"],
     titulo: "A situação da parcela não é digitada",
     resumo: "Vencida, em aberto e paga são conclusões sobre hoje.",
     perfis: ["financeiro", "secretaria", "admin"],
@@ -449,6 +464,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "recibos",
+    rotas: ["/gestao/recibos"],
     titulo: "Recibos",
     resumo: "Não se edita, e emitir de mensalidade dá baixa na parcela.",
     perfis: ["secretaria", "financeiro", "coordenacao", "admin"],
@@ -486,6 +502,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "avisos-e-pedidos",
+    rotas: ["/gestao/avisos", "/gestao/informacoes", "/gestao/solicitacoes", "/gestao/documentos"],
     titulo: "Avisos, informações úteis e pedidos",
     resumo: "O que vai para a família, e o que ela escreve de volta.",
     perfis: ["secretaria", "coordenacao", "financeiro", "admin", "professor"],
@@ -503,6 +520,7 @@ export const TOPICOS: Topico[] = [
 
   {
     id: "usuarios",
+    rotas: ["/gestao/usuarios"],
     titulo: "Usuários e acessos",
     resumo: "Suspender corta o acesso de verdade, na hora.",
     perfis: ["admin", "secretaria", "coordenacao"],

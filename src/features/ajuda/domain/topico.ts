@@ -59,6 +59,14 @@ export interface Topico {
   perfis: Role[] | "todos";
   /** A tela de que o tópico fala: `"Gestão › Boletins"`. */
   onde?: string;
+  /**
+   * As rotas que este tópico explica, para o botão de ajuda da tela.
+   *
+   * `onde` é para o leitor; isto é para o código. São dois porque não
+   * coincidem: "Gestão › Alunos › (ficha do aluno)" não é um caminho, e
+   * `/gestao/alunos` não é uma frase.
+   */
+  rotas?: string[];
   blocos: Bloco[];
 }
 
@@ -100,6 +108,42 @@ export function textoParaBusca(topico: Topico): string {
   }
 
   return chaveDeComparacao(pedacos.join(" "));
+}
+
+/**
+ * O tópico que explica a tela aberta.
+ *
+ * **A rota mais específica ganha.** `/gestao/configuracoes/vinculos` é a
+ * troca de professor; `/gestao/configuracoes` é a montagem do ano. Sem
+ * essa regra, uma rota curta engoliria todas as abaixo dela — `/gestao`
+ * responderia por metade do sistema.
+ *
+ * Casa a rota exata ou um segmento inteiro abaixo dela: `/gestao/alunos`
+ * vale para `/gestao/alunos/26007`, e não para `/gestao/alunosXYZ`.
+ *
+ * `null` quando nada casa, e aí o botão leva ao índice. Nunca some: botão
+ * de ajuda que aparece em algumas telas e não em outras é botão que
+ * ninguém procura.
+ */
+export function ajudaDaTela(
+  topicos: readonly Topico[],
+  rota: string,
+): Topico | null {
+  let escolhido: Topico | null = null;
+  let maisLonga = -1;
+
+  for (const topico of topicos) {
+    for (const candidata of topico.rotas ?? []) {
+      const casa = rota === candidata || rota.startsWith(`${candidata}/`);
+
+      if (casa && candidata.length > maisLonga) {
+        escolhido = topico;
+        maisLonga = candidata.length;
+      }
+    }
+  }
+
+  return escolhido;
 }
 
 export interface Pedaco {

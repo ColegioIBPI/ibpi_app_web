@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ROLES, type Role } from "@/core/auth/roles";
 import {
+  ajudaDaTela,
   buscarTopicos,
   destacar,
   ehDoPerfil,
@@ -140,6 +141,88 @@ describe("o conteúdo publicado", () => {
       for (const perfil of t.perfis) {
         expect(ROLES).toContain(perfil);
       }
+    }
+  });
+});
+
+describe("a ajuda da tela aberta", () => {
+  const mapa: Topico[] = [
+    topico({ id: "configuracoes", rotas: ["/gestao/configuracoes"] }),
+    topico({ id: "vinculos", rotas: ["/gestao/configuracoes/vinculos"] }),
+    topico({ id: "alunos", rotas: ["/gestao/alunos"] }),
+    topico({ id: "sem-rota" }),
+  ];
+
+  it("casa a rota exata", () => {
+    expect(ajudaDaTela(mapa, "/gestao/alunos")?.id).toBe("alunos");
+  });
+
+  it("vale para as telas abaixo dela", () => {
+    // A ficha de um aluno é a tela de alunos.
+    expect(ajudaDaTela(mapa, "/gestao/alunos/26007")?.id).toBe("alunos");
+    expect(ajudaDaTela(mapa, "/gestao/alunos/26007/editar")?.id).toBe("alunos");
+  });
+
+  it("a rota mais específica ganha", () => {
+    // Sem isso, `/gestao` responderia por metade do sistema.
+    expect(ajudaDaTela(mapa, "/gestao/configuracoes")?.id).toBe("configuracoes");
+    expect(ajudaDaTela(mapa, "/gestao/configuracoes/vinculos")?.id).toBe(
+      "vinculos",
+    );
+    expect(ajudaDaTela(mapa, "/gestao/configuracoes/avaliacao")?.id).toBe(
+      "configuracoes",
+    );
+  });
+
+  it("a rota curta não engole quem só começa igual", () => {
+    // `/gestao/alunos` não pode casar com `/gestao/alunosXYZ`.
+    expect(ajudaDaTela(mapa, "/gestao/alunosXYZ")).toBeNull();
+  });
+
+  it("sem nada que case, devolve nulo — quem chama leva ao índice", () => {
+    expect(ajudaDaTela([topico({ rotas: ["/gestao/notas"] })], "/outro")).toBeNull();
+    expect(ajudaDaTela([topico({ id: "x" })], "/gestao/alunos")).toBeNull();
+  });
+});
+
+describe("o mapa de rotas publicado", () => {
+  it("nenhuma rota é declarada por dois assuntos", () => {
+    // Duas declarações iguais tornariam o resultado dependente da ordem
+    // do arquivo — e a ordem é editorial, não técnica.
+    const todas = TOPICOS.flatMap((t) => t.rotas ?? []);
+    expect(new Set(todas).size).toBe(todas.length);
+  });
+
+  it("toda rota declarada começa em /gestao", () => {
+    for (const t of TOPICOS) {
+      for (const rota of t.rotas ?? []) expect(rota.startsWith("/gestao")).toBe(true);
+    }
+  });
+
+  it("`/gestao` não é declarado — seria curinga de tudo", () => {
+    // Ele é prefixo de todas as telas. Declarado, qualquer tela ainda
+    // sem assunto cairia na "tela inicial" — ajuda errada, que é pior
+    // que o índice.
+    expect(TOPICOS.flatMap((t) => t.rotas ?? [])).not.toContain("/gestao");
+    expect(ajudaDaTela(TOPICOS, "/gestao/uma-tela-nova")).toBeNull();
+  });
+
+  it("as telas de trabalho da equipe têm assunto", () => {
+    // A lista que importa: se uma delas ficar sem, o botão cai no índice
+    // e a pessoa recomeça a busca do zero.
+    for (const rota of [
+      "/gestao/alunos",
+      "/gestao/frequencia",
+      "/gestao/ocorrencias",
+      "/gestao/notas",
+      "/gestao/boletins",
+      "/gestao/financeiro",
+      "/gestao/recibos",
+      "/gestao/usuarios",
+      "/gestao/configuracoes",
+      "/gestao/configuracoes/vinculos",
+    ]) {
+      expect(ajudaDaTela(TOPICOS, rota), rota).not.toBeNull();
     }
   });
 });

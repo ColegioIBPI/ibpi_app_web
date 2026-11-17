@@ -27,6 +27,27 @@ frase errada no ar.
   porque esconder não é o objetivo.
 - **Um endereço por assunto** (`/gestao/ajuda/liberacao-do-boletim`), para
   mandar o link a um colega em vez de explicar de novo.
+- **Chega no momento da dúvida**: cada tela tem, no canto, um atalho para
+  o assunto dela — Boletins abre a liberação, Vínculos abre a troca de
+  professor.
+
+## O atalho de cada tela
+
+O botão mora na **moldura** (`core/ui/app-shell`), e não em cada página:
+vinte páginas com um botão copiado viram vinte e uma no mês seguinte, e a
+vigésima primeira sai sem.
+
+O mapa rota → assunto está no campo `rotas` de cada tópico. A rota **mais
+específica ganha**: `/gestao/configuracoes/vinculos` é a troca de
+professor, `/gestao/configuracoes` é a montagem do ano.
+
+**`/gestao` não entra no mapa.** Ele é prefixo de todas as telas, e
+declará-lo faria qualquer tela ainda sem assunto cair na "tela inicial" —
+ajuda errada, que é pior que mandar ao índice.
+
+Ao criar uma tela, acrescente a rota ao tópico que a explica. Se esquecer,
+o botão continua lá e leva ao índice: nunca some, porque botão que aparece
+em algumas telas e não em outras é botão que ninguém procura.
 
 ## Ao mudar uma regra
 

@@ -274,9 +274,11 @@ Referência de requisitos: [README.md](README.md).
 - [x] Conteúdo como **dado tipado**: renomear um perfil quebra a
       compilação em vez de deixar uma frase errada no ar
 - [x] `docs/manual.md` virou ponteiro — uma cópia só
+- [x] Link de cada tela para o assunto dela, na moldura e não em cada
+      página — tela nova não pode esquecer de ter ajuda
+- [x] `/gestao` **não** entra no mapa: é prefixo de tudo, e levaria quem
+      está numa tela sem assunto para a ajuda errada
 - [ ] Ajuda da **família**, no portal de consulta: o conteúdo é outro
-- [ ] Link de cada tela para o assunto dela, para a ajuda chegar no
-      momento da dúvida
 
 ### 3.28 O navegador preenchia os acessos do aluno
 
