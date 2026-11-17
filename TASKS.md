@@ -261,6 +261,25 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.28 O navegador preenchia os acessos do aluno
+
+> Relatado pela escola: ao abrir a ficha de um aluno, os campos de
+> usuário e senha apareciam com o acesso **da própria pessoa logada**.
+>
+> Não era dado trocado. O banco tinha **zero** documentos de credenciais
+> quando aconteceu, e a leitura é por `doc(matricula)` — não havia o que
+> o sistema pudesse ter mostrado. Quem preencheu foi o gerenciador de
+> senhas do navegador, que lê "texto + senha" como formulário de login.
+
+- [x] `autocomplete="new-password"` em todos os campos — `off` o Chrome
+      ignora em campo de senha, de propósito
+- [x] `name` explícito e `data-*` de 1Password, LastPass e Bitwarden
+- [x] O servidor recusa gravar quando o usuário é o e-mail de quem está
+      salvando: o estrago era a senha do Portal de uma funcionária num
+      campo que **a família lê**
+- [x] Descartada a hipótese de estado preso entre alunos — testado,
+      a tela remonta ao trocar de matrícula
+
 ### 3.27 Cursos somem ao criar um curso próprio
 
 > Relatado pela escola: "ao criar um novo curso Personalizado, os outros

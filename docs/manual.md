@@ -130,6 +130,16 @@ pelo aplicativo quando esquece.
 A **senha do Meu IBPI não fica aqui** — ninguém a conhece, nem o colégio.
 Quem esqueceu usa "Esqueci minha senha".
 
+> **Se aparecer o seu próprio usuário e senha nesses campos, não é o
+> sistema.** É o navegador, que reconhece "usuário + senha" como tela de
+> entrada e preenche com o que você salvou nele. A tela foi ajustada para
+> ele não fazer mais isso.
+>
+> Se acontecer de novo em algum navegador, **apague antes de salvar**: o
+> que está aqui a família lê, no Portal e no aplicativo. O sistema recusa
+> salvar quando o usuário é o seu e-mail de acesso, mas não tem como
+> reconhecer todos os casos.
+
 ### Carteirinha
 
 O aluno e o responsável abrem a carteirinha no Portal — foto, nome, turma,

@@ -16,7 +16,36 @@ import { salvarCredenciais } from "@/features/alunos/actions/credenciais";
  * quem abre a tela já pode ver — é para o balcão: a secretaria atende com
  * a família do outro lado do monitor, e a senha de outro aluno não precisa
  * ficar à mostra enquanto ela digita.
+ *
+ * **Isto não é um formulário de login, e precisa dizer isso ao
+ * navegador.** Um campo de texto seguido de um de senha é exatamente o
+ * que o gerenciador de senhas procura: a escola relatou abrir a ficha de
+ * um aluno e encontrar o próprio usuário e a própria senha preenchidos.
+ * Não havia dado nenhum no banco — quem preencheu foi o navegador.
+ *
+ * `autoComplete="off"` **não basta** num campo de senha: o Chrome o
+ * ignora de propósito, para não quebrar gerenciadores de senha. O que ele
+ * respeita é `new-password`, que significa "aqui se define uma senha
+ * nova", e aí não há o que sugerir. Os `data-*` dizem o mesmo ao
+ * 1Password e ao LastPass, que têm heurística própria.
+ *
+ * Os `name` também importam: sem eles o navegador adivinha pelo formato,
+ * e "usuário + senha" é o formato que ele conhece melhor.
  */
+/**
+ * O que se diz a cada navegador para ele não preencher nada aqui.
+ *
+ * `new-password` em **todos** os campos, inclusive nos de usuário: é o
+ * único valor que o Chrome respeita neste contexto, e aplicá-lo ao par
+ * inteiro evita que ele reconheça o formato "usuário + senha".
+ */
+const SEM_PREENCHIMENTO = {
+  autoComplete: "new-password",
+  "data-1p-ignore": true,
+  "data-lpignore": "true",
+  "data-bwignore": true,
+} as const;
+
 export function AcessosDoAluno({
   matricula,
   credenciais,
@@ -115,13 +144,16 @@ export function AcessosDoAluno({
         <TextField
           label="IBPI Online — usuário"
           hint="Plataforma de aula (Google Classroom)."
+          name="acesso-plataforma-aula"
+          {...SEM_PREENCHIMENTO}
           value={ibpiOnlineUsuario}
           onChange={(evento) => setIbpiOnlineUsuario(evento.target.value)}
         />
         <TextField
           label="IBPI Online — senha"
           type={mostrando ? "text" : "password"}
-          autoComplete="off"
+          name="acesso-plataforma-aula-chave"
+          {...SEM_PREENCHIMENTO}
           value={ibpiOnlineSenha}
           onChange={(evento) => setIbpiOnlineSenha(evento.target.value)}
         />
@@ -129,13 +161,16 @@ export function AcessosDoAluno({
         <TextField
           label="Plural — usuário"
           hint="Plataforma do material didático."
+          name="acesso-material-didatico"
+          {...SEM_PREENCHIMENTO}
           value={pluralUsuario}
           onChange={(evento) => setPluralUsuario(evento.target.value)}
         />
         <TextField
           label="Plural — senha"
           type={mostrando ? "text" : "password"}
-          autoComplete="off"
+          name="acesso-material-didatico-chave"
+          {...SEM_PREENCHIMENTO}
           value={pluralSenha}
           onChange={(evento) => setPluralSenha(evento.target.value)}
         />
@@ -144,6 +179,8 @@ export function AcessosDoAluno({
           <TextField
             label="Observações"
             hint="Opcional. A família lê este texto."
+            name="acesso-observacoes"
+            {...SEM_PREENCHIMENTO}
             value={observacoes}
             onChange={(evento) => setObservacoes(evento.target.value)}
           />

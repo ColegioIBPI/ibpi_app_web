@@ -7,6 +7,7 @@ import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, credenciaisSchema, type Credenciais } from "@/core/modelo";
+import { usuarioEhDeQuemSalva } from "@/features/alunos/domain/credenciais";
 
 /**
  * Cadastro dos acessos do aluno às plataformas.
@@ -44,6 +45,27 @@ export async function salvarCredenciais(
   }
 
   const sessao = await exigirPermissao("cadastros", "gerenciar");
+
+  /**
+   * O navegador preenche este formulário com o login de quem está
+   * atendendo — foi relatado assim pela escola. Gravar isso põe a senha
+   * do Portal de uma funcionária dentro do cadastro do aluno, onde **a
+   * família lê**. Recusar é melhor que registrar na auditoria depois.
+   */
+  if (
+    usuarioEhDeQuemSalva(
+      [entrada.data.ibpiOnlineUsuario, entrada.data.pluralUsuario],
+      sessao.email,
+    )
+  ) {
+    return {
+      ok: false,
+      erro:
+        "Um dos usuários é o seu próprio e-mail de acesso. O navegador costuma " +
+        "preencher esses campos sozinho — confira antes de salvar.",
+    };
+  }
+
   const db = getAdminDb();
 
   const referencia = db
