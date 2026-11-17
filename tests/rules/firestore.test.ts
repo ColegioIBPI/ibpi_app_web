@@ -448,6 +448,17 @@ describe("professor", () => {
     await assertFails(ler(professor, "contratos/ct1"));
   });
 
+  it("o diário é só da equipe — a família não lê", async () => {
+    // Fica registrado porque o contrato do app manda ler `diarioClasse`
+    // para montar as faltas por disciplina, e a regra **nega**. O Portal
+    // consegue porque lê no servidor, com o Admin SDK; o aplicativo lê o
+    // Firestore direto e levaria recusa. Ver docs/app-mobile.md, seção 3.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "diarioClasse/d1"));
+    await assertFails(ler(aluno, "diarioClasse/d1"));
+  });
+
   it("não lê a auditoria", async () => {
     const { professor } = contextos();
     await assertFails(ler(professor, "auditoria/a1"));

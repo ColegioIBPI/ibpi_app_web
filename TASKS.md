@@ -261,6 +261,21 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.26 Faltas por disciplina no aplicativo — decisão pendente
+
+> Achado ao responder à equipe Android: o contrato manda ler
+> `diarioClasse`, e a regra **nega** a leitura à família. Não é
+> regressão — é assim desde o começo, e o documento não dizia. O Portal
+> mostra porque lê no servidor, com o Admin SDK.
+
+- [x] Teste de regra fixando o comportamento de hoje
+- [x] Aviso no contrato, para a equipe não perder tempo tentando
+- [ ] **Decidir com o colégio se a família passa a ver faltas por
+      disciplina no app.** Dois caminhos: abrir `diarioClasse` na regra
+      (precisa de um campo denormalizado — regra não percorre
+      `alunosVinculados`), ou servir por rota HTTP, como o boleto
+- [ ] A frequência **por dia** continua aberta e não depende disto
+
 ### 3.25 Troca de professor no meio do ano
 
 > Pergunta dos usuários. Nota, chamada e ocorrência já sobreviviam — são

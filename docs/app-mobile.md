@@ -181,6 +181,32 @@ Só importa para quem tratar `role` com `when` exaustivo em Kotlin: o valor
 existe no enum do sistema. Caso cheguem a vê-lo, o tratamento é o mesmo de
 `secretaria` — não é família, não tem tela aqui.
 
+### 10. `diarioClasse` está fechado para a família — corrijam a expectativa
+
+Se vocês planejaram as **faltas por disciplina** a partir de
+`diarioClasse`, parem: a regra do Firestore **nega essa leitura** a
+`responsavel` e a `aluno`. Não é novidade nossa — é assim desde o começo,
+e o documento não dizia. O Portal mostra porque lê no servidor.
+
+A frequência **por dia** (`frequenciaDiaria`) continua aberta e é a que
+decide reprovação por falta. **Seção 3.**
+
+Abrir a por disciplina é decisão do colégio, e tem dois caminhos — mudar
+a regra ou servir por rota HTTP. Avisamos aqui quando for decidido.
+
+### 11. Um diário por professor, não por disciplina
+
+Quando a disciplina **troca de professor no meio do ano**, passa a haver
+**dois diários** para a mesma turma, disciplina e trimestre: o id do
+diário vem da alocação, e a alocação inclui o professor.
+
+Para qualquer soma, **agrupem por `disciplinaId` e somem todos** — as
+aulas aconteceram. Agrupar pelo id do documento contaria a disciplina
+duas vezes.
+
+Vale para quando a seção 3 abrir, e para qualquer coisa que leia esta
+coleção no futuro.
+
 ### Ainda não entrou
 
 - **Recibos** existem no Portal e **a família ainda não os lê** pelo app.
@@ -532,6 +558,25 @@ começo do ano assusta a família à toa.
 
 ### Faltas por disciplina
 
+> ⚠️ **Não implementem isto ainda — a regra nega a leitura à família.**
+>
+> `diarioClasse` é lido só pela equipe escolar e pelo professor da turma.
+> Uma consulta do app, com conta de `responsavel` ou de `aluno`, recebe
+> **permission-denied**. Não é bug de vocês, e não adianta insistir: está
+> no `firestore.rules` e há teste garantindo (`npm run test:rules`).
+>
+> A tela da **frequência por dia** (`frequenciaDiaria`, acima) funciona
+> normalmente — é esta segunda contagem, a por disciplina, que está
+> fechada.
+>
+> O Portal mostra porque lê no **servidor**, com o Admin SDK, que não
+> passa pelas regras. Para o app seria preciso ou abrir a coleção à
+> família na regra, ou servir o número por uma rota HTTP como a do
+> boleto. **É decisão do colégio e ainda não foi tomada** — avisamos aqui
+> quando for.
+>
+> O bloco abaixo fica como referência do formato, para quando abrir.
+
 ```
 diarioClasse/{alocacaoId}-t{trimestre} = {
   anoLetivo: number,
@@ -557,6 +602,12 @@ Duas regras que o app precisa respeitar para chegar no mesmo número:
   turma inteira a cada aula.
 - **Aula com `semAula` preenchido não entra na conta.** Contá-la
   transformaria o recesso escolar em falta de todo mundo.
+- **Pode haver mais de um diário para a mesma turma, disciplina e
+  trimestre**, e aí os dois valem. O id do diário vem da alocação, que
+  inclui o professor: quando a disciplina troca de professor no meio do
+  ano, o diário do anterior continua e o do novo começa vazio. **Somem
+  os dois** — as aulas aconteceram, e o aluno faltou ou não faltou a
+  elas. Agrupem por `disciplinaId`, nunca pelo id do documento.
 
 ---
 
