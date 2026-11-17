@@ -94,6 +94,58 @@ duplicata, e oferecer o que vai ser recusado é convidar ao erro.
 > É este vínculo que define **o que o professor enxerga**. Turma sem
 > vínculo é turma que nenhum professor acessa.
 
+### Trocar o professor no meio do ano
+
+Pergunta da escola, e a resposta tem uma exceção que vale escrever.
+
+**Quase nada se perde, porque quase nada é do professor.** Nota, chamada
+do dia e ocorrência são identificadas pela turma e pela disciplina:
+
+```
+nota:     {ano}-t{trimestre}-{matrícula}-{disciplina}
+```
+
+O professor não entra na chave. O novo abre a tela de notas e encontra
+tudo o que o anterior lançou — não há importação nem passo manual.
+
+**A exceção é o diário de classe**, porque o id dele é o da alocação, e o
+da alocação inclui o professor:
+
+```
+alocação: {ano}-{professor}-{turma}-{disciplina}
+diário:   {alocação}-t{trimestre}
+```
+
+Professor novo, alocação nova, **diário novo e em branco**.
+
+O diário velho nunca foi apagado — `removerAlocacao` **desativa** em vez
+de excluir, justamente para o histórico não ficar órfão. Mas a lista de
+diários só mostra alocação ativa, então ele sumia da tela: estava no
+banco e ninguém achava.
+
+Hoje o diário da alocação nova mostra, embaixo e fechado, o bloco
+**"Diário anterior"** — as aulas do colega, com data, conteúdo e número
+de faltas, em leitura. Ver `features/diario/domain/anterior.ts`.
+
+Três decisões dele:
+
+- **Não filtra por `ativa`.** Na passagem de bastão as duas alocações
+  convivem ativas por um tempo, e é aí que o professor novo mais precisa
+  ler — ele não consegue abrir a alocação do colega nem enquanto ela vale.
+- **A autorização é herdada.** A função recebe a alocação que a pessoa já
+  abriu legitimamente, nunca um id da URL, e só devolve diários do mesmo
+  ano, turma e disciplina.
+- **Só o resumo, não a chamada.** Reabrir a chamada de quem saiu não é o
+  caso de uso — e a falta continua valendo para o aluno de qualquer
+  forma, porque a frequência por disciplina soma **todos** os diários da
+  turma, inclusive os das alocações desativadas.
+
+> **A ordem importa na troca:** cadastre o vínculo novo **antes** de
+> remover o antigo. Ao contrário, a disciplina sai da grade por um
+> momento e some do boletim até o vínculo novo entrar — nada se perde,
+> mas assusta. E é **remover o antigo** que corta o acesso do professor
+> anterior à turma.
+
 ---
 
 ## 3. Critérios de avaliação

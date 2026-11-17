@@ -176,9 +176,20 @@ describe("resumirAulas e aulasSemConteudo", () => {
       numero: 1,
       data: "2026-05-11",
       faltas: 2,
+      conteudo: "Conteúdo da aula",
       temConteudo: true,
       semAula: null,
     });
+  });
+
+  it("conteúdo só de espaço vira `null`, e não deixa de ser vazio", () => {
+    // Os dois campos respondem perguntas diferentes: `temConteudo` é a
+    // conferência da coordenação, `conteudo` é o texto para quem lê o
+    // diário do professor anterior.
+    const [resumo] = resumirAulas([aula(9, "2026-05-20", { conteudo: "   " })]);
+
+    expect(resumo.conteudo).toBeNull();
+    expect(resumo.temConteudo).toBe(false);
   });
 
   it("aponta as aulas letivas sem conteúdo registrado", () => {

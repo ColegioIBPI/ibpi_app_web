@@ -75,6 +75,24 @@ seguinte.
    a pauta sai sem colunas e o boletim não tem disciplinas.
 6. **Critérios de avaliação** — o texto que explica como o aluno é avaliado.
 
+### Trocando o professor de uma disciplina no meio do ano
+
+Dá, e **as notas já lançadas continuam lá** — elas são da turma e da
+disciplina, não de quem lançou. Vale o mesmo para a chamada e as
+ocorrências. O professor novo abre a tela e encontra tudo.
+
+**A exceção é o diário de classe**, que é do professor: o novo começa um
+diário em branco. O do anterior aparece embaixo, fechado, como **"Diário
+anterior"** — dá para ler as aulas e o conteúdo, não para alterar.
+
+Em `Vínculos`, **cadastre o professor novo antes de remover o antigo**. Na
+ordem inversa a disciplina some do boletim até o vínculo novo entrar; nada
+se perde, mas assusta quem está olhando.
+
+E lembre que **remover o vínculo antigo é o que tira o acesso do professor
+anterior**. Se ele dá outra disciplina na mesma turma, continua enxergando
+a turma por ela — e está certo.
+
 > O sistema trabalha com **três trimestres**. Média do trimestre =
 > (Projeto + Tarefas + AV) ÷ 3; aprovação com média **5,0** e frequência
 > **75%**.

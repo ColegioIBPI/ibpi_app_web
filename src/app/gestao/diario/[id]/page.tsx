@@ -8,10 +8,14 @@ import { trimestreDaQuery } from "@/core/lib/ano-letivo";
 import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
+import { DiarioAnterior } from "@/features/diario/components/diario-anterior";
 import { GradeDeAulas } from "@/features/diario/components/grade-de-aulas";
 import { SeletorDeTrimestre } from "@/core/ui/seletor-de-trimestre";
 import { alunosDaTurma } from "@/core/escola/alocacoes.server";
-import { obterDiario } from "@/features/diario/services/diario.server";
+import {
+  diariosAnteriores,
+  obterDiario,
+} from "@/features/diario/services/diario.server";
 
 export const metadata: Metadata = { title: "Diário de classe" };
 
@@ -30,7 +34,13 @@ export default async function DiarioDaAlocacaoPage({
   if (!contexto) notFound();
 
   const { alocacao, diario } = contexto;
-  const alunos = await alunosDaTurma(alocacao.turmaId);
+
+  // `alocacao`, e não o `id` da URL: a autorização do diário anterior é
+  // herdada da alocação que esta pessoa acabou de abrir legitimamente.
+  const [alunos, anteriores] = await Promise.all([
+    alunosDaTurma(alocacao.turmaId),
+    diariosAnteriores(id, alocacao, trimestre),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,6 +92,10 @@ export default async function DiarioDaAlocacaoPage({
           />
         )}
       </Card>
+
+      {/* Depois da grade: o diário anterior é consulta, e quem abre esta
+          tela vem lançar a aula de hoje. */}
+      <DiarioAnterior anteriores={anteriores} />
     </div>
   );
 }

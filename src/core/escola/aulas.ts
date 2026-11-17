@@ -126,6 +126,14 @@ export interface ResumoDaAula {
   numero: number;
   data: string;
   faltas: number;
+  /**
+   * O texto do conteúdo, para quem só lê.
+   *
+   * `temConteudo` continua separado porque responde outra pergunta — a da
+   * coordenação conferindo o que falta preencher —, e um texto só de
+   * espaços conta como vazio para ela e como nulo aqui.
+   */
+  conteudo: string | null;
   temConteudo: boolean;
   semAula: MotivoSemAula | null;
 }
@@ -136,6 +144,7 @@ export function resumirAulas(aulas: readonly Aula[]): ResumoDaAula[] {
     data: aula.data,
     faltas: Object.values(aula.presencas ?? {}).filter((v) => v === false)
       .length,
+    conteudo: aula.conteudo?.trim() || null,
     temConteudo: Boolean(aula.conteudo?.trim()),
     semAula: (aula.semAula as MotivoSemAula) ?? null,
   }));

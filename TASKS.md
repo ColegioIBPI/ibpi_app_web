@@ -261,6 +261,18 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.25 Troca de professor no meio do ano
+
+> Pergunta dos usuários. Nota, chamada e ocorrência já sobreviviam — são
+> da turma e da disciplina. O diário não, porque o id dele é o da
+> alocação, e o da alocação inclui o professor.
+
+- [x] Bloco "Diário anterior" em leitura, no diário da alocação nova
+- [x] Não filtra por `ativa`: na passagem de bastão as duas convivem
+- [x] Autorização herdada da alocação já aberta, limitada a ano + turma +
+      disciplina
+- [ ] Oferecer a troca como uma ação só, em vez de criar e remover à mão
+
 ### 3.24 Perfis: coordenação, aluno e o novo inspetor
 
 > Três pedidos do colégio na mesma mensagem, e os três mexem na matriz de
