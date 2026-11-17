@@ -199,6 +199,21 @@ const ITENS: ItemDeNavegacao[] = [
     minimo: "ler",
     disponivel: true,
   },
+  {
+    href: "/gestao/ajuda",
+    rotulo: "Ajuda",
+    area: "gestao",
+    /**
+     * `cadastros: ler` é o **menor denominador da equipe** — todo perfil
+     * de gestão tem, do inspetor à administração. A Ajuda não protege
+     * nada: ela explica as regras, e quem as aplica é a matriz de acesso.
+     *
+     * Por último no menu de propósito: é consulta, não trabalho.
+     */
+    recurso: "cadastros",
+    minimo: "ler",
+    disponivel: true,
+  },
 
   // Consulta — aluno e responsável
   {

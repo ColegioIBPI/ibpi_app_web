@@ -261,6 +261,23 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.29 Ajuda interativa dentro do Portal
+
+> O colégio pediu um lugar para consultar quando precisar. Ficou **dentro
+> do sistema**, e não num arquivo ou site: a dúvida aparece com a tela na
+> frente, e ajuda que exige ir procurar em outro lugar ninguém abre.
+
+- [x] `Gestão › Ajuda` com os 21 assuntos do manual
+- [x] Busca no texto inteiro, sem acento, exigindo todas as palavras
+- [x] Filtro "só o que é da minha função", ligado por padrão e desligável
+- [x] Um endereço por assunto, para mandar o link a um colega
+- [x] Conteúdo como **dado tipado**: renomear um perfil quebra a
+      compilação em vez de deixar uma frase errada no ar
+- [x] `docs/manual.md` virou ponteiro — uma cópia só
+- [ ] Ajuda da **família**, no portal de consulta: o conteúdo é outro
+- [ ] Link de cada tela para o assunto dela, para a ajuda chegar no
+      momento da dúvida
+
 ### 3.28 O navegador preenchia os acessos do aluno
 
 > Relatado pela escola: ao abrir a ficha de um aluno, os campos de

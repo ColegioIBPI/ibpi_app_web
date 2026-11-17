@@ -2,6 +2,7 @@ import {
   BookOpen,
   CalendarCheck,
   CircleDot,
+  CircleHelp,
   Contact,
   FileBadge,
   Flag,
@@ -54,6 +55,7 @@ const ICONES: Record<string, LucideIcon> = {
   "/gestao/recibos": ReceiptText,
   "/gestao/configuracoes": Settings,
   "/gestao/usuarios": ShieldCheck,
+  "/gestao/ajuda": CircleHelp,
 
   "/portal/avisos": Megaphone,
   "/portal/boletim": ScrollText,

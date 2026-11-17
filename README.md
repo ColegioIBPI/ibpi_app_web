@@ -240,14 +240,20 @@ src/
   types/
 scripts/
   migrate-access/           # importação do Access para o Firestore
-docs/                       # documentação por módulo
-  manual.md                 # como o sistema funciona, para a equipe do colégio
+docs/                       # documentação por módulo, para quem desenvolve
 ```
 
-> [`docs/manual.md`](docs/manual.md) é o único documento escrito **para
-> quem usa**, e não para quem desenvolve: explica as regras que surpreendem
-> — a liberação do boletim, a autorização da ocorrência, o recibo que não
-> se edita — porque é delas que nasce quase todo telefonema.
+> O que é escrito **para quem usa** não mora em `docs/`: é a **Ajuda**, em
+> `Gestão › Ajuda`, com o conteúdo em
+> [`src/features/ajuda/domain/topicos.ts`](src/features/ajuda/domain/topicos.ts).
+> Ela explica as regras que surpreendem — a liberação do boletim, a
+> autorização da ocorrência, o recibo que não se edita —, porque é delas
+> que nasce quase todo telefonema.
+>
+> Ficou dentro do sistema por duas razões: **ajuda que exige ir procurar
+> em outro lugar é ajuda que ninguém abre**, e manual longe do código
+> envelhece em silêncio. Como é dado tipado, renomear um perfil quebra a
+> compilação em vez de deixar uma frase errada no ar.
 
 Regra que sustenta a organização: **cálculo de média, situação e frequência ficam em `domain/`, como funções puras testáveis** — nunca dentro de componente React. É a regra do boletim que mais vai mudar, e ela precisa estar num lugar só.
 

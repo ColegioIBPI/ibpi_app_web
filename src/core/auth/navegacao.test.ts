@@ -16,6 +16,7 @@ describe("navegacaoPara", () => {
       "Avisos",
       "Financeiro",
       "Recibos",
+      "Ajuda",
     ]);
   });
 
@@ -62,6 +63,7 @@ describe("navegacaoPara", () => {
       "Usuários",
       "Configurações",
       "Recibos",
+      "Ajuda",
     ]);
   });
 
@@ -119,6 +121,7 @@ describe("navegacaoPara", () => {
       "Alunos",
       "Frequência",
       "Ocorrências",
+      "Ajuda",
     ]);
   });
 
