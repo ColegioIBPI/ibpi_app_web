@@ -31,6 +31,28 @@ nenhum documento precisasse ser tocado.
 
 > Conferido contra o banco real: 73 alunos e 10 turmas, nenhum órfão.
 
+### A oferta de gravá-los é por curso faltante, não por cadastro vazio
+
+Era `cadastro.empty`: a tela só oferecia **Gravar os cursos atuais**
+enquanto a coleção estivesse vazia. Quem criasse um curso próprio antes
+de gravar os quatro perdia a oferta **para sempre** — e ficava com um
+cadastro de um curso só, enquanto as turmas apontavam para quatro códigos
+que não estavam lá.
+
+Foi exatamente o que aconteceu no colégio: havia só "Personalizado", e o
+seletor de curso do **critério de avaliação** — que lista os cursos
+cadastrados — não tinha o que oferecer. O critério por curso ficou
+inacessível sem nenhuma mensagem dizendo por quê.
+
+A pergunta certa é "falta algum dos que o sistema já usa?"
+(`cursosPadraoFaltando`), e a tela **nomeia os que faltam** em vez de
+dizer "estes quatro" — depois que parte deles é gravada, "quatro" vira
+mentira.
+
+As ações de renomear e encerrar continuam travadas nas linhas que ainda
+não são documento, agora **linha a linha**: com o cadastro vazio a lista
+mostra os quatro do código, e não há o que gravar.
+
 ### O campo continua se chamando `segmento`
 
 Nos documentos, o curso é gravado em `segmento`. Renomear traria um sinônimo

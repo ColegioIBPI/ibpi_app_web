@@ -3,10 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { getAdminDb } from "@/core/firebase/admin";
-import { COLECOES } from "@/core/modelo";
 import { Card } from "@/core/ui/card";
 import { CadastroDeCursos } from "@/features/cursos/components/cadastro-de-cursos";
+import { cursosPadraoFaltando } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
 
 export const metadata: Metadata = { title: "Cursos" };
@@ -14,10 +13,12 @@ export const metadata: Metadata = { title: "Cursos" };
 export default async function CursosPage() {
   await exigirPermissao("cadastros", "gerenciar");
 
-  const [cursos, cadastro] = await Promise.all([
-    listarCursos(),
-    getAdminDb().collection(COLECOES.cursos).limit(1).get(),
-  ]);
+  const cursos = await listarCursos();
+
+  // Não "o cadastro está vazio?", e sim "falta algum dos que o sistema já
+  // usa?". Ver `domain/curso.ts` — a primeira pergunta escondia a oferta
+  // de quem criou um curso próprio antes de gravar os quatro.
+  const faltando = cursosPadraoFaltando(cursos);
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +39,7 @@ export default async function CursosPage() {
       </div>
 
       <Card>
-        <CadastroDeCursos cursos={cursos} precisaSemear={cadastro.empty} />
+        <CadastroDeCursos cursos={cursos} faltando={faltando} />
       </Card>
     </div>
   );

@@ -261,6 +261,18 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.27 Cursos: a oferta de gravar os quatro ficava escondida
+
+> Achado ao responder sobre o alcance do critério de avaliação. O colégio
+> tinha só um curso "Personalizado" cadastrado, e por isso o critério por
+> curso estava inacessível — sem nenhuma mensagem dizendo por quê.
+
+- [x] `cursosPadraoFaltando` no lugar de "o cadastro está vazio"
+- [x] A tela nomeia os cursos que faltam
+- [x] Renomear e encerrar travados linha a linha, não na tela inteira
+- [x] Os quatro gravados em produção: toda turma e todo aluno apontam
+      para um curso que existe no cadastro
+
 ### 3.26 Faltas por disciplina no aplicativo — decisão pendente
 
 > Achado ao responder à equipe Android: o contrato manda ler

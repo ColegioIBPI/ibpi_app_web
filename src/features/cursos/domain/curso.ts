@@ -1,4 +1,4 @@
-import { ROTULOS_DE_SEGMENTO, type Curso } from "@/core/modelo";
+import { CURSOS_PADRAO, ROTULOS_DE_SEGMENTO, type Curso } from "@/core/modelo";
 
 /**
  * Como se lê um curso.
@@ -61,4 +61,26 @@ export function codigoDoCurso(nome: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Quais dos cursos do sistema ainda não estão no cadastro.
+ *
+ * A oferta de gravá-los dependia de o cadastro estar **vazio**, e isso tem
+ * um buraco que o colégio caiu dentro: quem cria um curso próprio antes de
+ * gravar os quatro perde a oferta para sempre, e fica com turmas apontando
+ * para códigos que não existem no cadastro. Foi o que aconteceu — havia um
+ * curso "Personalizado" e nenhum dos quatro, e o seletor de curso do
+ * critério de avaliação não tinha o que oferecer.
+ *
+ * A pergunta certa não é "o cadastro está vazio?", e sim "falta algum dos
+ * que o sistema já usa?".
+ */
+export function cursosPadraoFaltando<T extends Pick<Curso, "codigo">>(
+  cadastrados: readonly T[],
+  padrao: ReadonlyArray<Pick<Curso, "codigo" | "nome">> = CURSOS_PADRAO,
+): Array<Pick<Curso, "codigo" | "nome">> {
+  const existentes = new Set(cadastrados.map((curso) => curso.codigo));
+
+  return padrao.filter((curso) => !existentes.has(curso.codigo));
 }

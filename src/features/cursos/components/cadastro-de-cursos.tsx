@@ -26,13 +26,29 @@ import { codigoDoCurso } from "@/features/cursos/domain/curso";
  */
 export function CadastroDeCursos({
   cursos,
-  precisaSemear,
+  faltando,
 }: {
   cursos: CursoComId[];
-  /** O cadastro está vazio: os quatro da tela ainda são o padrão do código. */
-  precisaSemear: boolean;
+  /**
+   * Cursos que o sistema já usa e que ainda não estão no cadastro.
+   *
+   * Era um booleano, `precisaSemear`, calculado de "o cadastro está
+   * vazio". Quem criasse um curso próprio antes de gravar os quatro
+   * perdia a oferta para sempre, com turmas apontando para códigos
+   * ausentes do cadastro — e foi o que aconteceu aqui.
+   */
+  faltando: Array<{ codigo: string; nome: string }>;
 }) {
   const router = useRouter();
+
+  /**
+   * Linhas que ainda não existem como documento.
+   *
+   * Com o cadastro vazio a lista mostra os quatro do código, e renomear
+   * ou encerrar um deles não teria o que gravar. Depois de gravados, as
+   * ações abrem — uma a uma, conforme deixam esta lista.
+   */
+  const naoGravados = new Set(faltando.map((curso) => curso.codigo));
 
   const [nome, setNome] = useState("");
   const [sigla, setSigla] = useState("");
@@ -89,11 +105,18 @@ export function CadastroDeCursos({
         </p>
       )}
 
-      {precisaSemear && (
+      {faltando.length > 0 && (
         <div className="border-line bg-surface-subtle flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-2">
           <p className="text-ink-muted text-sm">
-            Estes quatro vêm do código do sistema. Grave-os para poder
-            renomeá-los e criar outros.
+            {/*
+              Nomear o que falta, em vez de "estes quatro": depois que
+              alguém grava parte deles, "quatro" passa a ser mentira — e
+              é a lista que diz se vale a pena clicar.
+            */}
+            {faltando.length === 1
+              ? `${faltando[0].nome} vem do código do sistema e ainda não está no cadastro.`
+              : `${faltando.map((curso) => curso.nome).join(", ")} vêm do código do sistema e ainda não estão no cadastro.`}{" "}
+            Grave para poder renomeá-los e para que apareçam nos seletores.
           </p>
           <Button
             size="sm"
@@ -144,7 +167,7 @@ export function CadastroDeCursos({
                 <Button
                   variant="secondary"
                   size="sm"
-                  disabled={precisaSemear || ocupado}
+                  disabled={naoGravados.has(curso.codigo) || ocupado}
                   onClick={() => setEditando(curso.codigo)}
                 >
                   <Pencil className="size-4" aria-hidden />
@@ -153,7 +176,7 @@ export function CadastroDeCursos({
                 <Button
                   variant="secondary"
                   size="sm"
-                  disabled={precisaSemear || ocupado}
+                  disabled={naoGravados.has(curso.codigo) || ocupado}
                   onClick={() =>
                     executar(() => alternarCurso(curso.codigo, !curso.ativo))
                   }

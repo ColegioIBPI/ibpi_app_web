@@ -64,8 +64,9 @@ Vermelho é o que tem prazo e não volta atrás. O resto espera sem piorar.
 importa: turma antes do curso, ou nota antes do vínculo, trava na etapa
 seguinte.
 
-1. **Cursos** — Ensino Fundamental, Médio, EJA. Os quatro já existem; clique
-   em *Gravar os cursos atuais* para poder renomeá-los ou criar outros.
+1. **Cursos** — Ensino Fundamental, Médio, EJA. Os quatro já estão
+   gravados. Se algum deles sumir da lista, a tela oferece *Gravar os
+   cursos atuais* de novo, dizendo quais faltam.
 2. **Turmas** — código, ano, turno e **curso**.
 3. **Disciplinas** — a ordem define a posição no boletim. Use de 10 em 10,
    para caber uma disciplina nova no meio depois.

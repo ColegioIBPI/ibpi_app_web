@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   codigoDoCurso,
+  cursosPadraoFaltando,
   ordenarCursos,
   rotuloDoCurso,
 } from "@/features/cursos/domain/curso";
@@ -82,5 +83,39 @@ describe("código a partir do nome", () => {
 
   it("não deixa traço sobrando nas pontas", () => {
     expect(codigoDoCurso("— Técnico —")).toBe("tecnico");
+  });
+});
+
+describe("cursos do sistema que faltam no cadastro", () => {
+  const padrao = [
+    { codigo: "fundamental", nome: "Ensino Fundamental" },
+    { codigo: "medio", nome: "Ensino Médio" },
+  ];
+
+  it("cadastro vazio: faltam todos", () => {
+    expect(cursosPadraoFaltando([], padrao)).toEqual(padrao);
+  });
+
+  it("cadastro completo: não falta nenhum", () => {
+    expect(
+      cursosPadraoFaltando([{ codigo: "fundamental" }, { codigo: "medio" }], padrao),
+    ).toEqual([]);
+  });
+
+  it("um curso próprio não conta como os do sistema", () => {
+    // O defeito que isto corrige: a oferta de gravar os quatro dependia
+    // de o cadastro estar **vazio**, então quem criasse um curso próprio
+    // antes perdia a oferta para sempre — com turmas apontando para
+    // códigos ausentes do cadastro, e o seletor de curso do critério de
+    // avaliação sem o que oferecer. Foi o que aconteceu no colégio.
+    expect(
+      cursosPadraoFaltando([{ codigo: "personalizado" }], padrao),
+    ).toEqual(padrao);
+  });
+
+  it("gravar parte deles deixa só o resto", () => {
+    expect(
+      cursosPadraoFaltando([{ codigo: "fundamental" }], padrao).map((c) => c.codigo),
+    ).toEqual(["medio"]);
   });
 });
