@@ -85,13 +85,13 @@ ocorrências. O professor novo abre a tela e encontra tudo.
 diário em branco. O do anterior aparece embaixo, fechado, como **"Diário
 anterior"** — dá para ler as aulas e o conteúdo, não para alterar.
 
-Em `Vínculos`, **cadastre o professor novo antes de remover o antigo**. Na
-ordem inversa a disciplina some do boletim até o vínculo novo entrar; nada
-se perde, mas assusta quem está olhando.
+Em `Configurações › Vínculos`, na linha da disciplina: **Trocar
+professor**. Escolha o novo e confirme — é um passo só, e o acesso do
+anterior àquela turma sai junto. Se ele dá outra disciplina na mesma
+turma, continua enxergando a turma por ela, e está certo.
 
-E lembre que **remover o vínculo antigo é o que tira o acesso do professor
-anterior**. Se ele dá outra disciplina na mesma turma, continua enxergando
-a turma por ela — e está certo.
+**Desvincular é outra coisa**, e continua existindo: é para a disciplina
+ficar sem professor, quando ainda não há para quem passar.
 
 > O sistema trabalha com **três trimestres**. Média do trimestre =
 > (Projeto + Tarefas + AV) ÷ 3; aprovação com média **5,0** e frequência

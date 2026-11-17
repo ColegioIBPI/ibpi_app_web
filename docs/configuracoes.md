@@ -140,11 +140,35 @@ Três decisões dele:
   forma, porque a frequência por disciplina soma **todos** os diários da
   turma, inclusive os das alocações desativadas.
 
-> **A ordem importa na troca:** cadastre o vínculo novo **antes** de
-> remover o antigo. Ao contrário, a disciplina sai da grade por um
-> momento e some do boletim até o vínculo novo entrar — nada se perde,
-> mas assusta. E é **remover o antigo** que corta o acesso do professor
-> anterior à turma.
+### A troca é uma ação só
+
+**Trocar professor**, na linha do vínculo. Era feito à mão em dois passos
+— vincular o novo, desvincular o antigo —, e a **ordem importava**: ao
+contrário, a disciplina saía da grade e sumia do boletim até o vínculo
+novo entrar. Nada se perdia, mas assustava, e documentar a ordem certa
+resolve menos que não exigir ordem nenhuma.
+
+`trocarProfessor` faz as duas gravações **no mesmo lote**, e por isso
+monta a auditoria à mão com `corpoDaAuditoria` em vez de chamar
+`gravarComAuditoria` duas vezes: cada chamada commitaria o seu lote, e
+uma falha entre elas deixaria a turma com dois professores ativos ou com
+nenhum.
+
+A propagação de escopo vem depois do commit, e **o professor que sai vem
+primeiro** — das duas, é a que tem consequência de acesso.
+
+O professor novo pode já ter uma alocação desativada ali: é a troca de
+volta, ou quem deu a disciplina no primeiro trimestre e a retoma no
+terceiro. Nesse caso ela é **reativada**, e o diário dele volta a ser o
+corrente — que é o certo.
+
+A recusa é do domínio (`domain/troca.ts`), e são quatro: vínculo já
+removido, professor inexistente, professor inativo no cadastro, e o
+mesmo professor que já está lá. A lista da tela já exclui o último — a
+ação recusaria, e oferecer o que vai ser recusado é convidar ao erro.
+
+> **Desvincular continua existindo**, e não é o mesmo: disciplina pode
+> ficar sem professor por um tempo, e aí não há para quem passar.
 
 ---
 

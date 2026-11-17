@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { gravarComAuditoria } from "@/core/auditoria/registrar";
+import { corpoDaAuditoria, gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
 import {
   criarOuAtualizarConta,
@@ -30,6 +30,7 @@ import {
   turmasDasAlocacoes,
   verificarDuplicata,
 } from "@/features/professores/domain/alocacoes";
+import { impedimentoParaTrocar } from "@/features/professores/domain/troca";
 
 /**
  * Cadastro de professores e alocações.
@@ -218,6 +219,130 @@ export async function alocarProfessor(
   revalidatePath("/gestao/professores");
 
   return { ok: true, id };
+}
+
+/**
+ * Troca o professor de uma disciplina, numa gravação só.
+ *
+ * Era feito em dois passos à mão, e a **ordem importava**: desvincular
+ * antes de vincular tirava a disciplina da grade e a sumia do boletim até
+ * o vínculo novo entrar. Nada se perdia, mas assustava quem estava
+ * olhando — e documentar a ordem certa resolve menos que não exigir ordem
+ * nenhuma.
+ *
+ * As duas alocações mudam **no mesmo lote**, por isso a auditoria é
+ * montada à mão com `corpoDaAuditoria` em vez de duas chamadas a
+ * `gravarComAuditoria`: cada uma commitaria o seu lote, e uma falha entre
+ * elas deixaria a turma com dois professores ativos ou com nenhum.
+ *
+ * A propagação de escopo vem depois, e **o professor que sai vem
+ * primeiro**: das duas, é a que tem consequência de acesso.
+ */
+export async function trocarProfessor(
+  alocacaoId: string,
+  novoProfessorId: string,
+): Promise<Resultado> {
+  const sessao = await exigirPermissao("cadastros", "gerenciar");
+
+  const db = getAdminDb();
+  const atualDoc = await db.collection(COLECOES.alocacoes).doc(alocacaoId).get();
+
+  if (!atualDoc.exists) return { ok: false, erro: "Vínculo não encontrado." };
+
+  const atual = atualDoc.data() as Alocacao;
+
+  const [novoDoc, antigoDoc] = await Promise.all([
+    db.collection(COLECOES.professores).doc(novoProfessorId).get(),
+    db.collection(COLECOES.professores).doc(atual.professorId).get(),
+  ]);
+
+  const novo = novoDoc.exists ? (novoDoc.data() as Professor) : null;
+
+  const impedimento = impedimentoParaTrocar(atual, novoProfessorId, novo);
+  if (impedimento) return { ok: false, erro: impedimento };
+
+  const nova = alocacaoSchema.safeParse({
+    ...atual,
+    professorId: novoProfessorId,
+    professorNome: novo!.nome,
+    ativa: true,
+    origem: "portal",
+  });
+
+  if (!nova.success) {
+    return { ok: false, erro: nova.error.issues[0]?.message };
+  }
+
+  const novaId = idDaAlocacao(
+    atual.anoLetivo,
+    novoProfessorId,
+    atual.turmaId,
+    atual.disciplinaId,
+  );
+
+  // Pode já existir, desativada: é a troca de volta, ou o professor que
+  // deu a disciplina no primeiro trimestre e a retoma no terceiro. Nesse
+  // caso o diário dele volta a ser o diário corrente, e é o certo.
+  const novaAnterior = await db.collection(COLECOES.alocacoes).doc(novaId).get();
+
+  const agora = new Date().toISOString();
+  const lote = db.batch();
+
+  lote.set(
+    db.collection(COLECOES.alocacoes).doc(novaId),
+    { ...nova.data, atualizadoEm: agora, atualizadoPor: sessao.uid },
+    { merge: true },
+  );
+
+  lote.set(
+    db.collection(COLECOES.auditoria).doc(),
+    corpoDaAuditoria({
+      colecao: COLECOES.alocacoes,
+      documentoId: novaId,
+      acao: novaAnterior.exists ? "alterou" : "criou",
+      alteracoes: {
+        professorId: { de: atual.professorId, para: novoProfessorId },
+        ativa: { de: novaAnterior.data()?.ativa ?? null, para: true },
+      },
+      autor: sessao,
+      em: agora,
+    }),
+  );
+
+  lote.set(
+    db.collection(COLECOES.alocacoes).doc(alocacaoId),
+    { ativa: false, atualizadoEm: agora, atualizadoPor: sessao.uid },
+    { merge: true },
+  );
+
+  lote.set(
+    db.collection(COLECOES.auditoria).doc(),
+    corpoDaAuditoria({
+      colecao: COLECOES.alocacoes,
+      documentoId: alocacaoId,
+      acao: "alterou",
+      alteracoes: { ativa: { de: true, para: false } },
+      autor: sessao,
+      em: agora,
+    }),
+  );
+
+  await lote.commit();
+
+  // O que sai primeiro: perder acesso tem consequência, ganhar não.
+  await propagarTurmas(
+    atual.professorId,
+    (antigoDoc.data() as Professor | undefined)?.uid ?? null,
+    sessao.uid,
+  );
+  await propagarTurmas(novoProfessorId, novo!.uid ?? null, sessao.uid);
+
+  revalidatePath("/gestao/configuracoes/vinculos");
+  revalidatePath(`/gestao/professores/${atual.professorId}`);
+  revalidatePath(`/gestao/professores/${novoProfessorId}`);
+  revalidatePath("/gestao/professores");
+
+  return { ok: true, id: novaId };
 }
 
 export async function removerAlocacao(

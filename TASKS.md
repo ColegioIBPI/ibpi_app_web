@@ -271,7 +271,10 @@ Referência de requisitos: [README.md](README.md).
 - [x] Não filtra por `ativa`: na passagem de bastão as duas convivem
 - [x] Autorização herdada da alocação já aberta, limitada a ano + turma +
       disciplina
-- [ ] Oferecer a troca como uma ação só, em vez de criar e remover à mão
+- [x] Troca como **uma ação só**, no mesmo lote, em vez de criar e remover
+      à mão na ordem certa
+- [x] Reativa a alocação desativada quando a disciplina volta para quem já
+      a deu
 
 ### 3.24 Perfis: coordenação, aluno e o novo inspetor
 
