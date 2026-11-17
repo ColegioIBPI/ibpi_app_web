@@ -5,7 +5,6 @@ import Link from "next/link";
 import { exigirPermissao } from "@/core/auth/guards";
 import { Card } from "@/core/ui/card";
 import { CadastroDeCursos } from "@/features/cursos/components/cadastro-de-cursos";
-import { cursosPadraoFaltando } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
 
 export const metadata: Metadata = { title: "Cursos" };
@@ -13,12 +12,9 @@ export const metadata: Metadata = { title: "Cursos" };
 export default async function CursosPage() {
   await exigirPermissao("cadastros", "gerenciar");
 
+  // A lista já vem somada: o que está gravado mais o que o sistema usa e
+  // ainda não foi gravado. Ver `domain/curso.ts`.
   const cursos = await listarCursos();
-
-  // Não "o cadastro está vazio?", e sim "falta algum dos que o sistema já
-  // usa?". Ver `domain/curso.ts` — a primeira pergunta escondia a oferta
-  // de quem criou um curso próprio antes de gravar os quatro.
-  const faltando = cursosPadraoFaltando(cursos);
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,7 +35,7 @@ export default async function CursosPage() {
       </div>
 
       <Card>
-        <CadastroDeCursos cursos={cursos} faltando={faltando} />
+        <CadastroDeCursos cursos={cursos} />
       </Card>
     </div>
   );

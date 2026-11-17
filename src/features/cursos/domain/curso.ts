@@ -84,3 +84,53 @@ export function cursosPadraoFaltando<T extends Pick<Curso, "codigo">>(
 
   return padrao.filter((curso) => !existentes.has(curso.codigo));
 }
+
+export interface CursoDaLista extends Curso {
+  id: string;
+  /**
+   * `false` quando o curso ainda é só o padrão do código, sem documento
+   * no cadastro. A tela usa isso para travar renomear e encerrar — não há
+   * o que gravar — e para oferecer a gravação.
+   */
+  gravado: boolean;
+}
+
+/**
+ * O cadastro, somado aos cursos que o sistema já usa e que ainda não
+ * foram gravados.
+ *
+ * **O bug que isto conserta foi relatado pela escola:** "ao criar um
+ * curso Personalizado, os outros cursos sumiram da listagem". A lista
+ * caía no padrão do código **só com o cadastro vazio**, tudo ou nada — e
+ * o primeiro curso próprio fazia os quatro desaparecerem de uma vez, da
+ * tela e de todos os seletores.
+ *
+ * Não era só a tela. `features/turmas/actions/salvar.ts` confere o curso
+ * da turma contra esta lista, então salvar qualquer turma de Ensino
+ * Médio passava a responder "o curso medio não existe no cadastro".
+ *
+ * Somar em vez de escolher resolve os dois: o que está gravado vale como
+ * está — inclusive renomeado ou encerrado —, e o que falta aparece como
+ * o sistema o conhece, até alguém gravá-lo.
+ */
+export function comCursosDoSistema<T extends Curso & { id: string }>(
+  cadastrados: readonly T[],
+  padrao: ReadonlyArray<Pick<Curso, "codigo" | "nome" | "ordem">> = CURSOS_PADRAO,
+): CursoDaLista[] {
+  const faltando = cursosPadraoFaltando(cadastrados, padrao).map((curso) => ({
+    ...curso,
+    // `ordem` vem do padrão quando existe: é ela que põe Fundamental
+    // antes do Médio sem ninguém ter digitado nada.
+    ordem: padrao.find((p) => p.codigo === curso.codigo)?.ordem ?? null,
+    id: curso.codigo,
+    sigla: null,
+    ativo: true,
+    origem: "portal" as const,
+    gravado: false,
+  }));
+
+  return ordenarCursos([
+    ...cadastrados.map((curso) => ({ ...curso, gravado: true })),
+    ...faltando,
+  ]);
+}

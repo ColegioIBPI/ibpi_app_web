@@ -31,27 +31,37 @@ nenhum documento precisasse ser tocado.
 
 > Conferido contra o banco real: 73 alunos e 10 turmas, nenhum órfão.
 
-### A oferta de gravá-los é por curso faltante, não por cadastro vazio
+### A lista soma; não escolhe entre cadastro e padrão
 
-Era `cadastro.empty`: a tela só oferecia **Gravar os cursos atuais**
-enquanto a coleção estivesse vazia. Quem criasse um curso próprio antes
-de gravar os quatro perdia a oferta **para sempre** — e ficava com um
-cadastro de um curso só, enquanto as turmas apontavam para quatro códigos
-que não estavam lá.
+**O defeito que a escola relatou:** "ao criar um novo curso
+Personalizado, os outros cursos sumiram da listagem".
 
-Foi exatamente o que aconteceu no colégio: havia só "Personalizado", e o
-seletor de curso do **critério de avaliação** — que lista os cursos
-cadastrados — não tinha o que oferecer. O critério por curso ficou
-inacessível sem nenhuma mensagem dizendo por quê.
+`listarCursos` caía no padrão do código **só com a coleção vazia** —
+tudo ou nada. O primeiro curso próprio que alguém criasse fazia os
+quatro desaparecerem de uma vez, da tela e de **todos os seletores**.
 
-A pergunta certa é "falta algum dos que o sistema já usa?"
-(`cursosPadraoFaltando`), e a tela **nomeia os que faltam** em vez de
-dizer "estes quatro" — depois que parte deles é gravada, "quatro" vira
-mentira.
+E não era só a tela. `features/turmas/actions/salvar.ts` confere o curso
+da turma contra esta lista, então salvar qualquer turma de Ensino Médio
+passava a responder *"o curso medio não existe no cadastro"* — o estrago
+aparecia longe de onde foi causado.
 
-As ações de renomear e encerrar continuam travadas nas linhas que ainda
-não são documento, agora **linha a linha**: com o cadastro vazio a lista
-mostra os quatro do código, e não há o que gravar.
+Hoje a lista é a **soma**: o que está gravado, mais o que o sistema usa e
+ainda não foi gravado (`comCursosDoSistema`). O cadastro manda no que é
+dele — curso renomeado continua renomeado, curso encerrado continua
+encerrado, e nenhum deles volta como padrão.
+
+Cada item carrega `gravado`. É ele que:
+
+- **trava renomear e encerrar linha a linha** — não há documento para
+  gravar; antes a trava era da tela inteira, e o curso próprio ficava
+  travado junto;
+- **oferece gravar**, nomeando os que faltam em vez de dizer "estes
+  quatro": depois que parte deles é gravada, "quatro" vira mentira.
+
+> A oferta dependia da mesma pergunta errada (`cadastro.empty`), então
+> quem caía no defeito também **perdia o caminho de volta**. Era o estado
+> do colégio: um curso "Personalizado", nenhum dos quatro, e o seletor do
+> critério de avaliação sem nada para oferecer.
 
 ### O campo continua se chamando `segmento`
 

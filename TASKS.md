@@ -261,17 +261,25 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
-### 3.27 Cursos: a oferta de gravar os quatro ficava escondida
+### 3.27 Cursos somem ao criar um curso próprio
 
-> Achado ao responder sobre o alcance do critério de avaliação. O colégio
-> tinha só um curso "Personalizado" cadastrado, e por isso o critério por
-> curso estava inacessível — sem nenhuma mensagem dizendo por quê.
+> Relatado pela escola: "ao criar um novo curso Personalizado, os outros
+> cursos sumiram da listagem". A lista caía no padrão do código **só com
+> a coleção vazia**, tudo ou nada — e a oferta de gravar os quatro
+> dependia da mesma pergunta, então quem caía no defeito perdia o
+> caminho de volta. Foi o que deixou o critério por curso inacessível.
 
-- [x] `cursosPadraoFaltando` no lugar de "o cadastro está vazio"
+- [x] `comCursosDoSistema`: a lista **soma** cadastro e padrão, em vez de
+      escolher entre os dois
+- [x] O cadastro manda no que é dele — renomeado e encerrado permanecem
+- [x] `cursosPadraoFaltando` no lugar de "o cadastro está vazio" na
+      oferta de gravar
 - [x] A tela nomeia os cursos que faltam
 - [x] Renomear e encerrar travados linha a linha, não na tela inteira
 - [x] Os quatro gravados em produção: toda turma e todo aluno apontam
       para um curso que existe no cadastro
+- [x] Testes cobrindo o estado em que o defeito aparecia — não dava para
+      encená-lo em produção sem apagar um curso de verdade
 
 ### 3.26 Faltas por disciplina no aplicativo — decisão pendente
 

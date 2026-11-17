@@ -4,7 +4,6 @@ import { Check, Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { CursoComId } from "@/core/modelo";
 import { Button } from "@/core/ui/button";
 import { TextField } from "@/core/ui/field";
 import {
@@ -13,7 +12,10 @@ import {
   editarCurso,
   semearCursos,
 } from "@/features/cursos/actions/cursos";
-import { codigoDoCurso } from "@/features/cursos/domain/curso";
+import {
+  codigoDoCurso,
+  type CursoDaLista,
+} from "@/features/cursos/domain/curso";
 
 /**
  * Cadastro dos cursos do colégio.
@@ -24,31 +26,19 @@ import { codigoDoCurso } from "@/features/cursos/domain/curso";
  * matriculada — e aí todo mundo apontaria para um curso que não existe.
  * O código é mostrado, em cinza, para quem precisa conferir.
  */
-export function CadastroDeCursos({
-  cursos,
-  faltando,
-}: {
-  cursos: CursoComId[];
-  /**
-   * Cursos que o sistema já usa e que ainda não estão no cadastro.
-   *
-   * Era um booleano, `precisaSemear`, calculado de "o cadastro está
-   * vazio". Quem criasse um curso próprio antes de gravar os quatro
-   * perdia a oferta para sempre, com turmas apontando para códigos
-   * ausentes do cadastro — e foi o que aconteceu aqui.
-   */
-  faltando: Array<{ codigo: string; nome: string }>;
-}) {
+export function CadastroDeCursos({ cursos }: { cursos: CursoDaLista[] }) {
   const router = useRouter();
 
   /**
-   * Linhas que ainda não existem como documento.
+   * As linhas que ainda não são documento.
    *
-   * Com o cadastro vazio a lista mostra os quatro do código, e renomear
-   * ou encerrar um deles não teria o que gravar. Depois de gravados, as
-   * ações abrem — uma a uma, conforme deixam esta lista.
+   * Elas aparecem na lista — é o conserto do "os cursos sumiram": o que o
+   * sistema usa continua à vista mesmo depois de a escola criar o
+   * primeiro curso próprio. Mas renomear e encerrar ficam travados, uma a
+   * uma, porque não há documento para gravar; e são elas que a tela
+   * oferece gravar.
    */
-  const naoGravados = new Set(faltando.map((curso) => curso.codigo));
+  const faltando = cursos.filter((curso) => !curso.gravado);
 
   const [nome, setNome] = useState("");
   const [sigla, setSigla] = useState("");
@@ -167,7 +157,7 @@ export function CadastroDeCursos({
                 <Button
                   variant="secondary"
                   size="sm"
-                  disabled={naoGravados.has(curso.codigo) || ocupado}
+                  disabled={!curso.gravado || ocupado}
                   onClick={() => setEditando(curso.codigo)}
                 >
                   <Pencil className="size-4" aria-hidden />
@@ -176,7 +166,7 @@ export function CadastroDeCursos({
                 <Button
                   variant="secondary"
                   size="sm"
-                  disabled={naoGravados.has(curso.codigo) || ocupado}
+                  disabled={!curso.gravado || ocupado}
                   onClick={() =>
                     executar(() => alternarCurso(curso.codigo, !curso.ativo))
                   }
@@ -243,7 +233,7 @@ function LinhaEmEdicao({
   onSalvar,
   onCancelar,
 }: {
-  curso: CursoComId;
+  curso: CursoDaLista;
   ocupado: boolean;
   onSalvar: (dados: {
     nome: string;
