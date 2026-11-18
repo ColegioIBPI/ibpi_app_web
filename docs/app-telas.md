@@ -181,6 +181,35 @@ traz.
 - **Não diga quantos faltam nem quando sai.** O colégio decide o dia, e uma
   promessa na tela vira cobrança na secretaria.
 
+### Quando a secretaria emite um boletim próprio
+
+O colégio pode substituir o boletim de um aluno por um **boletim 2**:
+uma cópia com valores digitados à mão, para o caso em que o número não é
+o que a conta dá — aluno transferido com notas de outra escola, adaptação
+curricular, decisão de conselho.
+
+Enquanto vocês não tratarem isso, a família vê no app um boletim
+**diferente do que o colégio emitiu**. O formato está em
+`app-mobile.md`, item 12.
+
+Na tela, três coisas mudam:
+
+| | |
+| --- | --- |
+| **Os números vêm prontos** | não calcule média nenhuma: as linhas já trazem os valores, inclusive as médias |
+| **Os títulos das colunas podem ser outros** | `rotulos` troca "AV" por "PROVA", por exemplo; ausente, vale o de sempre |
+| **Pode faltar coluna** | `ocultas` diz quais não desenhar; disciplina e as médias nunca vêm nela |
+
+- **Não misture com as notas.** Se o boletim 2 é o oficial, ele é o
+  boletim — some as notas da tela em vez de mostrar os dois.
+- **A liberação por trimestre não se aplica a ele.** Ele é do ano
+  inteiro, e `oficial == true` é a liberação. Um aluno sem nenhum
+  trimestre liberado pode ter boletim 2 para ver — não mostre "Boletim
+  ainda não liberado" nesse caso.
+- **Não diga que é um "boletim 2" nem que existe outro.** Para a família
+  ele é o boletim. Uma linha discreta de rodapé — *"Boletim emitido pela
+  secretaria"* — é o que o Portal mostra, e basta.
+
 ### Como o aluno é avaliado — bloco novo
 
 Abaixo das notas, quando o colégio tiver publicado um critério para aquele
