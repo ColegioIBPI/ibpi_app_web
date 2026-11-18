@@ -421,6 +421,11 @@ export const TOPICOS: Topico[] = [
       {
         tipo: "paragrafo",
         texto:
+          "**A ata de resultado final segue o oficial.** Marcado o boletim 2, é dele que saem as médias, a frequência e a situação daquele aluno na ata — a planilha que a escola assina e o boletim que a família recebeu não podem discordar. A ata ganha uma coluna **Origem** dizendo quais linhas vieram do boletim 2, e ela só aparece quando alguma veio.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
           "**Apagar o boletim 2** devolve o calculado ao lugar dele. O professor não enxerga este documento; quem o cria, edita e marca fica registrado.",
       },
     ],

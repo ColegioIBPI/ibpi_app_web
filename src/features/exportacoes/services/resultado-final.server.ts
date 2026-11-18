@@ -6,8 +6,10 @@ import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
   COLECOES,
+  idDoBoletimManual,
   ROTULOS_DE_SITUACAO,
   type Boletim,
+  type BoletimManual,
   type Disciplina,
   type FrequenciaDiaria,
   type Nota,
@@ -16,6 +18,10 @@ import {
 } from "@/core/modelo";
 import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
 import { montarBoletim } from "@/features/notas/domain/boletim";
+import {
+  boletimQueVale,
+  quadroQueVale,
+} from "@/features/notas/domain/boletim-manual";
 import { idDoBoletim } from "@/features/notas/services/notas.server";
 
 /**
@@ -28,6 +34,12 @@ import { idDoBoletim } from "@/features/notas/services/notas.server";
  *
  * A ata mostra a **média final** de cada disciplina — a que decide — e, ao
  * lado, a situação. É o documento que a secretaria assina no fim do ano.
+ *
+ * **Ela segue o boletim oficial.** Quando um aluno tem boletim 2 marcado
+ * como oficial, é dele que saem as médias, a frequência e a situação — o
+ * documento que a família recebeu e a ata que a escola assina não podem
+ * discordar. Decisão do colégio, e a coluna "Origem" aparece na planilha
+ * para quem assina saber quais linhas foram digitadas à mão.
  */
 
 interface LinhaDoResultado {
@@ -38,6 +50,8 @@ interface LinhaDoResultado {
   medias: Record<string, number | null>;
   percentualDeFrequencia: number | null;
   situacao: string;
+  /** A linha veio de um boletim 2 marcado como oficial? */
+  doBoletimManual: boolean;
 }
 
 /**
@@ -108,7 +122,7 @@ export async function ataDeResultadoFinal(
 
   const matriculas = alunos.map((aluno) => aluno.matricula);
 
-  const [notasDocs, boletinsDocs, frequenciaDocs] = await Promise.all([
+  const [notasDocs, boletinsDocs, manuaisDocs, frequenciaDocs] = await Promise.all([
     db
       .collection(COLECOES.notas)
       .where("turmaId", "==", turmaId)
@@ -120,6 +134,15 @@ export async function ataDeResultadoFinal(
             db
               .collection(COLECOES.boletins)
               .doc(idDoBoletim(anoLetivo, matricula)),
+          ),
+        )
+      : Promise.resolve([]),
+    matriculas.length > 0
+      ? db.getAll(
+          ...matriculas.map((matricula) =>
+            db
+              .collection(COLECOES.boletinsManuais)
+              .doc(idDoBoletimManual(anoLetivo, matricula)),
           ),
         )
       : Promise.resolve([]),
@@ -148,8 +171,18 @@ export async function ataDeResultadoFinal(
       }),
   );
 
+  const manuaisPorAluno = new Map(
+    manuaisDocs
+      .filter((doc) => doc.exists)
+      .map((doc) => {
+        const manual = doc.data() as BoletimManual;
+        return [manual.matricula, manual] as const;
+      }),
+  );
+
   const linhas: LinhaDoResultado[] = alunos.map((aluno, indice) => {
     const boletim = boletinsPorAluno.get(aluno.matricula) ?? null;
+    const manual = manuaisPorAluno.get(aluno.matricula) ?? null;
 
     const percentualDeFrequencia = percentualDePresenca(
       contar(
@@ -167,12 +200,36 @@ export async function ataDeResultadoFinal(
       grade,
     });
 
+    /*
+      O boletim 2 oficial manda na ata inteira da linha: médias,
+      frequência e situação. Misturar — média de um, situação de outro —
+      produziria uma linha que não existe em documento nenhum.
+
+      As colunas continuam vindo da grade da turma. Uma disciplina que
+      esteja no boletim 2 e já não esteja na grade não ganha coluna, e
+      uma que esteja na grade e não no boletim 2 sai vazia.
+    */
+    const oficial = boletimQueVale(manual);
+
+    // `quadroQueVale` é a **mesma** função que a tela do boletim, o Portal
+    // da família e a impressão usam. Repetir a escolha aqui seria uma
+    // segunda versão dela, e é entre a ata e o boletim que divergir dói
+    // mais: os dois saem assinados.
+    const fonte = quadroQueVale({
+      oficial,
+      manual,
+      disciplinas: montado.disciplinas,
+      faltasPorTrimestre: montado.faltasPorTrimestre,
+      percentualDeFrequencia,
+      situacao: montado.situacao,
+    });
+
     return {
       sequencial: indice + 1,
       matricula: aluno.matricula,
       nome: aluno.nome,
       medias: Object.fromEntries(
-        montado.disciplinas.map((linha) => [
+        fonte.disciplinas.map((linha) => [
           linha.disciplinaId,
           // A final é a que decide; sem recuperação ela não existe, e aí a
           // anual é o resultado. Mostrar vazio esconderia a nota do aluno
@@ -180,8 +237,9 @@ export async function ataDeResultadoFinal(
           linha.mediaFinal ?? linha.mediaAnual,
         ]),
       ),
-      percentualDeFrequencia,
-      situacao: ROTULOS_DE_SITUACAO[montado.situacao],
+      percentualDeFrequencia: fonte.percentualDeFrequencia,
+      situacao: ROTULOS_DE_SITUACAO[fonte.situacao],
+      doBoletimManual: oficial === "manual",
     };
   });
 
@@ -209,6 +267,24 @@ export async function ataDeResultadoFinal(
           : `${Math.round(l.percentualDeFrequencia * 100)}%`,
     },
     { titulo: "Situação", tipo: "texto", largura: 22, valor: (l) => l.situacao },
+
+    /*
+      A coluna só existe quando alguma linha veio de um boletim 2. Numa
+      turma em que ninguém tem, ela seria uma coluna vazia em toda ata —
+      e quem assina pararia de olhar para ela justamente no dia em que
+      ela tivesse conteúdo.
+    */
+    ...(linhas.some((linha) => linha.doBoletimManual)
+      ? [
+          {
+            titulo: "Origem",
+            tipo: "texto" as const,
+            largura: 22,
+            valor: (l: LinhaDoResultado) =>
+              l.doBoletimManual ? "Boletim 2 (secretaria)" : "Calculado",
+          },
+        ]
+      : []),
   ];
 
   return montarPlanilha({

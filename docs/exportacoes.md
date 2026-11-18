@@ -222,7 +222,29 @@ direto, que é a maioria.
 A turma inteira é carregada **de uma vez**: `boletimDoAluno` faz cinco
 consultas por aluno, e chamá-lo trinta vezes numa exportação seriam cento e
 cinquenta idas ao banco. Cada coleção é lida uma vez e cruzada em memória,
-como no relatório financeiro.
+como no relatório financeiro — e `boletinsManuais` entra nessa mesma
+leitura em lote.
+
+### Ela segue o boletim oficial
+
+Quando um aluno tem **boletim 2** marcado como oficial, é dele que saem as
+médias, a frequência e a situação daquela linha. A ata que a escola assina
+e o boletim que a família recebeu não podem discordar.
+
+A decisão é tomada por `quadroQueVale`, **a mesma função** da tela do
+boletim, do Portal e da impressão. Repetir a escolha aqui seria uma segunda
+versão dela, e é entre a ata e o boletim que divergir dói mais: os dois
+saem assinados.
+
+A linha vem inteira de uma fonte só — misturar a média de um com a situação
+do outro produziria uma linha que não existe em documento nenhum. As
+**colunas** continuam vindo da grade da turma: disciplina que está no
+boletim 2 e já não está na grade não ganha coluna, e o contrário sai vazio.
+
+A planilha ganha a coluna **Origem** ("Boletim 2 (secretaria)" ou
+"Calculado"), e **só quando alguma linha veio de um boletim 2**. Numa turma
+em que ninguém tem, ela seria uma coluna vazia em toda ata — e quem assina
+pararia de olhar para ela justamente no dia em que tivesse conteúdo.
 
 > ⚠️ **A ata depende dos vínculos e das notas.** As colunas vêm das
 > **alocações** da turma (Configurações › Vínculos) e os valores, das notas

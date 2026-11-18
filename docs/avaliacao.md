@@ -145,6 +145,26 @@ família lê só quando é o oficial, e só o do próprio aluno.
 Toda criação, edição, troca de oficial e exclusão sai na auditoria, com
 nome e hora.
 
+### A ata de resultado final segue o oficial
+
+Decisão do colégio, e a única coerente: **a ata que a escola assina e o
+boletim que a família recebeu não podem discordar**. Quando um aluno tem
+boletim 2 oficial, é dele que saem as médias, a frequência e a situação
+daquela linha.
+
+A ata chama **a mesma** `quadroQueVale` da tela e da impressão. Repetir a
+escolha lá seria uma segunda versão dela — e é entre a ata e o boletim
+que divergir dói mais, porque os dois saem assinados.
+
+A linha vem inteira de uma fonte só: misturar a média de um com a
+situação do outro produziria uma linha que não existe em documento
+nenhum.
+
+A planilha ganha a coluna **Origem** — "Boletim 2 (secretaria)" ou
+"Calculado" — e **só quando alguma linha veio de um boletim 2**. Numa
+turma em que ninguém tem, ela seria uma coluna vazia em toda ata, e quem
+assina pararia de olhar para ela no dia em que tivesse conteúdo.
+
 ## 2. As contas
 
 ```

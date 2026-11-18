@@ -98,6 +98,30 @@ describe("qual boletim vale", () => {
     expect(quadro.situacao).toBe("aprovado");
     expect(quadro.observacoes).toBe("Conselho de classe");
     expect(quadro.rotulos).toEqual({ av: "PROVA" });
+
+    // A frequência também vem do boletim 2 — é ela que a **ata de
+    // resultado final** imprime, e a ata segue o boletim oficial.
+    expect(quadro.percentualDeFrequencia).toBe(0.9);
+  });
+
+  it("a ata e o boletim não podem discordar", () => {
+    // A ata de resultado final chama esta mesma função, de propósito:
+    // dois lugares decidindo qual boletim vale é como a planilha que a
+    // escola assina passa a dizer outra coisa do que a família recebeu.
+    const comBoletim2 = {
+      oficial: "manual" as const,
+      manual: manual({ oficial: true, situacao: "aprovado" }),
+      disciplinas: [linha({ mediaFinal: 4 })],
+      faltasPorTrimestre: {},
+      percentualDeFrequencia: 0.5,
+      situacao: "reprovado" as const,
+    };
+
+    const quadro = quadroQueVale(comBoletim2);
+
+    expect(quadro.disciplinas[0].mediaFinal).toBe(10);
+    expect(quadro.situacao).toBe("aprovado");
+    expect(quadro.percentualDeFrequencia).toBe(0.9);
   });
 
   it("não sendo oficial, o quadro é o calculado e sem rótulos próprios", () => {

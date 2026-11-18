@@ -280,8 +280,10 @@ Referência de requisitos: [README.md](README.md).
 - [x] Professor não lê; regra no emulador
 - [x] Aviso na tela: o app ainda mostra o calculado
 - [ ] App Android ler `boletinsManuais` — contrato entregue (item 12)
-- [ ] Decidir se a **ata de resultado final** segue o boletim oficial:
-      hoje ela sai do calculado, e os dois podem discordar
+- [x] A **ata de resultado final** segue o oficial, pela mesma
+      `quadroQueVale` — a ata assinada e o boletim recebido não podem
+      discordar
+- [x] Coluna "Origem" na ata, e só quando alguma linha veio do boletim 2
 
 ### 3.29 Ajuda interativa dentro do Portal
 
