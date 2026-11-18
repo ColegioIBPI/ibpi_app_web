@@ -14,6 +14,7 @@ import {
   trimestresLiberados,
   ultimoLiberado,
 } from "@/features/notas/domain/liberacao";
+import { quadroQueVale } from "@/features/notas/domain/boletim-manual";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };
@@ -100,6 +101,15 @@ export default async function BoletimDoPortalPage({
       ) : (
         boletins.map((boletim) => {
           const liberados = trimestresLiberados(boletim);
+          const quadro = quadroQueVale(boletim);
+
+          /*
+            Com o boletim 2 oficial, é a marcação dele que libera — ele é
+            do ano inteiro e escrito à mão, e não tem trimestre a liberar.
+            A trava por trimestre continua valendo para o calculado.
+          */
+          const liberado =
+            boletim.oficial === "manual" || liberados.length > 0;
 
           /**
            * Sem nenhum trimestre liberado, a família **não vê grade
@@ -109,7 +119,7 @@ export default async function BoletimDoPortalPage({
            * nada, e a ligação para a secretaria seria a mesma que a
            * liberação quis evitar.
            */
-          if (liberados.length === 0) {
+          if (!liberado) {
             return (
               <Card key={boletim.matricula} title={boletim.nome}>
                 <EmptyState
@@ -130,21 +140,25 @@ export default async function BoletimDoPortalPage({
               serie={boletim.serie}
               dataMatricula={boletim.dataMatricula}
               anoLetivo={boletim.anoLetivo}
-              disciplinas={boletim.disciplinas}
-              faltasPorTrimestre={boletim.faltasPorTrimestre}
-              percentualDeFrequencia={boletim.percentualDeFrequencia}
-              situacao={boletim.situacao}
+              disciplinas={quadro.disciplinas}
+              faltasPorTrimestre={quadro.faltasPorTrimestre}
+              percentualDeFrequencia={quadro.percentualDeFrequencia}
+              situacao={quadro.situacao}
               projetoBilingue={boletim.documento?.projetoBilingue}
               eletivas={boletim.documento?.eletivas}
               dependencias={boletim.dependencias}
-              observacoes={boletim.documento?.observacoes}
+              observacoes={quadro.observacoes}
+              rotulos={quadro.rotulos}
+              ocultas={quadro.ocultas}
             />
 
             {/* Qual trimestre a família está vendo. Sem isto, quem abre
                 em novembro com só o 1º liberado acha que o colégio parou
                 de lançar nota. */}
             <p className="text-ink-muted mt-4 text-xs">
-              {liberados.length === TRIMESTRES.length
+              {boletim.oficial === "manual"
+                ? "Boletim emitido pela secretaria."
+                : liberados.length === TRIMESTRES.length
                 ? "Todos os trimestres liberados."
                 : `Liberado até o ${ultimoLiberado(boletim)}º trimestre. Os demais aparecem quando o colégio publicar.`}
             </p>

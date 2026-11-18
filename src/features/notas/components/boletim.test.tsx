@@ -185,3 +185,73 @@ describe("coluna META", () => {
     expect(screen.queryByText("META")).not.toBeInTheDocument();
   });
 });
+
+describe("Boletim 2 — rótulos e colunas", () => {
+  /**
+   * A grade de disciplinas, e não a página toda.
+   *
+   * "REC" e "SITUAÇÃO" também aparecem nos blocos de Projeto Bilíngue e
+   * de eletivas — procurar na página inteira acharia os de lá e diria
+   * que a coluna continua visível quando ela já saiu.
+   */
+  const grade = () =>
+    within(
+      screen.getByRole("table", {
+        name: /Notas por disciplina e trimestre/,
+      }),
+    );
+
+  it("sem rótulos próprios, imprime o quadro do colégio", () => {
+    // A garantia que importa: o boletim calculado não mudou de aparência
+    // por causa do boletim 2.
+    montar();
+
+    expect(grade().getAllByText("DISCIPLINA").length).toBe(1);
+    expect(grade().getAllByText("AV").length).toBe(3);
+    expect(grade().getAllByText("TOTAL").length).toBe(1);
+    expect(grade().getAllByText("REC").length).toBe(1);
+    expect(grade().getAllByText("SITUAÇÃO").length).toBe(1);
+  });
+
+  it("troca o título de uma coluna em todos os trimestres", () => {
+    montar({ rotulos: { av: "PROVA", disciplina: "MATÉRIA" } });
+
+    expect(grade().getAllByText("PROVA").length).toBe(3);
+    expect(grade().queryByText("AV")).not.toBeInTheDocument();
+    expect(grade().getByText("MATÉRIA")).toBeInTheDocument();
+  });
+
+  it("esconder uma coluna tira o título e as células", () => {
+    const { container } = montar({ ocultas: ["recuperacao", "situacao"] });
+
+    expect(grade().queryByText("REC")).not.toBeInTheDocument();
+    expect(grade().queryByText("SITUAÇÃO")).not.toBeInTheDocument();
+    // E a grade encolhe de verdade, em vez de deixar célula vazia.
+    expect(container.querySelectorAll("colgroup col").length).toBe(1 + 12 + 2);
+  });
+
+  it("esconder uma avaliação encolhe o cabeçalho do trimestre", () => {
+    const { container } = montar({ ocultas: ["tarefas"] });
+
+    expect(grade().queryByText("TAREFAS")).not.toBeInTheDocument();
+    // Cada trimestre passa a ter três colunas, e o cabeçalho agrupado
+    // precisa acompanhar — senão a tabela sai torta no papel.
+    expect(container.querySelector('th[scope="colgroup"]')).toHaveAttribute(
+      "colspan",
+      "3",
+    );
+  });
+
+  it("não deixa esconder disciplina nem as médias", () => {
+    // Sem elas o quadro deixa de ser boletim.
+    montar({ ocultas: ["disciplina", "media", "mediaFinal"] });
+
+    expect(grade().getByText("DISCIPLINA")).toBeInTheDocument();
+    expect(grade().getAllByText("MÉDIA").length).toBe(4);
+  });
+
+  it("esconder as faltas tira a linha inteira", () => {
+    montar({ ocultas: ["faltas"] });
+    expect(grade().queryByText("Faltas")).not.toBeInTheDocument();
+  });
+});

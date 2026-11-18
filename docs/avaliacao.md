@@ -85,6 +85,66 @@ que um erro não derrube a liberação dos outros.
 
 ---
 
+## 1c. O boletim 2 — a cópia de valores fixos
+
+O boletim normal é **derivado**: refaz-se a cada leitura a partir das
+notas, e é por isso que uma correção do professor aparece na hora. O
+boletim 2 é o contrário, de propósito.
+
+`boletinsManuais/{ano}-{matrícula}` nasce como **retrato** do calculado —
+valor por valor, incluindo as médias já calculadas — e a partir daí
+**nada o recalcula**. O que a secretaria digitar é o que sai no papel.
+
+Existe porque há caso em que o número do boletim não é o número que a
+conta dá: aluno que chega transferido com notas de outra escola,
+adaptação curricular, decisão de conselho de classe. Hoje isso se resolve
+fora do sistema, e o que a família recebe deixa de ter origem.
+
+### Guarda as mesmas linhas do calculado
+
+`LinhaDoBoletim`, e não um formato próprio. É o que permite **o mesmo
+componente imprimir os dois** — dois formatos de boletim é como os dois
+acabam divergindo no detalhe que ninguém conferiu.
+
+A secretaria pode **renomear** cada coluna e **esconder** as que não usa.
+Três não se escondem (`COLUNAS_OBRIGATORIAS`): disciplina e as duas
+médias — sem elas o quadro deixa de ser boletim. O pedido é ignorado em
+vez de recusado: é a tela que não deve oferecer.
+
+### `oficial` é o que a família vê, e mora no próprio documento
+
+Um campo booleano no boletim 2, e não uma marca no calculado. A razão é a
+mesma de `notas.liberado`: a Security Rule precisa decidir **sem buscar
+outro documento**, e é assim que o aplicativo vai conseguir ler.
+
+Marcado, o Portal e a impressão entregam o boletim 2, e o calculado some
+para o aluno e o responsável. É também o **ato de liberação** deste
+documento: o calculado libera por trimestre; este, que é do ano inteiro e
+escrito à mão, tem esta caixa.
+
+> Consequência que vale saber: marcar o boletim 2 como oficial **passa
+> por cima da liberação por trimestre**. Um aluno sem nenhum trimestre
+> liberado passa a ver o boletim 2 inteiro. É deliberado — a secretaria
+> marcou a caixa —, e está escrito na Ajuda.
+
+### A média que não bate é permitida, e marcada
+
+`divergenciaDaMedia` compara a média digitada com as três avaliações
+daquele trimestre e devolve a calculada quando diferem em mais de 0,005 —
+a precisão que o boletim imprime. A tela **marca**, não impede: divergir é
+o ponto do recurso, e o aviso existe para a divergência ser escolhida em
+vez de ser um erro de digitação.
+
+### Quem vê
+
+Secretaria, coordenação e administração. O **professor não**: ele lança
+nota, e substituir o boletim de um aluno é ato de secretaria — um
+documento que contradiz o que ele lançou não é dele para conferir. A
+família lê só quando é o oficial, e só o do próprio aluno.
+
+Toda criação, edição, troca de oficial e exclusão sai na auditoria, com
+nome e hora.
+
 ## 2. As contas
 
 ```

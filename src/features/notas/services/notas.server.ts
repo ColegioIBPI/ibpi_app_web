@@ -2,8 +2,10 @@ import "server-only";
 
 import {
   COLECOES,
+  idDoBoletimManual,
   type Alocacao,
   type Boletim,
+  type BoletimManual,
   type DiarioDeClasse,
   type Disciplina,
   type FrequenciaDiaria,
@@ -22,6 +24,7 @@ import { contar, percentualDePresenca } from "@/core/escola/frequencia";
 import { getAdminDb } from "@/core/firebase/admin";
 import { isEquipe } from "@/core/auth/roles";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
+import { boletimQueVale } from "@/features/notas/domain/boletim-manual";
 import { somenteLiberadas } from "@/features/notas/domain/liberacao";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
@@ -109,6 +112,16 @@ export interface BoletimDoAluno extends BoletimMontado {
   documento: Boletim | null;
   /** Quais trimestres a família já pode ver. Vazio = nenhum. */
   liberacoes: Boletim["liberacoes"];
+  /**
+   * O boletim 2, quando existe.
+   *
+   * A equipe recebe sempre — é ela que confere os dois. A família só
+   * recebe quando ele é o oficial, e aí é o único que chega: mandar os
+   * dois e esconder um na tela entregaria o outro na resposta da rede.
+   */
+  manual: BoletimManual | null;
+  /** Qual dos dois vale para quem está olhando. */
+  oficial: "calculado" | "manual";
 }
 
 /**
@@ -127,18 +140,36 @@ export async function boletimDoAluno(
 
   const db = getAdminDb();
 
-  const [notasDocs, boletimDoc, percentual, grade] = await Promise.all([
-    db
-      .collection(COLECOES.notas)
-      .where("matricula", "==", matricula)
-      .where("anoLetivo", "==", anoLetivo)
-      .get(),
-    db.collection(COLECOES.boletins).doc(idDoBoletim(anoLetivo, matricula)).get(),
-    frequenciaGeral(matricula),
-    gradeDaTurma(aluno.turmaId ?? null, anoLetivo),
-  ]);
+  const [notasDocs, boletimDoc, manualDoc, percentual, grade] =
+    await Promise.all([
+      db
+        .collection(COLECOES.notas)
+        .where("matricula", "==", matricula)
+        .where("anoLetivo", "==", anoLetivo)
+        .get(),
+      db
+        .collection(COLECOES.boletins)
+        .doc(idDoBoletim(anoLetivo, matricula))
+        .get(),
+      db
+        .collection(COLECOES.boletinsManuais)
+        .doc(idDoBoletimManual(anoLetivo, matricula))
+        .get(),
+      frequenciaGeral(matricula),
+      gradeDaTurma(aluno.turmaId ?? null, anoLetivo),
+    ]);
 
   const documento = boletimDoc.exists ? (boletimDoc.data() as Boletim) : null;
+
+  const manualGravado = manualDoc.exists
+    ? (manualDoc.data() as BoletimManual)
+    : null;
+
+  const oficial = boletimQueVale(manualGravado);
+
+  // A família recebe o boletim 2 só quando ele é o oficial.
+  const manual =
+    isEquipe(sessao.role) || oficial === "manual" ? manualGravado : null;
 
   /**
    * A família recebe só os trimestres liberados.
@@ -168,6 +199,8 @@ export async function boletimDoAluno(
     percentualDeFrequencia: percentual,
     documento,
     liberacoes: documento?.liberacoes ?? {},
+    manual,
+    oficial,
     ...montarBoletim({
       notas,
       recuperacoes: documento?.recuperacoes ?? {},

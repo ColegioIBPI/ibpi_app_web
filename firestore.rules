@@ -249,6 +249,25 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // O **boletim 2**: a cópia de valores fixos que a secretaria edita.
+    //
+    // A família lê **só quando ele é o oficial**, e a trava é o campo
+    // `oficial` dentro do próprio documento. Ele fica aqui, e não como uma
+    // marca no boletim calculado, justamente por isso: a regra precisa
+    // decidir sem buscar outro documento, como já acontece com
+    // `notas.liberado`.
+    //
+    // O **professor não lê**. Ele lança nota; substituir o boletim de um
+    // aluno é ato de secretaria, e um documento que contradiz o que ele
+    // lançou não é dele para conferir.
+    match /boletinsManuais/{id} {
+      allow read: if secretariaOuCoordenacao()
+                  || (resource.data.oficial == true
+                      && (ehProprioAluno(resource.data.matricula)
+                          || ehFilho(resource.data.matricula)));
+      allow write: if false;
+    }
+
     match /boletins/{id} {
       allow read: if secretariaOuCoordenacao()
                   || professorDaTurma(resource.data.turmaId)

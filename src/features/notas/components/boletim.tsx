@@ -3,6 +3,8 @@ import Image from "next/image";
 import { formatDate, formatGrade } from "@/core/lib/format";
 import {
   ROTULOS_DE_SITUACAO,
+  type BoletimManual,
+  type ColunaDoBoletim,
   type Dependencia,
   type Eletiva,
   type LinhaDoBoletim,
@@ -14,6 +16,10 @@ import {
   linhaDoBilingue,
   ordenarDisciplinas,
 } from "@/features/notas/domain/boletim";
+import {
+  colunaVisivel,
+  rotuloDaColuna,
+} from "@/features/notas/domain/boletim-manual";
 
 /**
  * Boletim escolar, no formato que o colégio emite.
@@ -43,6 +49,13 @@ export interface BoletimProps {
   eletivas?: Eletiva[];
   dependencias?: Dependencia[];
   observacoes?: string | null;
+  /**
+   * Rótulos e colunas escondidas, quando o que está sendo impresso é o
+   * **boletim 2**. Ausentes, vale o quadro do colégio — e a saída é
+   * exatamente a de antes deste recurso existir.
+   */
+  rotulos?: BoletimManual["rotulos"];
+  ocultas?: ColunaDoBoletim[];
 }
 
 const TRIMESTRES = ["1", "2", "3"] as const;
@@ -75,6 +88,8 @@ export function Boletim({
   eletivas = [],
   dependencias = [],
   observacoes,
+  rotulos,
+  ocultas,
 }: BoletimProps) {
   const bilingue = linhaDoBilingue(projetoBilingue);
 
@@ -125,6 +140,8 @@ export function Boletim({
       <GradeDeDisciplinas
         linhas={grade}
         faltasPorTrimestre={faltasPorTrimestre}
+        rotulos={rotulos}
+        ocultas={ocultas}
       />
 
       <p className="mt-0.5 mb-1 text-right text-[9px]">
@@ -221,27 +238,60 @@ function Faixa({ children }: { children: React.ReactNode }) {
 function GradeDeDisciplinas({
   linhas,
   faltasPorTrimestre,
+  rotulos,
+  ocultas,
 }: {
   linhas: LinhaDoBoletim[];
   faltasPorTrimestre: Record<string, number>;
+  rotulos?: BoletimManual["rotulos"];
+  ocultas?: ColunaDoBoletim[];
 }) {
+  const rotulo = (coluna: ColunaDoBoletim) => rotuloDaColuna(coluna, rotulos);
+
+  /*
+    As colunas que sobram depois do que a secretaria escondeu no boletim
+    2. No boletim calculado `ocultas` não existe, e todas ficam — a saída
+    é exatamente a de antes.
+
+    `media` e `mediaFinal` não entram no filtro: sem elas o quadro deixa
+    de ser boletim (ver `COLUNAS_OBRIGATORIAS`).
+  */
+  const doTrimestre = AVALIACOES.filter((campo) => colunaVisivel(campo, ocultas));
+  const colunasDoTrimestre = [...doTrimestre, "media" as const];
+
+  const finais = (
+    [
+      { coluna: "total", campo: "mediaParcial" },
+      { coluna: "recuperacao", campo: "recuperacao" },
+      { coluna: "mediaFinal", campo: "mediaFinal" },
+      { coluna: "situacao", campo: "situacao" },
+    ] as const
+  ).filter((item) => colunaVisivel(item.coluna, ocultas));
+
   return (
     <table className="w-full table-fixed border-separate border-spacing-[1px]">
       <caption className="sr-only">
         Notas por disciplina e trimestre, média anual e situação
       </caption>
 
+      {/*
+        As larguras somam mais de 100% desde sempre — o navegador
+        normaliza. Por isso esconder uma coluna não exige recalcular
+        nada: as que ficam se redistribuem sozinhas.
+      */}
       <colgroup>
         <col className="w-[19%]" />
         {TRIMESTRES.map((t) =>
-          [...AVALIACOES, "media"].map((campo) => (
+          colunasDoTrimestre.map((campo) => (
             <col key={`${t}-${campo}`} className="w-[5.2%]" />
           )),
         )}
-        <col className="w-[6%]" />
-        <col className="w-[5%]" />
-        <col className="w-[6%]" />
-        <col className="w-[11%]" />
+        {finais.map((item) => (
+          <col
+            key={item.coluna}
+            className={item.coluna === "situacao" ? "w-[11%]" : "w-[6%]"}
+          />
+        ))}
       </colgroup>
 
       <thead>
@@ -251,13 +301,13 @@ function GradeDeDisciplinas({
             <th
               key={t}
               scope="colgroup"
-              colSpan={4}
+              colSpan={colunasDoTrimestre.length}
               className="bg-[#F8CBAD] py-0.5 text-center text-[9px] font-bold"
             >
               {t}º TRI
             </th>
           ))}
-          <td colSpan={4} />
+          <td colSpan={finais.length} />
         </tr>
 
         <tr>
@@ -265,20 +315,20 @@ function GradeDeDisciplinas({
             scope="col"
             className="bg-[#8EAADB] py-0.5 text-center text-[9px] font-bold"
           >
-            DISCIPLINA
+            {rotulo("disciplina")}
           </th>
 
           {TRIMESTRES.map((t) => (
-            <Cabecalhos key={t} />
+            <Cabecalhos key={t} colunas={colunasDoTrimestre} rotulo={rotulo} />
           ))}
 
-          {["TOTAL", "REC", "MÉDIA", "SITUAÇÃO"].map((titulo) => (
+          {finais.map((item) => (
             <th
-              key={titulo}
+              key={item.coluna}
               scope="col"
               className="bg-[#B4C6E7] py-0.5 text-center text-[9px] font-bold"
             >
-              {titulo}
+              {rotulo(item.coluna)}
             </th>
           ))}
 
@@ -302,52 +352,76 @@ function GradeDeDisciplinas({
                 <Trimestre
                   key={t}
                   fundo={fundo}
+                  colunas={doTrimestre}
                   avaliacoes={linha.trimestres?.[t]}
                   media={linha.mediasPorTrimestre?.[t] ?? null}
                 />
               ))}
 
-              <Celula fundo={fundo} negrito valor={linha.mediaParcial} />
-              <Celula fundo={fundo} valor={linha.recuperacao} />
-              <Celula fundo={fundo} negrito valor={linha.mediaFinal} />
-              <td className={`${fundo} text-center text-[9px] font-bold`}>
-                {linha.mediaAnual === null
-                  ? ""
-                  : ROTULOS_DE_SITUACAO[linha.situacao]}
-              </td>
+              {finais.map((item) =>
+                item.campo === "situacao" ? (
+                  <td
+                    key={item.coluna}
+                    className={`${fundo} text-center text-[9px] font-bold`}
+                  >
+                    {linha.mediaAnual === null
+                      ? ""
+                      : ROTULOS_DE_SITUACAO[linha.situacao]}
+                  </td>
+                ) : (
+                  <Celula
+                    key={item.coluna}
+                    fundo={fundo}
+                    negrito={item.campo !== "recuperacao"}
+                    valor={linha[item.campo]}
+                  />
+                ),
+              )}
             </tr>
           );
         })}
 
-        <tr>
-          <th
-            scope="row"
-            className="bg-[#D9E2F3] px-1 py-[1px] text-right text-[9px] font-bold"
-          >
-            Faltas
-          </th>
+        {colunaVisivel("faltas", ocultas) && (
+          <tr>
+            <th
+              scope="row"
+              className="bg-[#D9E2F3] px-1 py-[1px] text-right text-[9px] font-bold"
+            >
+              {rotulo("faltas")}
+            </th>
 
-          {TRIMESTRES.map((t) => (
-            <Faltas key={t} total={faltasPorTrimestre[t] ?? 0} />
-          ))}
+            {TRIMESTRES.map((t) => (
+              <Faltas
+                key={t}
+                vazias={doTrimestre.length}
+                total={faltasPorTrimestre[t] ?? 0}
+              />
+            ))}
 
-          <td colSpan={4} />
-        </tr>
+            <td colSpan={finais.length} />
+          </tr>
+        )}
       </tbody>
     </table>
   );
 }
 
-function Cabecalhos() {
+function Cabecalhos({
+  colunas,
+  rotulo,
+}: {
+  colunas: readonly ColunaDoBoletim[];
+  rotulo: (coluna: ColunaDoBoletim) => string;
+}) {
   return (
     <>
-      {["PROJETO", "TAREFAS", "AV", "MÉDIA"].map((titulo) => (
+      {colunas.map((coluna) => (
         <th
-          key={titulo}
+          key={coluna}
           scope="col"
           className="bg-[#B4C6E7] px-px py-0.5 text-center text-[7px] font-bold"
         >
-          {titulo}
+          {rotulo(coluna)}
         </th>
       ))}
     </>
@@ -356,16 +430,18 @@ function Cabecalhos() {
 
 function Trimestre({
   fundo,
+  colunas,
   avaliacoes,
   media,
 }: {
   fundo: string;
+  colunas: readonly (typeof AVALIACOES)[number][];
   avaliacoes?: { projeto: number | null; tarefas: number | null; av: number | null };
   media: number | null;
 }) {
   return (
     <>
-      {AVALIACOES.map((campo) => (
+      {colunas.map((campo) => (
         <Celula key={campo} fundo={fundo} valor={avaliacoes?.[campo] ?? null} />
       ))}
       <Celula fundo={fundo} negrito valor={media} />
@@ -398,11 +474,16 @@ function Celula({
   );
 }
 
-/** As faltas do trimestre ficam na coluna da média, como na planilha. */
-function Faltas({ total }: { total: number }) {
+/**
+ * As faltas do trimestre ficam na coluna da média, como na planilha.
+ *
+ * `vazias` é quantas colunas de avaliação sobraram antes dela — três no
+ * boletim do colégio, menos quando o boletim 2 esconde alguma.
+ */
+function Faltas({ vazias, total }: { vazias: number; total: number }) {
   return (
     <>
-      <td colSpan={3} />
+      {vazias > 0 && <td colSpan={vazias} />}
       <td className="bg-[#D9E2F3] text-center text-[9px] font-bold tabular-nums">
         {total > 0 ? total : ""}
       </td>

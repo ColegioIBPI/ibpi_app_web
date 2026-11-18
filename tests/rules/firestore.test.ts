@@ -150,6 +150,20 @@ beforeEach(async () => {
     await setDoc(doc(db, "matriculas/m1"), { ...vinculo, anoLetivo: 2026 });
     await setDoc(doc(db, "notas/n1"), { ...vinculo, projeto: 8 });
     await setDoc(doc(db, "boletins/b1"), vinculo);
+    await setDoc(doc(db, "boletinsManuais/2026-1001"), {
+      anoLetivo: 2026,
+      matricula: FILHO,
+      titulo: "Boletim 2",
+      oficial: false,
+      disciplinas: [],
+    });
+    await setDoc(doc(db, "boletinsManuais/2026-2002"), {
+      anoLetivo: 2026,
+      matricula: OUTRO_ALUNO,
+      titulo: "Boletim 2",
+      oficial: true,
+      disciplinas: [],
+    });
     await setDoc(doc(db, "frequenciaDiaria/f1"), { ...vinculo, situacao: "F" });
     await setDoc(doc(db, "ocorrencias/o1"), {
       ...vinculo,
@@ -1036,6 +1050,60 @@ describe("liberação do boletim", () => {
   });
 });
 
+describe("boletim 2", () => {
+  it("a secretaria e a coordenação leem, oficial ou não", async () => {
+    // São elas que conferem os dois e decidem qual vale.
+    const { secretaria, coordenacao, admin } = contextos();
+
+    for (const contexto of [secretaria, coordenacao, admin]) {
+      await assertSucceeds(ler(contexto, "boletinsManuais/2026-1001"));
+    }
+  });
+
+  it("a família NÃO lê o boletim 2 que não é oficial", async () => {
+    // Ele existe para conferência da equipe até alguém marcar a caixa.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "boletinsManuais/2026-1001"));
+    await assertFails(ler(aluno, "boletinsManuais/2026-1001"));
+  });
+
+  it("marcado como oficial, a família daquele aluno lê", async () => {
+    const { outroResponsavel } = contextos();
+    await assertSucceeds(ler(outroResponsavel, "boletinsManuais/2026-2002"));
+  });
+
+  it("oficial não abre o boletim de outro aluno", async () => {
+    // `oficial` libera o documento, não a escola.
+    const { responsavel, aluno } = contextos();
+
+    await assertFails(ler(responsavel, "boletinsManuais/2026-2002"));
+    await assertFails(ler(aluno, "boletinsManuais/2026-2002"));
+  });
+
+  it("o professor não lê, nem o da turma dele", async () => {
+    // Ele lança nota; substituir o boletim de um aluno é ato de
+    // secretaria, e um documento que contradiz o que ele lançou não é
+    // dele para conferir.
+    const { professor } = contextos();
+    await assertFails(ler(professor, "boletinsManuais/2026-1001"));
+  });
+
+  it("o financeiro não lê", async () => {
+    const { financeiro } = contextos();
+    await assertFails(ler(financeiro, "boletinsManuais/2026-1001"));
+  });
+
+  it("ninguém escreve pelo cliente", async () => {
+    const { secretaria } = contextos();
+    await assertFails(
+      setDoc(doc(secretaria.firestore(), "boletinsManuais/2026-1001"), {
+        oficial: true,
+      }),
+    );
+  });
+});
+
 describe("publicação das ocorrências", () => {
   it("a equipe lê qualquer ocorrência, inclusive a retida", async () => {
     const { secretaria, coordenacao, admin } = contextos();
@@ -1274,6 +1342,7 @@ describe("administração — a chave mestra", () => {
       "matriculas/m1",
       "notas/n1",
       "boletins/b1",
+      "boletinsManuais/2026-1001",
       "frequenciaDiaria/f1",
       "ocorrencias/o1",
       "cobrancas/c1",

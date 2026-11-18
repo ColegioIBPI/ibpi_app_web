@@ -29,6 +29,7 @@ export * from "@/core/modelo/boleto";
 export * from "@/core/modelo/entrega";
 export * from "@/core/modelo/recibo";
 export * from "@/core/modelo/curso";
+export * from "@/core/modelo/boletim-manual";
 export * from "@/core/modelo/criterio";
 export * from "@/core/modelo/usuario";
 
@@ -49,6 +50,7 @@ export const COLECOES = {
   ocorrencias: "ocorrencias",
   notas: "notas",
   boletins: "boletins",
+  boletinsManuais: "boletinsManuais",
   cobrancas: "cobrancas",
   contratos: "contratos",
   planosDePagamento: "planosDePagamento",

@@ -207,6 +207,58 @@ duas vezes.
 Vale para quando a seção 3 abrir, e para qualquer coisa que leia esta
 coleção no futuro.
 
+### 12. `boletinsManuais` — o boletim 2, e ele pode substituir o boletim
+
+A secretaria ganhou a opção de emitir um **segundo boletim** para um
+aluno: uma cópia do calculado, com valores fixos que ela edita à mão e
+títulos de coluna próprios. É para o caso em que o número do boletim não
+é o que a conta dá — aluno transferido com notas de outra escola,
+adaptação curricular, decisão de conselho.
+
+**Quando ela marca esse boletim como oficial, ele é o boletim daquele
+aluno** — no Portal e na impressão já vale. O app ainda mostra o
+calculado, porque lê `notas` direto e não conhece este documento.
+**Enquanto vocês não tratarem isto, a família pode ver no aplicativo um
+boletim diferente do que o colégio emitiu.**
+
+```
+boletinsManuais/{ano}-{matrícula} = {
+  anoLetivo: number,
+  matricula: string,
+  titulo: string,                 // "Boletim 2"
+  oficial: boolean,               // ← a trava: true = é este que vale
+  rotulos: { av: "PROVA", ... },  // título trocado por coluna; ausente = padrão
+  ocultas: ["recuperacao"],       // colunas escondidas
+  disciplinas: [ /* LinhaDoBoletim, igual ao boletim calculado */ ],
+  faltasPorTrimestre: { "1": 4 },
+  percentualDeFrequencia: number | null,
+  situacao: "cursando" | "aprovado" | ...,
+  observacoes: string | null
+}
+```
+
+O que fazer, quando forem implementar:
+
+1. Ler `boletinsManuais/{ano}-{matrícula}` junto do boletim.
+2. **Se existir e `oficial == true`, mostrar este e ignorar as notas** —
+   não some, não misture, não mostre os dois.
+3. Respeitar `rotulos` nos títulos das colunas e `ocultas` para não
+   desenhar as que saíram.
+4. Se não existir, ou `oficial == false`, nada muda: continua o de hoje.
+
+**A regra do Firestore já está publicada.** A família lê este documento
+**só quando `oficial == true`**, e só o do próprio aluno — a consulta
+falha nos outros casos, como no resto do sistema.
+
+> **`oficial` também libera.** O boletim calculado tem liberação por
+> trimestre (`notas.liberado`); o boletim 2 é do ano inteiro, e esta
+> marca faz o papel dela. Um aluno sem nenhum trimestre liberado pode ter
+> um boletim 2 oficial para ver.
+>
+> As linhas são `LinhaDoBoletim`, a mesma forma que vocês já montam a
+> partir das notas — o desenho da tabela não muda, só a origem dos
+> números.
+
 ### Ainda não entrou
 
 - **Recibos** existem no Portal e **a família ainda não os lê** pelo app.

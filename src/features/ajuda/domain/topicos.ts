@@ -371,6 +371,62 @@ export const TOPICOS: Topico[] = [
   },
 
   {
+    id: "boletim-2",
+    titulo: "O boletim 2, quando o número não é o da conta",
+    resumo: "Uma cópia com valores fixos, que você edita e marca como oficial.",
+    perfis: ["secretaria", "coordenacao", "admin"],
+    onde: "Gestão › Boletins › (aluno)",
+    blocos: [
+      {
+        tipo: "paragrafo",
+        texto:
+          "O boletim normal é **calculado**: ele se refaz a partir das notas que os professores lançam, e por isso uma correção aparece na hora. O **boletim 2** é o contrário, de propósito — ele nasce como cópia e, a partir daí, **nada o recalcula**. O valor que você digitar é o que sai no papel.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Serve para quando o número do boletim não é o número que a conta dá: aluno que chega transferido com notas de outra escola, adaptação curricular, decisão de conselho de classe.",
+      },
+      {
+        tipo: "passos",
+        itens: [
+          "**Criar o boletim 2** — ele copia tudo o que já está lançado.",
+          "**Conferir e corrigir** o que precisar. Dá para renomear as colunas (trocar “AV” por “PROVA”, por exemplo) e esconder as que não usa.",
+          "**Salvar.**",
+          "**Marcar “Este é o boletim oficial”** quando estiver certo.",
+        ],
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "Enquanto a caixa **não** estiver marcada, a família continua vendo o calculado — o boletim 2 existe só para a equipe. Marcada, ele passa a ser o que o aluno e o responsável veem no Portal, e o que sai na impressão.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "**Marcar como oficial também libera.** O boletim calculado tem a liberação por trimestre; o boletim 2 é do ano inteiro, e esta caixa faz o papel dela. Um aluno sem nenhum trimestre liberado passa a ver o boletim 2 inteiro.",
+      },
+      {
+        tipo: "aviso",
+        tom: "nota",
+        texto:
+          "No **aplicativo** a família ainda vê o calculado: ele lê as notas direto e ainda não conhece o boletim 2. A tela avisa quando isso vale. No Portal e na impressão o oficial já vale.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Se uma média que você digitou **não bate** com as três notas daquele trimestre, aparece um aviso pequeno com o valor que a conta daria. Não impede nada — divergir é o ponto deste boletim —, mas é assim que um erro de digitação não passa despercebido.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "**Apagar o boletim 2** devolve o calculado ao lugar dele. O professor não enxerga este documento; quem o cria, edita e marca fica registrado.",
+      },
+    ],
+  },
+
+  {
     id: "o-que-o-boletim-calcula",
     rotas: ["/gestao/notas"],
     titulo: "O que o boletim calcula",

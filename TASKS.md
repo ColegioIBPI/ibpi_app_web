@@ -261,6 +261,28 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.30 Boletim 2 — a cópia de valores fixos
+
+> Pedido do colégio: um segundo boletim, cópia do calculado, com valores
+> que a secretaria fixa à mão, e uma marca dizendo qual dos dois vale.
+> Para quando o número do boletim não é o que a conta dá.
+
+- [x] `boletinsManuais/{ano}-{matrícula}`: retrato do calculado, e nada
+      o recalcula depois
+- [x] Guarda `LinhaDoBoletim` — o **mesmo componente** imprime os dois
+- [x] Renomear colunas e esconder as que não usa; disciplina e as médias
+      não se escondem
+- [x] `oficial` no próprio documento, para a regra decidir sem buscar
+      outro — é assim que o app vai conseguir ler
+- [x] Portal e impressão respeitam o oficial; a escolha é feita num
+      lugar só (`quadroQueVale`)
+- [x] Aviso de média que não bate com as três notas: marca, não impede
+- [x] Professor não lê; regra no emulador
+- [x] Aviso na tela: o app ainda mostra o calculado
+- [ ] App Android ler `boletinsManuais` — contrato entregue (item 12)
+- [ ] Decidir se a **ata de resultado final** segue o boletim oficial:
+      hoje ela sai do calculado, e os dois podem discordar
+
 ### 3.29 Ajuda interativa dentro do Portal
 
 > O colégio pediu um lugar para consultar quando precisar. Ficou **dentro

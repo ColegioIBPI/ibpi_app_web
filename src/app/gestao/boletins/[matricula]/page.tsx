@@ -10,6 +10,8 @@ import { Card } from "@/core/ui/card";
 import { Boletim } from "@/features/notas/components/boletim";
 import { BlocosDoBoletim } from "@/features/notas/components/blocos-do-boletim";
 import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
+import { BoletimManualDoAluno } from "@/features/notas/components/boletim-manual";
+import { quadroQueVale } from "@/features/notas/domain/boletim-manual";
 import { boletimDoAluno } from "@/features/notas/services/notas.server";
 
 export const metadata: Metadata = { title: "Boletim" };
@@ -30,6 +32,10 @@ export default async function BoletimDoAlunoPage({
   const bilingue = boletim.documento?.projetoBilingue ?? null;
   const podeEditar = pode(sessao.role, "notas", "gerenciar");
 
+  // O quadro impresso é o oficial. A escolha é feita num lugar só, para a
+  // tela, o Portal e o papel não poderem discordar.
+  const quadro = quadroQueVale(boletim);
+
   return (
     <div className="flex flex-col gap-6">
       <div
@@ -48,6 +54,12 @@ export default async function BoletimDoAlunoPage({
           <h1 className="text-ink mt-2 text-xl font-semibold">
             Boletim de {boletim.nome}
           </h1>
+
+          {boletim.oficial === "manual" && (
+            <p className="border-warning bg-warning-surface text-warning mt-2 inline-block rounded-md border px-2 py-1 text-xs font-medium">
+              Valendo o boletim 2, emitido pela secretaria
+            </p>
+          )}
         </div>
 
         <BotaoDeImpressao />
@@ -62,16 +74,33 @@ export default async function BoletimDoAlunoPage({
           serie={boletim.serie}
           dataMatricula={boletim.dataMatricula}
           anoLetivo={boletim.anoLetivo}
-          disciplinas={boletim.disciplinas}
-          faltasPorTrimestre={boletim.faltasPorTrimestre}
-          percentualDeFrequencia={boletim.percentualDeFrequencia}
-          situacao={boletim.situacao}
+          disciplinas={quadro.disciplinas}
+          faltasPorTrimestre={quadro.faltasPorTrimestre}
+          percentualDeFrequencia={quadro.percentualDeFrequencia}
+          situacao={quadro.situacao}
           projetoBilingue={bilingue}
           eletivas={boletim.documento?.eletivas}
           dependencias={boletim.dependencias}
-          observacoes={boletim.documento?.observacoes}
+          observacoes={quadro.observacoes}
+          rotulos={quadro.rotulos}
+          ocultas={quadro.ocultas}
         />
       </Card>
+
+      {podeEditar && (
+        <div data-impressao="ocultar">
+          <Card
+            title="Boletim 2"
+            description="Uma cópia do boletim calculado, com valores fixos que a secretaria edita. Só a equipe vê os dois."
+          >
+            <BoletimManualDoAluno
+              matricula={boletim.matricula}
+              anoLetivo={boletim.anoLetivo}
+              manual={boletim.manual}
+            />
+          </Card>
+        </div>
+      )}
 
       {podeEditar && (
         <div data-impressao="ocultar">
