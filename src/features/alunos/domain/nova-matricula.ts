@@ -45,6 +45,24 @@ export function sequencialDaMatricula(
 }
 
 /**
+ * O ano em que o aluno **entrou**, lido do número da matrícula.
+ *
+ * Os dois primeiros dígitos são o ano de ingresso — é assim nos 74
+ * cadastros, que vão de `22` a `26`. Não é o ano que o aluno cursa: para
+ * isso existe o registro de matrícula do ano. Serve para uma pergunta
+ * só, e estreita: o aluno recém-cadastrado **sem turma** ainda não tem
+ * registro em ano nenhum, e sem isto ele sumiria da lista no instante em
+ * que foi criado.
+ *
+ * `null` para quem está fora do formato, como o `QA-0001` de teste.
+ */
+export function anoDeEntrada(matricula: string): number | null {
+  if (!new RegExp(`^\\d{2}\\d{${DIGITOS}}$`).test(matricula)) return null;
+
+  return 2000 + Number(matricula.slice(0, 2));
+}
+
+/**
  * O próximo número, dado o contador e a maior matrícula já existente.
  *
  * **Os dois, e o maior ganha.** O contador é o caminho rápido e é quem

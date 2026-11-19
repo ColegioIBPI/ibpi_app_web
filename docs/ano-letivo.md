@@ -40,11 +40,39 @@ turno e situação por ano. A regra está em
 - **`alunosDaTurmaNoAno`** — quem estava naquela turma naquele ano. Usado
   pela **ata de resultado final**, que sem isso sairia, em 2027, com os
   alunos de 2027.
+- **`alunosDoAno`** — a lista de alunos do ano, cada um já com a turma, a
+  série e o turno **daquele ano**. Usada pela tela `Alunos`.
 
 A queda para o cadastro cobre o ano em curso e o aluno criado sem registro
 de matrícula. A decisão é por **ano inteiro**: se o ano tem registro, ele
 manda em tudo, e uma turma sem ninguém nele é uma turma que ninguém
 cursou.
+
+### A lista de alunos do ano
+
+Pertence ao ano quem tem registro nele. Mais uma exceção estreita: o aluno
+**recém-cadastrado sem turma**, que não tem registro em ano nenhum, aparece
+no ano em que entrou — lido dos dois primeiros dígitos da matrícula
+(`anoDeEntrada`, em `domain/nova-matricula.ts`). Sem ela, a secretaria
+cadastraria um aluno sem turma e ele sumiria da lista no mesmo instante, e
+o jeito de "resolver" seria cadastrá-lo de novo, com outra matrícula.
+
+Quem sobra entra em `foraDoAno`, e a tela diz quantos são. **Lista que
+encolhe calada é a que faz a secretaria duvidar do sistema.**
+
+### Quem mantém o registro do ano
+
+Três ações gravam `matriculas/{ano}-{matrícula}`:
+
+| Ação | Quando grava |
+| --- | --- |
+| `criarAluno` | no cadastro novo, se uma turma foi escolhida |
+| `salvarAluno` | quando a ficha **muda a turma** do aluno |
+| `passarAlunosDeTurma` | na abertura do ano seguinte |
+
+`salvarAluno` escolhe a turma **do ano selecionado** quando o mesmo código
+existe em mais de um ano: pegar a mais recente colocaria em 2027 o aluno de
+quem só se corrigiu o nome em 2026.
 
 ## O seletor
 
@@ -121,12 +149,29 @@ ano anterior continuam de lá, pelo registro daquele ano.
 > A **série** nasce vazia no registro novo, em vez de repetir a do ano
 > anterior: repetida, ela estaria errada em todo aluno promovido.
 
+## As listas seguem o ano
+
+`Alunos` e `Turmas` mostram **o ano selecionado**, e dizem qual no
+subtítulo.
+
+Em `Turmas`, a tela mostrava todos os anos de uma vez, com `EM1A` repetida
+uma vez por ano: dava para clicar na de 2026 achando que era a de 2027 e
+lançar nota no ano errado. A coluna `ALUNOS` conta pelo **registro de
+matrícula daquele ano** quando ele existe, cruzado com o `ativo` do
+cadastro — o mesmo critério da lista de alunos, para que o número da turma
+bata com a lista que ela abre.
+
+Ano aberto e ainda sem ninguém é o estado normal de quem acabou de copiar
+a estrutura: as duas telas dizem qual é o próximo passo, em vez de deixar a
+secretaria concluir que perdeu os alunos.
+
 ## O que ainda não segue o ano
 
-O painel da tela inicial acerta o que vem de turma — chamada do dia,
-turmas sem grade. **Aluno e financeiro não**: `alunos` é um cadastro só,
-sem recorte por ano, e `cobrancas` não tem ano letivo. Num ano ainda não
-montado, "boletins não liberados" conta a escola inteira.
-
-Isso se resolve junto com a **abertura do ano** — o passo que cria os
-registros de matrícula do ano novo —, que ainda não existe.
+- **O painel da tela inicial** acerta o que vem de turma — chamada do dia,
+  turmas sem grade. **Aluno e financeiro não**: `cobrancas` não tem ano
+  letivo, e os indicadores de aluno ainda leem o cadastro inteiro.
+- **A situação da matrícula** só é gravada no cadastro. A tela de situação
+  em lote e a ficha não propagam para o registro do ano, então um aluno
+  cancelado hoje continua `ativa` no registro de 2026. Por isso as listas e
+  a contagem das turmas tiram o `ativo` do **cadastro**, e não do registro:
+  enquanto for assim, "situação" é a de hoje, não a do ano.

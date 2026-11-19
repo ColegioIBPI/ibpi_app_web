@@ -243,7 +243,7 @@ export function FormularioDoAluno({ aluno }: FormularioDoAlunoProps) {
         </Card>
       </div>
 
-      <div className="border-line bg-surface sticky bottom-0 flex items-center justify-end gap-3 border-t py-3">
+      <div className="border-line bg-surface sticky bottom-0 z-30 flex items-center justify-end gap-3 border-t py-3">
         {isDirty && (
           <span className="text-ink-muted mr-auto text-sm">
             Há alterações não salvas.

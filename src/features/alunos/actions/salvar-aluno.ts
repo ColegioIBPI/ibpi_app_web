@@ -5,13 +5,20 @@ import { revalidatePath } from "next/cache";
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { sincronizarChavesDoAluno } from "@/features/avisos/services/chaves.server";
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { getAdminDb } from "@/core/firebase/admin";
-import { COLECOES, type Turma } from "@/core/modelo";
+import {
+  COLECOES,
+  matriculaSchema,
+  type SituacaoDaMatricula,
+  type Turma,
+} from "@/core/modelo";
 import {
   formularioDoAlunoSchema,
   paraAluno,
   type FormularioDoAluno,
 } from "@/features/alunos/domain/formulario";
+import { idDaMatriculaDoAno } from "@/features/alunos/domain/matricula-do-ano";
 
 /**
  * Salva a edição do cadastro do aluno.
@@ -51,6 +58,7 @@ export async function salvarAluno(
 
   const aluno = paraAluno(formulario.data);
   const anterior = atual.data() ?? {};
+  const anoLetivo = await anoLetivoEscolhido();
 
   // Trocar a turma pelo código exige reapontar o vínculo. Deixar só o
   // código atualizado criaria um aluno que "está" numa turma e aparece na
@@ -58,6 +66,7 @@ export async function salvarAluno(
   const vinculo = await resolverVinculoDeTurma(
     aluno.turmaCodigo ?? null,
     anterior.turmaCodigo as string | undefined,
+    anoLetivo,
   );
 
   if (vinculo.erro) {
@@ -71,6 +80,38 @@ export async function salvarAluno(
     depois: { ...aluno, ...vinculo.campos },
     autor: sessao,
   });
+
+  /*
+    Vincular o aluno a uma turma é matriculá-lo no ano — e é o registro
+    de matrícula do ano que responde "quem cursou 2026, e em que turma".
+    Sem gravá-lo aqui, o aluno que ganha turma pela ficha ficaria fora da
+    lista do ano, do boletim e da ata, sem erro nenhum na tela.
+  */
+  if (vinculo.turma) {
+    await getAdminDb()
+      .collection(COLECOES.matriculas)
+      .doc(idDaMatriculaDoAno(vinculo.turma.anoLetivo, matricula))
+      .set(
+        matriculaSchema.parse({
+          matricula,
+          nome: aluno.nome,
+          anoLetivo: vinculo.turma.anoLetivo,
+          turmaId: vinculo.turma.id,
+          turmaCodigo: vinculo.turma.codigo,
+          segmento: vinculo.turma.segmento,
+          serie: aluno.serie ?? "",
+          turno: vinculo.turma.turno,
+          // A situação vem do documento gravado, não do formulário: a
+          // ficha edita o cadastro, e quem encerra matrícula é a tela de
+          // situação.
+          situacao:
+            (anterior.situacaoMatricula as SituacaoDaMatricula | undefined) ??
+            "ativa",
+          origem: "portal",
+        }),
+        { merge: true },
+      );
+  }
 
   // Turma e segmento do aluno viram chave de aviso — dele e de quem o
   // acompanha. Sem refazer as chaves, o aviso da turma nova não chegaria à
@@ -87,6 +128,8 @@ export async function salvarAluno(
 
 interface VinculoDeTurma {
   campos: Record<string, unknown>;
+  /** A turma resolvida, quando houve troca para uma turma de verdade. */
+  turma?: Turma & { id: string };
   erro?: string;
 }
 
@@ -99,6 +142,7 @@ interface VinculoDeTurma {
 async function resolverVinculoDeTurma(
   codigoNovo: string | null,
   codigoAnterior: string | undefined,
+  anoLetivo: number,
 ): Promise<VinculoDeTurma> {
   if ((codigoNovo ?? null) === (codigoAnterior ?? null)) return { campos: {} };
 
@@ -122,12 +166,22 @@ async function resolverVinculoDeTurma(
     };
   }
 
-  // Havendo a mesma turma em mais de um ano letivo, vale a mais recente.
-  const turma = encontradas.docs
-    .map((doc) => ({ id: doc.id, ...(doc.data() as Turma) }))
-    .sort((a, b) => b.anoLetivo - a.anoLetivo)[0];
+  const candidatas = encontradas.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Turma),
+  }));
+
+  /*
+    A mesma `EM1A` existe uma vez por ano letivo. Vale a do **ano em que
+    a secretaria está trabalhando** — pegar a mais recente colocaria em
+    2027 o aluno de quem só se corrigiu o nome em 2026.
+  */
+  const turma =
+    candidatas.find((item) => item.anoLetivo === anoLetivo) ??
+    [...candidatas].sort((a, b) => b.anoLetivo - a.anoLetivo)[0];
 
   return {
+    turma,
     campos: {
       turmaId: turma.id,
       segmento: turma.segmento,

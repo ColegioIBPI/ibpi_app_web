@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { ROTULOS_DE_TURNO } from "@/core/modelo";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
 import { listarCursos } from "@/features/cursos/services/cursos.server";
@@ -23,11 +24,17 @@ export const metadata: Metadata = { title: "Turmas" };
 
 export default async function TurmasPage() {
   const sessao = await exigirPermissao("cadastros", "gerenciar");
-  const [turmas, cursos] = await Promise.all([listarTurmas(), listarCursos()]);
 
-  const anos = [...new Set(turmas.map((t) => t.anoLetivo))].sort(
-    (a, b) => b - a,
-  );
+  /*
+    As turmas são **do ano selecionado**. A tela mostrava todos os anos
+    de uma vez, com `EM1A` repetida uma vez por ano: dava para clicar na
+    de 2026 achando que era a de 2027, e lançar nota no ano errado.
+  */
+  const anoLetivo = await anoLetivoEscolhido();
+  const [turmas, cursos] = await Promise.all([
+    listarTurmas(anoLetivo),
+    listarCursos(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,8 +42,8 @@ export default async function TurmasPage() {
         <div>
           <h1 className="text-ink text-xl font-semibold">Turmas</h1>
           <p className="text-ink-muted mt-1 text-sm">
-            {turmas.length} {turmas.length === 1 ? "turma" : "turmas"}
-            {anos.length > 0 ? ` · ano letivo ${anos.join(", ")}` : ""}
+            {turmas.length} {turmas.length === 1 ? "turma" : "turmas"} · ano
+            letivo {anoLetivo}
           </p>
         </div>
 
@@ -54,8 +61,8 @@ export default async function TurmasPage() {
       <Card>
         {turmas.length === 0 ? (
           <EmptyState
-            title="Nenhuma turma cadastrada"
-            description="Crie a primeira turma para começar a matricular alunos."
+            title={`Nenhuma turma em ${anoLetivo}`}
+            description={`Copie as turmas do ano anterior em Configurações › Abrir o ano letivo, ou crie a primeira turma de ${anoLetivo} aqui.`}
           />
         ) : (
           <Table caption="Turmas do colégio">

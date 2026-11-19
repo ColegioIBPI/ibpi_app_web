@@ -1,4 +1,5 @@
 import type { Aluno, Matricula } from "@/core/modelo";
+import { anoDeEntrada } from "@/features/alunos/domain/nova-matricula";
 
 /**
  * Em que turma o aluno estava **naquele ano**.
@@ -44,7 +45,12 @@ export function idDaMatriculaDoAno(
  */
 export function turmaDoAno(
   doAno: Pick<Matricula, "turmaId" | "turmaCodigo" | "serie" | "turno"> | null,
-  cadastro: Pick<Aluno, "turmaId" | "turmaCodigo" | "serie" | "turno">,
+  cadastro: {
+    turmaId?: string | null;
+    turmaCodigo?: string | null;
+    serie?: string | null;
+    turno?: Aluno["turno"] | null;
+  },
 ): TurmaDoAno {
   if (doAno) {
     return {
@@ -96,4 +102,77 @@ export function alunosDaTurmaNoAno<
   );
 
   return alunos.filter((aluno) => naTurma.has(aluno.matricula));
+}
+
+/** O mínimo que a listagem precisa do cadastro para virar lista do ano. */
+export interface AlunoDaLista {
+  matricula: string;
+  turmaId?: string | null;
+  turmaCodigo?: string | null;
+  serie?: string | null;
+  turno?: Aluno["turno"] | null;
+}
+
+export interface ListaDoAno<T> {
+  /** Quem cursou o ano, já com a turma, a série e o turno **daquele ano**. */
+  alunos: T[];
+  /** Quantos ficaram de fora. Zero na maioria dos anos. */
+  foraDoAno: number;
+}
+
+/**
+ * A lista de alunos de um ano letivo.
+ *
+ * A pergunta "quais são os alunos?" não tem resposta sem um ano junto. O
+ * cadastro guarda a turma de **hoje**; quem sabe quem cursou 2026, e em
+ * que turma, é `matriculas/2026-{matrícula}`. Sem isto a lista de 2027
+ * sairia com os 73 alunos de 2026 ainda nas turmas de 2026 — a tela
+ * diria 2027 e mostraria o ano anterior.
+ *
+ * Pertence ao ano quem tem registro nele. Mais uma exceção estreita: o
+ * aluno **recém-cadastrado sem turma**, que não tem registro em ano
+ * nenhum, aparece no ano em que entrou. Sem ela, a secretaria cadastraria
+ * um aluno e ele sumiria da lista no mesmo instante — e o jeito de
+ * resolver seria cadastrá-lo de novo.
+ *
+ * Quem sobra sai em `foraDoAno`, para a tela dizer que escondeu alguém.
+ * Lista que encolhe calada é a que faz a secretaria duvidar do sistema.
+ */
+export function alunosDoAno<T extends AlunoDaLista>(
+  alunos: readonly T[],
+  matriculasDoAno: ReadonlyArray<
+    Pick<Matricula, "matricula" | "turmaId" | "turmaCodigo" | "serie" | "turno">
+  >,
+  anoLetivo: number,
+): ListaDoAno<T> {
+  const doAno = new Map(
+    matriculasDoAno.map((registro) => [registro.matricula, registro]),
+  );
+
+  const resultado: T[] = [];
+  let foraDoAno = 0;
+
+  for (const aluno of alunos) {
+    const registro = doAno.get(aluno.matricula);
+
+    if (registro) {
+      resultado.push({ ...aluno, ...turmaDoAno(registro, aluno) });
+      continue;
+    }
+
+    /*
+      Não precisa olhar os outros anos: ter registro naquele ano já foi
+      perguntado acima, e passar para o ano seguinte exige ter registro
+      no anterior. Quem entrou no ano e não tem registro nele não tem
+      registro em lugar nenhum.
+    */
+    if (anoDeEntrada(aluno.matricula) === anoLetivo) {
+      resultado.push(aluno);
+      continue;
+    }
+
+    foraDoAno += 1;
+  }
+
+  return { alunos: resultado, foraDoAno };
 }

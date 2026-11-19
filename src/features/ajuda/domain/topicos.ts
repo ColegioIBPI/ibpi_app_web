@@ -119,6 +119,58 @@ export const TOPICOS: Topico[] = [
   },
 
   {
+    id: "ano-letivo",
+    rotas: ["/gestao/configuracoes/abertura"],
+    titulo: "O ano letivo, e como virar para o próximo",
+    resumo: "O seletor do menu manda em quase tudo. Nada é apagado na virada.",
+    perfis: ["secretaria", "coordenacao", "admin"],
+    onde: "Menu lateral · Gestão › Configurações › Abrir o ano letivo",
+    blocos: [
+      {
+        tipo: "paragrafo",
+        texto:
+          "No alto do menu lateral há o **ano letivo**. Ele não é um filtro de uma tela só: é o ano em que você está trabalhando. Alunos, Turmas, boletins, notas e frequência seguem ele, e **o que você lançar entra naquele ano**.",
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "Fora do ano corrente o seletor fica **amarelo**, avisando. É a diferença entre consultar o histórico e editá-lo sem perceber.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "**Nada é apagado na virada.** 2027 é um conjunto novo de turmas, vínculos e matrículas; 2026 fica inteiro onde está. Voltar o seletor para 2026 mostra 2026 como ele era — inclusive a turma que o aluno cursava então, e não a de hoje.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Por isso um ano recém-aberto aparece **vazio**: ele ainda não tem ninguém. Isso é o esperado, e não perda de dados — a tela diz qual é o próximo passo.",
+      },
+      {
+        tipo: "passos",
+        itens: [
+          "**Copiar a estrutura** — em Configurações › Abrir o ano letivo, a partir do ano selecionado no menu. Traz as turmas e os vínculos. É seguro e dá para repetir: o que já existe não é duplicado, e o ano anterior não muda.",
+          "**Corrigir o quadro** — os vínculos vêm como sugestão, porque o quadro do ano seguinte quase sempre muda. Corrigir é muito menos trabalho que montar do zero.",
+          "**Passar os alunos** — turma por turma, escolhendo o destino de cada uma. Dá para desmarcar quem não passa.",
+          "**Trocar o seletor para o ano novo** — e trabalhar nele.",
+        ],
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "Passar os alunos **move gente**: a partir dali o aluno aparece na chamada e no diário da turma nova. O boletim, as notas e a ata do ano anterior continuam onde estão.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "**Promover não é conta do sistema.** Aprovação é conclusão do boletim, mas quem passa é decisão da escola — por isso não existe um botão “passar todo mundo”.",
+      },
+    ],
+  },
+
+  {
     id: "comecando-o-ano",
     rotas: ["/gestao/configuracoes", "/gestao/turmas", "/gestao/disciplinas", "/gestao/professores"],
     titulo: "Começando o ano, na ordem",
@@ -130,6 +182,11 @@ export const TOPICOS: Topico[] = [
         tipo: "paragrafo",
         texto:
           "A ordem importa: turma antes do curso, ou nota antes do vínculo, trava na etapa seguinte.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Antes de começar, confira o **ano letivo no menu lateral**: a tela de Turmas mostra as turmas daquele ano, e é nele que o que você criar vai entrar.",
       },
       {
         tipo: "passos",
@@ -208,7 +265,7 @@ export const TOPICOS: Topico[] = [
       {
         tipo: "paragrafo",
         texto:
-          "Escolher a turma já cria o **registro de matrícula daquele ano**, que é o que mantém o boletim e a ata corretos depois da virada. Dá para cadastrar sem turma e definir depois, na ficha.",
+          "Escolher a turma já cria o **registro de matrícula daquele ano**, que é o que mantém o boletim e a ata corretos depois da virada. Dá para cadastrar sem turma e definir depois, na ficha — o registro é criado quando a turma entra.",
       },
       {
         tipo: "paragrafo",

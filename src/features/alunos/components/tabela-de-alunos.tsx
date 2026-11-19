@@ -18,9 +18,15 @@ interface TabelaDeAlunosProps {
   alunos: AlunoComId[];
   /** `true` quando a lista está vazia por causa do filtro, não da base. */
   filtrada: boolean;
+  /** O ano da lista, para o vazio dizer de que ano ele está falando. */
+  anoLetivo?: number;
 }
 
-export function TabelaDeAlunos({ alunos, filtrada }: TabelaDeAlunosProps) {
+export function TabelaDeAlunos({
+  alunos,
+  filtrada,
+  anoLetivo,
+}: TabelaDeAlunosProps) {
   if (alunos.length === 0) {
     return filtrada ? (
       <EmptyState
@@ -28,9 +34,20 @@ export function TabelaDeAlunos({ alunos, filtrada }: TabelaDeAlunosProps) {
         description="Tente outro nome, matrícula ou turma."
       />
     ) : (
+      /*
+        Ano aberto e ainda sem ninguém é o estado normal de quem acabou
+        de criar o ano novo — e é aí que a secretaria precisa saber qual
+        é o próximo passo, em vez de concluir que perdeu os alunos.
+      */
       <EmptyState
-        title="Nenhum aluno cadastrado"
-        description="Os alunos aparecem aqui depois da matrícula."
+        title={
+          anoLetivo ? `Nenhum aluno em ${anoLetivo}` : "Nenhum aluno cadastrado"
+        }
+        description={
+          anoLetivo
+            ? `Os alunos do ano anterior entram em ${anoLetivo} pela abertura do ano letivo, em Configurações. Um aluno novo entra por "Novo aluno".`
+            : "Os alunos aparecem aqui depois da matrícula."
+        }
       />
     );
   }

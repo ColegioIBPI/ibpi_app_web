@@ -1,6 +1,6 @@
 import "server-only";
 
-import { COLECOES, type Aluno } from "@/core/modelo";
+import { COLECOES, type Aluno, type Matricula } from "@/core/modelo";
 import { escopoDeAlunos } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -60,6 +60,24 @@ export async function listarAlunosVisiveis(
 
   const todos = await db.collection(COLECOES.alunos).get();
   return todos.docs.map(documento);
+}
+
+/**
+ * Os registros de matrícula de um ano letivo.
+ *
+ * É a lista de quem cursou aquele ano, e em que turma. Uma consulta por
+ * ano, algumas dezenas de documentos — ver `domain/matricula-do-ano.ts`
+ * para o porquê de ela existir separada do cadastro.
+ */
+export async function listarMatriculasDoAno(
+  anoLetivo: number,
+): Promise<Matricula[]> {
+  const registros = await getAdminDb()
+    .collection(COLECOES.matriculas)
+    .where("anoLetivo", "==", anoLetivo)
+    .get();
+
+  return registros.docs.map((doc) => doc.data() as Matricula);
 }
 
 /** Um aluno, respeitando o mesmo escopo da listagem. */

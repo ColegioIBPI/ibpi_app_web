@@ -31,20 +31,45 @@ export async function listarTurmas(anoLetivo?: number): Promise<TurmaComId[]> {
     ? db.collection(COLECOES.turmas).where("anoLetivo", "==", anoLetivo)
     : db.collection(COLECOES.turmas);
 
-  const [turmas, alunos] = await Promise.all([
+  const [turmas, alunos, registros] = await Promise.all([
     consulta.get(),
     db.collection(COLECOES.alunos).where("ativo", "==", true).get(),
+    anoLetivo
+      ? db
+          .collection(COLECOES.matriculas)
+          .where("anoLetivo", "==", anoLetivo)
+          .get()
+      : null,
   ]);
 
   // Contagem em memória: são 10 turmas e 73 alunos. Um contador gravado no
   // documento seria mais rápido e exigiria manter sincronia a cada
   // matrícula — complexidade que esta escala não paga.
   const porTurma = new Map<string, number>();
-  for (const aluno of alunos.docs) {
-    const turmaId = aluno.data().turmaId;
-    if (typeof turmaId === "string") {
+  const somar = (turmaId: unknown) => {
+    if (typeof turmaId === "string" && turmaId) {
       porTurma.set(turmaId, (porTurma.get(turmaId) ?? 0) + 1);
     }
+  };
+
+  /*
+    Com ano, a conta sai do **registro de matrícula daquele ano**, e não
+    do cadastro: o cadastro aponta para a turma de hoje, e depois da
+    virada ele esvaziaria as turmas de 2026 e encheria as de 2027.
+
+    O `ativo` continua vindo do cadastro, porque é ele que a tela de
+    situação mantém — assim o número da turma bate com a lista de alunos
+    daquele ano, que usa o mesmo critério.
+  */
+  if (registros && !registros.empty) {
+    const ativos = new Set(alunos.docs.map((doc) => doc.id));
+
+    for (const registro of registros.docs) {
+      const { matricula, turmaId } = registro.data();
+      if (ativos.has(matricula as string)) somar(turmaId);
+    }
+  } else {
+    for (const aluno of alunos.docs) somar(aluno.data().turmaId);
   }
 
   return turmas.docs

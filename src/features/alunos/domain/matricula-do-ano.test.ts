@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Aluno, Matricula } from "@/core/modelo";
 import {
   alunosDaTurmaNoAno,
+  alunosDoAno,
   idDaMatriculaDoAno,
   turmaDoAno,
 } from "@/features/alunos/domain/matricula-do-ano";
@@ -108,5 +109,90 @@ describe("quem estava na turma naquele ano", () => {
         "2026-EM2A",
       ).map((a) => a.nome),
     ).toEqual(["Alice"]);
+  });
+});
+
+describe("a lista de alunos de um ano", () => {
+  /** Cadastro: a turma é a de hoje, 2027. */
+  const cadastro = [
+    { matricula: "25001", nome: "Alice", turmaId: "2027-EM3A", turmaCodigo: "EM3A", serie: "3", turno: "manha" },
+    { matricula: "25002", nome: "Bruno", turmaId: "2027-EM3A", turmaCodigo: "EM3A", serie: "3", turno: "manha" },
+    { matricula: "26010", nome: "Carla", turmaId: null, turmaCodigo: null, serie: null, turno: null },
+  ] as Array<{
+    matricula: string;
+    nome: string;
+    turmaId: string | null;
+    turmaCodigo: string | null;
+    serie: string | null;
+    turno: Aluno["turno"] | null;
+  }>;
+
+  const de2026 = [
+    { matricula: "25001", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha" },
+    { matricula: "25002", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha" },
+  ] as Array<Pick<Matricula, "matricula" | "turmaId" | "turmaCodigo" | "serie" | "turno">>;
+
+  it("mostra a turma daquele ano, não a de hoje", () => {
+    // A tela de 2026 tirada em 2027 diria EM3A na coluna TURMA.
+    const { alunos } = alunosDoAno(cadastro, de2026, 2026);
+
+    const comTurma = alunos.filter((a) => a.turmaCodigo);
+
+    expect(comTurma.map((a) => a.turmaCodigo)).toEqual(["EM2A", "EM2A"]);
+    expect(comTurma.map((a) => a.serie)).toEqual(["2", "2"]);
+  });
+
+  it("quem não cursou o ano fica de fora, e a tela sabe quantos", () => {
+    // Carla entrou em 2026 e tem registro em 2026? Não — ela entra pela
+    // exceção do recém-cadastrado, testada abaixo. Aqui o que importa é
+    // que ninguém some calado.
+    const { alunos, foraDoAno } = alunosDoAno(cadastro, [], 2027);
+
+    expect(alunos).toEqual([]);
+    expect(foraDoAno).toBe(3);
+  });
+
+  it("o aluno recém-cadastrado sem turma não some da lista", () => {
+    // Sem isto a secretaria cadastraria um aluno sem turma e ele
+    // desapareceria no mesmo instante — e o jeito de "resolver" seria
+    // cadastrá-lo de novo, com outra matrícula.
+    const { alunos, foraDoAno } = alunosDoAno(cadastro, de2026, 2026);
+
+    expect(alunos.map((a) => a.matricula)).toContain("26010");
+    expect(foraDoAno).toBe(0);
+  });
+
+  it("o recém-cadastrado só aparece no ano em que entrou", () => {
+    // Carla entrou em 2026: em 2027 ela só aparece se for passada.
+    const { alunos } = alunosDoAno(cadastro, [], 2026);
+
+    expect(alunos.map((a) => a.matricula)).toEqual(["26010"]);
+  });
+
+  it("matrícula fora do padrão não entra em ano nenhum", () => {
+    // `QA-0001` não diz em que ano entrou. Sai na conta de `foraDoAno`,
+    // que é o que a tela mostra.
+    const { alunos, foraDoAno } = alunosDoAno(
+      [{ matricula: "QA-0001", nome: "Teste" }],
+      [],
+      2026,
+    );
+
+    expect(alunos).toEqual([]);
+    expect(foraDoAno).toBe(1);
+  });
+
+  it("ano aberto e ainda sem ninguém devolve lista vazia", () => {
+    // O estado normal logo depois de copiar a estrutura do ano novo: a
+    // tela precisa dizer "nenhum aluno em 2027", e não mostrar os de 2026.
+    const { alunos } = alunosDoAno(cadastro.slice(0, 2), [], 2027);
+
+    expect(alunos).toEqual([]);
+  });
+
+  it("não altera o cadastro recebido", () => {
+    alunosDoAno(cadastro, de2026, 2026);
+
+    expect(cadastro[0].turmaCodigo).toBe("EM3A");
   });
 });

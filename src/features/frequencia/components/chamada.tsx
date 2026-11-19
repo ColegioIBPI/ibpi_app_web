@@ -261,7 +261,7 @@ export function Chamada({
         ))}
       </div>
 
-      <div className="border-line bg-surface sticky bottom-0 flex items-center justify-end gap-3 border-t py-3">
+      <div className="border-line bg-surface sticky bottom-0 z-30 flex items-center justify-end gap-3 border-t py-3">
         <span className="text-ink-muted mr-auto text-sm">
           {pendentes.length === 0 ? (
             <span className="text-success inline-flex items-center gap-1.5">

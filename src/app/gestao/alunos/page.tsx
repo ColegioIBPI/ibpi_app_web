@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { BotaoDeExportacao } from "@/core/ui/botao-de-exportacao";
 import { Card } from "@/core/ui/card";
 import { LoadingState } from "@/core/ui/states";
@@ -14,7 +15,11 @@ import {
   ordenarPorNome,
   turmasDaLista,
 } from "@/features/alunos/domain/busca";
-import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
+import { alunosDoAno } from "@/features/alunos/domain/matricula-do-ano";
+import {
+  listarAlunosVisiveis,
+  listarMatriculasDoAno,
+} from "@/features/alunos/services/alunos.server";
 
 export const metadata: Metadata = { title: "Alunos" };
 
@@ -24,7 +29,23 @@ export default async function AlunosPage({
   const sessao = await exigirPermissao("cadastros", "ler");
   const filtros = await searchParams;
 
-  const todos = await listarAlunosVisiveis(sessao);
+  const anoLetivo = await anoLetivoEscolhido();
+
+  /*
+    A lista é **do ano selecionado**: quem cursou aquele ano, na turma
+    daquele ano. O cadastro sozinho responderia com a turma de hoje, e a
+    tela de 2027 sairia com os alunos de 2026 nas turmas de 2026.
+  */
+  const [cadastrados, registros] = await Promise.all([
+    listarAlunosVisiveis(sessao),
+    listarMatriculasDoAno(anoLetivo),
+  ]);
+
+  const { alunos: todos, foraDoAno } = alunosDoAno(
+    cadastrados,
+    registros,
+    anoLetivo,
+  );
 
   const filtro = {
     termo: texto(filtros.q),
@@ -43,8 +64,20 @@ export default async function AlunosPage({
           <p className="text-ink-muted mt-1 text-sm">
             {encontrados.length === todos.length
               ? `${todos.length} ${todos.length === 1 ? "aluno" : "alunos"}`
-              : `${encontrados.length} de ${todos.length}`}
+              : `${encontrados.length} de ${todos.length}`}{" "}
+            · ano letivo {anoLetivo}
           </p>
+
+          {/* Lista que encolhe calada faz a secretaria duvidar do
+              sistema: se alguém ficou de fora, a tela diz. */}
+          {foraDoAno > 0 && (
+            <p className="text-ink-muted mt-1 text-xs">
+              {foraDoAno === 1
+                ? `1 aluno do cadastro não tem matrícula em ${anoLetivo} e não aparece aqui.`
+                : `${foraDoAno} alunos do cadastro não têm matrícula em ${anoLetivo} e não aparecem aqui.`}{" "}
+              Troque o ano no menu para ver onde {foraDoAno === 1 ? "ele está" : "eles estão"}.
+            </p>
+          )}
         </div>
 
         {/* A planilha sai com os mesmos filtros da tela — exportar algo
@@ -107,7 +140,11 @@ export default async function AlunosPage({
         </Suspense>
 
         <div className="mt-6">
-          <TabelaDeAlunos alunos={encontrados} filtrada={temFiltro} />
+          <TabelaDeAlunos
+            alunos={encontrados}
+            filtrada={temFiltro}
+            anoLetivo={anoLetivo}
+          />
         </div>
       </Card>
     </div>
