@@ -90,6 +90,25 @@ ali exigiria turma, segmento e turno, que a ação não tem, e um documento
 pela metade quebraria quem espera o registro inteiro. Aluno sem registro
 no ano já aparece como "fora do ano" na lista.
 
+### Desfazer uma passagem
+
+[`scripts/desfazer-passagem-de-ano.mts`](../scripts/desfazer-passagem-de-ano.mts)
+apaga os registros de matrícula de um ano e devolve o cadastro de cada
+aluno à turma do ano anterior — o inverso exato do que a passagem grava.
+
+```
+npx tsx --conditions=react-server --env-file=.env.local \
+  scripts/desfazer-passagem-de-ano.mts 2027 --gravar
+```
+
+**Não é um "desfazer" de uso corrente**, e o script recusa quando o ano
+novo já tem nota, frequência, diário ou boletim: apagar a matrícula
+deixaria esses lançamentos órfãos, o que é pior que o erro que se veio
+consertar. Daí em diante, a correção é pela ficha de cada aluno.
+
+Aluno que não tem registro no ano anterior é **mantido**: ele não veio de
+passagem nenhuma, e apagá-lo seria apagar uma matrícula legítima.
+
 ### Corrigir registros antigos
 
 Até a situação passar a ser por ano, só o cadastro era atualizado: os
