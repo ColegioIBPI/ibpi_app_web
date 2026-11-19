@@ -1,5 +1,49 @@
 # Situação das matrículas
 
+## Cadastrar um aluno novo
+
+Até novembro de 2026 o sistema **só editava**: os 73 alunos vieram da
+migração do Access e não havia como criar o 74º.
+
+`Gestão › Alunos › Novo aluno` pede o mínimo para o aluno existir — nome,
+nascimento, CPF, turma e data de matrícula, tudo opcional menos o nome — e
+manda direto para a ficha. A ficha tem quase cem campos, e pedi-los antes
+de o aluno existir é como um cadastro fica pela metade: a secretaria
+atende com a família na frente e precisa do número para seguir.
+
+### O número é gerado, nunca digitado
+
+Formato do colégio, confirmado nos cadastros migrados: **dois dígitos do
+ano e três do sequencial** — `26007` é o sétimo de 2026. O ano é o **ano
+letivo escolhido**, lido no servidor: aceitá-lo do formulário deixaria a
+tela decidir em que ano um aluno nasce.
+
+**Número usado não se repete**, nem quando o aluno sai. Reaproveitar faria
+o histórico de quem saiu — notas, boletim, cobranças, boleto — colar no
+aluno novo, e isso só apareceria no dia da segunda via.
+
+Três travas, nessa ordem:
+
+| | |
+| --- | --- |
+| **Contador** em `contadores/matricula-{ano}` | não recua quando um aluno é excluído |
+| **Piso** na maior matrícula do ano | conserta contador perdido, ano anterior ao contador, aluno criado fora da tela |
+| **`transaction.create`** | se o número existir, a gravação falha em vez de escrever por cima |
+
+O piso é o que fez 2026 funcionar: havia 40 alunos migrados e nenhum
+contador, e sem ele a primeira criação tentaria `26001`.
+
+> A leitura do piso é a **faixa do ano**, por id — algumas dezenas de
+> documentos. Sem `limitToLast`, que pediria um índice descendente por
+> `__name__` que o Firestore não cria sozinho.
+
+### Com turma, já nasce a matrícula do ano
+
+Escolher a turma grava também `matriculas/{ano}-{matrícula}`, que é o que
+mantém o boletim e a ata daquele ano corretos depois da virada — ver
+[`ano-letivo.md`](ano-letivo.md). Sem turma não há o que registrar, e o
+vínculo se faz depois na ficha.
+
 A situação é o que separa o aluno que estuda do que saiu, e é ela que
 alimenta as **atas** e a ficha do aluno.
 

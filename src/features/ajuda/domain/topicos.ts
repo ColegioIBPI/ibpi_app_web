@@ -183,6 +183,42 @@ export const TOPICOS: Topico[] = [
   },
 
   {
+    id: "cadastrar-aluno",
+    titulo: "Cadastrar um aluno novo",
+    resumo: "O número da matrícula é gerado, e nunca se repete.",
+    perfis: ["secretaria", "coordenacao", "admin"],
+    onde: "Gestão › Alunos › Novo aluno",
+    blocos: [
+      {
+        tipo: "paragrafo",
+        texto:
+          "A tela pede só o necessário para o aluno **existir**: nome, nascimento, CPF, turma e data de matrícula. Tudo opcional menos o nome — o resto você completa na ficha, com os papéis na mão. Pedir cem campos com a família esperando no balcão é como um cadastro fica pela metade.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "**O número da matrícula não se digita.** Ele é gerado no formato do colégio — dois dígitos do ano e três do sequencial, como `26007` —, e sai do **ano letivo em que você está**. Trabalhando em 2027, o aluno nasce `27001`.",
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "**Número usado nunca se repete**, nem quando o aluno sai do colégio. Reaproveitar faria o histórico de quem saiu — notas, boletim, cobranças — colar no aluno novo, e isso só apareceria no dia da segunda via.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Escolher a turma já cria o **registro de matrícula daquele ano**, que é o que mantém o boletim e a ata corretos depois da virada. Dá para cadastrar sem turma e definir depois, na ficha.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "Aluno não se apaga. Quem sai recebe uma **situação** — concluída, transferida, cancelada, abandono — com a data do fato, em `Alunos › Situação das matrículas`. Ele sai das listas e o histórico fica.",
+      },
+    ],
+  },
+
+  {
     id: "situacao-da-matricula",
     rotas: ["/gestao/alunos"],
     titulo: "A situação da matrícula",

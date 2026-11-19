@@ -282,10 +282,13 @@ Referência de requisitos: [README.md](README.md).
       é o ano corrente
 - [x] Cookie, e não URL nem `localStorage`: quem monta as telas é o
       servidor
-- [ ] **Tela de cadastrar aluno** — não existe nenhuma: os 73 vieram da
-      migração. É o que falta para começar a digitar aluno de verdade
-- [ ] Matrícula nova por contador em transação, como o número do recibo:
-      sequencial do ano, e número usado não se repete
+- [x] **Tela de cadastrar aluno**, com o mínimo para ele existir — a
+      ficha completa vem depois
+- [x] Matrícula gerada em transação: sequencial do ano, no formato do
+      colégio, e **número usado não se repete** nem quando o aluno sai
+- [x] O contador tem piso na maior matrícula existente: conserta contador
+      perdido, ano que começou antes dele e aluno criado fora da tela
+- [x] Cadastrar com turma já cria o registro de matrícula do ano
 - [ ] "Abrir o ano letivo": criar os registros de matrícula do ano novo a
       partir do anterior
 - [ ] Painel: aluno e financeiro ainda não seguem o ano

@@ -1,4 +1,4 @@
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, UserPlus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -51,6 +51,16 @@ export default async function AlunosPage({
             diferente do que está à vista é como a secretaria manda a lista
             errada. */}
         <div className="flex flex-wrap gap-2">
+          {/* Primeiro botão, e o único com destaque: é a ação que a
+              secretaria faz com a família na frente. */}
+          <Link
+            href="/gestao/alunos/novo"
+            className="bg-brand-600 hover:bg-brand-700 inline-flex h-10 items-center gap-2 rounded-md px-4 text-sm font-medium text-white"
+          >
+            <UserPlus className="size-4" aria-hidden />
+            Novo aluno
+          </Link>
+
           {/* Marcar concluído e transferido tem tela própria: caixas que
               encerram matrícula não convivem bem com a busca do dia a dia. */}
           <Link

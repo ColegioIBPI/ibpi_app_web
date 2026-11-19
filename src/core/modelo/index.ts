@@ -66,6 +66,7 @@ export const COLECOES = {
   seriesDeRecibo: "seriesDeRecibo",
   cursos: "cursos",
   criteriosDeAvaliacao: "criteriosDeAvaliacao",
+  contadores: "contadores",
   auditoria: "auditoria",
 } as const;
 
