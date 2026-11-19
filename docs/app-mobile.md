@@ -35,6 +35,60 @@ HTTP — a regra nega toda escrita de cliente, em todas as coleções, e hoje a
 Se vocês já têm uma cópia deste documento, **leiam só esta lista**. Os
 cinco primeiros itens **quebram código que já existe**; o resto é adição.
 
+### 0. O ano letivo virou escopo no Portal — confirmem o que o app faz
+
+O colégio passou a trabalhar **por ano letivo**: 2027 é um conjunto novo
+de turmas, vínculos e matrículas, e 2026 fica inteiro onde está. Nenhuma
+coleção que vocês leem mudou de forma, e **não há campo novo para ler**.
+Mas duas coisas mudam de comportamento, e precisamos saber como o app se
+comporta hoje.
+
+**a) De onde sai o `ano` das consultas?** Este documento nunca disse, e
+agora importa. `notas`, `boletins` e `criteriosDeAvaliacao` são todos por
+ano, e o ano letivo do IBPI **começa em fevereiro**.
+
+Se o app usa o ano do calendário, em **1º de janeiro de 2027** o boletim
+de 2026 some da tela da família — e o de 2027 ainda não existe. A família
+fica com uma tela vazia justamente no mês em que pede a segunda via do
+boletim do ano que acabou.
+
+Duas saídas, e a escolha é de vocês:
+
+- **um seletor de ano** na tela do boletim, com os anos em que o aluno
+  tem nota — é o que o Portal faz; ou
+- **o ano mais recente em que o aluno tem nota lançada**, como padrão,
+  em vez do ano do calendário.
+
+O Portal usa um seletor, e o ano corrente só é o padrão. **Nos digam o
+que o app faz hoje** para sabermos se é preciso mudar algo.
+
+**b) O cadastro do aluno muda de turma na virada.** Quando a secretaria
+passa a turma para o ano seguinte, `alunos/{matrícula}` passa a apontar
+para a turma **nova** — `turmaId`, `turmaCodigo`, `segmento`, `turno` —, e
+a `serie` fica **vazia** até a secretaria preenchê-la.
+
+Isso é de propósito: é o cadastro que diz onde o aluno está **hoje**, e é
+dele que saem a chamada e o diário. Para o app:
+
+- **A carteirinha acompanha**, e está certo: ela identifica o aluno hoje.
+  Tratem `serie` vazia como já tratam a foto ausente — a linha da turma
+  sai só com o código, sem inventar série.
+- **O boletim do ano anterior não é afetado**: ele sai de
+  `notas/{ano}-…`, que carrega `turmaId` e `disciplinaNome` dentro do
+  próprio documento. Vocês nunca dependeram de `alunos.turmaId` para
+  montar a grade — **continuem não dependendo.** Resolver a turma do
+  boletim pelo cadastro traria a turma do ano seguinte e a grade sairia
+  vazia, sem erro nenhum na tela.
+- A passagem costuma acontecer em **dezembro ou janeiro**, com o ano
+  ainda em curso. Então existe uma janela em que o aluno já aparece na
+  turma do ano que vem. É assim no Portal também.
+
+**c) `matriculas` existe e a família pode ler.** É `matriculas/{ano}-{matrícula}`,
+com a turma, a série, o turno e a situação **daquele ano**. O app não lê
+essa coleção, e não precisa: nada do que ele mostra depende dela. Está
+aqui para o caso de um dia vocês quererem mostrar "em 2026 ele estava na
+EM3A" — a regra já permite ao próprio aluno e aos responsáveis.
+
 ### 1. Conta suspensa agora é desativada de verdade — trate o erro
 
 O colégio ganhou uma tela de administração de usuários, e **suspender

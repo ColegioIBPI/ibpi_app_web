@@ -264,6 +264,14 @@ export async function passarAlunosDeTurma(
         turmaCodigo: destino.codigo,
         segmento: destino.segmento,
         turno: destino.turno,
+        /*
+          A série some junto com a turma, e não fica a do ano anterior.
+          O cadastro é o que a **carteirinha** mostra, no app e no
+          Portal: mantê-la produziria "EM1A · 3ª série" na portaria, uma
+          combinação que não existe. Em branco a carteirinha já sabe se
+          virar; errada, ela afirma.
+        */
+        serie: null,
         atualizadoEm: agora,
         atualizadoPor: sessao.uid,
       },
