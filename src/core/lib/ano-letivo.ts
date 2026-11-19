@@ -38,6 +38,36 @@ export function anoLetivoAtual(valor: Date | string = new Date()): number {
   return data.getMonth() === 0 ? ano - 1 : ano;
 }
 
+/**
+ * Que anos o seletor oferece.
+ *
+ * Os anos saem das **turmas** — criar a primeira turma de 2027 é o ato que
+ * abre o ano. Mas dois anos entram mesmo sem turma nenhuma:
+ *
+ * - o **corrente**, senão em janeiro de um ano ainda não montado o seletor
+ *   não teria para onde ir;
+ * - o **escolhido**, porque é onde a pessoa está. Deixá-lo de fora produz
+ *   uma tela que mente: o `<select>` não acha a opção, exibe a primeira da
+ *   lista, e clicar nela não muda valor nenhum — quem está num ano cujas
+ *   turmas foram apagadas fica preso lá, vendo o número de outro ano.
+ *
+ * Mais recente primeiro: é onde se trabalha.
+ */
+export function anosParaOSeletor(
+  anosComTurma: readonly number[],
+  anoCorrente: number,
+  anoEscolhido: number,
+  aceita: (ano: number) => boolean = () => true,
+): number[] {
+  const anos = new Set<number>([anoCorrente, anoEscolhido]);
+
+  for (const ano of anosComTurma) {
+    if (aceita(ano)) anos.add(ano);
+  }
+
+  return [...anos].sort((a, b) => b - a);
+}
+
 /** Converte texto de query string em trimestre, ou devolve o sugerido. */
 export function trimestreDaQuery(
   valor: string | string[] | undefined,

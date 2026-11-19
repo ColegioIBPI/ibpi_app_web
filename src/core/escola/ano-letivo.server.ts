@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoLetivoAtual, anosParaOSeletor } from "@/core/lib/ano-letivo";
 import { COLECOES, type Turma } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
 
@@ -68,16 +68,20 @@ export async function anoDaTela(
  *
  * O corrente entra sempre, mesmo sem turma nenhuma — senão, em janeiro de
  * um ano ainda não montado, o seletor não teria para onde ir.
+ *
+ * E o **escolhido** entra sempre, mesmo que suas turmas tenham sido
+ * apagadas. Sem isso o seletor mostra um ano e a tela carrega outro: o
+ * `<select>` não acha a opção do cookie e exibe a primeira da lista, e
+ * clicar nela não muda valor nenhum — quem está no ano apagado fica preso
+ * lá, sem conseguir voltar.
  */
 export async function anosLetivosDisponiveis(): Promise<number[]> {
   const docs = await getAdminDb().collection(COLECOES.turmas).get();
 
-  const anos = new Set<number>([anoLetivoAtual()]);
-  for (const doc of docs.docs) {
-    const ano = (doc.data() as Turma).anoLetivo;
-    if (plausivel(ano)) anos.add(ano);
-  }
-
-  // Mais recente primeiro: é onde se trabalha.
-  return [...anos].sort((a, b) => b - a);
+  return anosParaOSeletor(
+    docs.docs.map((doc) => (doc.data() as Turma).anoLetivo),
+    anoLetivoAtual(),
+    await anoLetivoEscolhido(),
+    plausivel,
+  );
 }

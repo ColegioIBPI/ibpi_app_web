@@ -153,12 +153,24 @@ um link de 2026 a um colega sem mexer no ano dele.
 
 ### Que anos aparecem
 
-Os das **turmas**, mais o corrente. Criar a primeira turma de 2027 é o ato
-que abre o ano — assim a lista cresce sozinha, em vez de depender de um
-cadastro de anos em outro lugar.
+Os das **turmas**, mais o corrente e o **escolhido**. Criar a primeira
+turma de 2027 é o ato que abre o ano — assim a lista cresce sozinha, em vez
+de depender de um cadastro de anos em outro lugar.
 
 Aceita do corrente **−10 ao +2**: o passado para consulta, e dois à frente
 porque o ano seguinte se monta em dezembro.
+
+O escolhido entra mesmo sem turma nenhuma, e a razão é uma armadilha real.
+Quem apaga as turmas de 2027 estando em 2027 tira o próprio ano da lista: o
+`<select>` não acha a opção do cookie, exibe a primeira — "2026 (atual)" —
+e a tela continua carregando 2027. A pessoa lê um ano e vê os dados de
+outro, e clicar em "2026" não muda valor nenhum no DOM, então nem o
+`onChange` dispara. Fica presa num ano vazio achando que o banco foi
+apagado.
+
+A regra está em `anosParaOSeletor`, no domínio e não no serviço, porque é
+lógica pura e precisava de teste: estava num arquivo `server-only`, e foi
+exatamente por isso que o caso passou.
 
 ## Abrir o ano letivo
 
