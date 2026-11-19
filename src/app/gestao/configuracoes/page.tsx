@@ -1,4 +1,5 @@
 import {
+  CalendarPlus,
   BookOpen,
   GraduationCap,
   Link2,
@@ -79,6 +80,13 @@ const PASSOS: Passo[] = [
     descricao:
       "Pesos, média mínima e frequência do ano, para professores e famílias lerem.",
     icone: ScrollText,
+  },
+  {
+    href: "/gestao/configuracoes/abertura",
+    titulo: "Abrir o ano seguinte",
+    descricao:
+      "Copia turmas e vínculos para o ano novo e passa os alunos, turma a turma. Nada do ano atual é apagado.",
+    icone: CalendarPlus,
   },
 ];
 

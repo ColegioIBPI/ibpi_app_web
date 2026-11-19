@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { cn } from "@/core/lib/cn";
 import { formatDate, formatPercent } from "@/core/lib/format";
 import {
   COLECOES,
   type Aluno,
   type DiarioDeClasse,
+  type Turma,
   type FrequenciaDiaria,
 } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
@@ -44,7 +46,9 @@ export default async function RelatorioDeFrequenciaPage({
           ?.turmas as string[]) ?? [])
       : null;
 
+  const anoLetivo = await anoLetivoEscolhido();
   const turmas = (await db.collection(COLECOES.turmas).get()).docs
+    .filter((doc) => (doc.data() as Turma).anoLetivo === anoLetivo)
     .filter((doc) => !minhasTurmas || minhasTurmas.includes(doc.id))
     .map((doc) => ({ id: doc.id, codigo: doc.data().codigo as string }))
     .sort((a, b) => a.codigo.localeCompare(b.codigo, "pt-BR"));

@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { paraDataISO } from "@/core/lib/datas";
 import { formatDate } from "@/core/lib/format";
-import { COLECOES, type Aluno } from "@/core/modelo";
+import { COLECOES, type Aluno, type Turma } from "@/core/modelo";
 import { getAdminDb } from "@/core/firebase/admin";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
@@ -31,8 +32,16 @@ export default async function FrequenciaPage({
           ?.turmas as string[]) ?? [])
       : null;
 
+  /*
+    Só as turmas do ano em que a pessoa está. Sem o recorte, a chamada
+    de novembro de 2026 ofereceria as turmas de 2027 recém-criadas — e
+    lançar presença numa turma que ainda não começou é um erro que só
+    aparece no relatório de frequência.
+  */
+  const anoLetivo = await anoLetivoEscolhido();
   const turmasDocs = await db.collection(COLECOES.turmas).get();
   const turmas = turmasDocs.docs
+    .filter((doc) => (doc.data() as Turma).anoLetivo === anoLetivo)
     .filter((doc) => !minhasTurmas || minhasTurmas.includes(doc.id))
     .map((doc) => ({ id: doc.id, codigo: doc.data().codigo as string }))
     .sort((a, b) => a.codigo.localeCompare(b.codigo, "pt-BR"));

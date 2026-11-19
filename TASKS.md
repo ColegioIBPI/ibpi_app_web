@@ -289,8 +289,12 @@ Referência de requisitos: [README.md](README.md).
 - [x] O contador tem piso na maior matrícula existente: conserta contador
       perdido, ano que começou antes dele e aluno criado fora da tela
 - [x] Cadastrar com turma já cria o registro de matrícula do ano
-- [ ] "Abrir o ano letivo": criar os registros de matrícula do ano novo a
-      partir do anterior
+- [x] **Abrir o ano seguinte**, em duas fases: estrutura (idempotente) e
+      passagem dos alunos (turma a turma, destino à mão)
+- [x] Chamada e relatório de frequência só oferecem turmas do ano
+      selecionado
+- [ ] Rodar a passagem de alunos em produção — construída e testada em
+      unidade, mas nunca executada sobre alunos reais
 - [ ] Painel: aluno e financeiro ainda não seguem o ano
 - [ ] `scripts/restaurar.mts`, quando a restauração virar rotina
 

@@ -81,6 +81,46 @@ cadastro de anos em outro lugar.
 Aceita do corrente **−10 ao +2**: o passado para consulta, e dois à frente
 porque o ano seguinte se monta em dezembro.
 
+## Abrir o ano seguinte
+
+`Configurações › Abrir o ano seguinte`, a partir do ano selecionado no
+menu. Em **duas fases**, porque os riscos são diferentes.
+
+### 1. Estrutura — segura e repetível
+
+Copia as **turmas** e os **vínculos** do ano base. Compara turma por
+**código**: `EM1A` de 2026 e de 2027 são a mesma turma do colégio em dois
+anos. Turma encerrada não atravessa — se fechou, reabri-la no ano
+seguinte seria ressuscitá-la sem ninguém pedir.
+
+É **idempotente**: rodar de novo não duplica nada, e nada do ano anterior
+muda. É o que permite abrir o ano em etapas, que é como a secretaria
+trabalha — as turmas em novembro, os vínculos em janeiro, os alunos no
+dia da virada.
+
+Os vínculos vêm como **sugestão**: o quadro do ano seguinte quase sempre
+muda, e corrigir cento e dez vínculos é muito menos trabalho que montá-los
+do zero.
+
+### 2. Alunos — move gente de verdade
+
+Turma a turma, com o destino escolhido à mão. **Promover não é conta**:
+aprovação é conclusão do boletim, mas quem passa é decisão da escola, e um
+botão "passar todo mundo" tiraria dela a única parte que precisa pensar.
+
+Só entra quem está com matrícula **ativa** naquela turma: concluído,
+transferido e cancelado não voltam no ano que vem. Quem já passou é
+pulado, não duplicado.
+
+A passagem grava **duas coisas**: o registro de matrícula do ano novo, e o
+cadastro do aluno apontando para a turma nova. O cadastro é o que a
+chamada, o diário e o lançamento de nota enxergam — por isso a tela avisa
+que a partir dali o aluno está no ano novo. O boletim, as notas e a ata do
+ano anterior continuam de lá, pelo registro daquele ano.
+
+> A **série** nasce vazia no registro novo, em vez de repetir a do ano
+> anterior: repetida, ela estaria errada em todo aluno promovido.
+
 ## O que ainda não segue o ano
 
 O painel da tela inicial acerta o que vem de turma — chamada do dia,
