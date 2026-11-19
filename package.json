@@ -13,6 +13,7 @@
     "check:firebase": "node --env-file=.env.local scripts/check-firebase.mjs",
     "deploy:rules": "node --env-file=.env.local scripts/deploy-rules.mjs",
     "criar:usuario": "tsx --conditions=react-server --env-file=.env.local scripts/criar-usuario.mts",
+    "backup": "tsx --conditions=react-server --env-file=.env.local scripts/backup.mts",
     "conta:teste": "tsx --conditions=react-server --env-file=.env.local scripts/conta-de-teste.mts",
     "disciplinas:ordenar": "tsx --conditions=react-server --env-file=.env.local scripts/ordenar-disciplinas.mts",
     "avisos:chaves": "tsx --conditions=react-server --env-file=.env.local scripts/sincronizar-chaves-de-aviso.mts",

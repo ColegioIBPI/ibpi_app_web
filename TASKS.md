@@ -261,6 +261,26 @@ Referência de requisitos: [README.md](README.md).
 > A situação da parcela **não é gravada**: ver `docs/financeiro.md`, seção 2.
 > Juros e multa não são calculados — o valor pago é digitado como aconteceu.
 
+### 3.31 Virada de ano letivo, sem apagar nada
+
+> Decisão do colégio, melhor que a limpeza que se cogitou: **não apagar
+> nada**. O ano letivo passa a ser o recorte, a secretaria circula entre
+> os anos, e aluno que sai recebe data de saída em vez de sumir.
+>
+> Inventário de 19/11: 74 alunos (73 reais, do Access), 846 cobranças
+> reais com 630 pagas, e **todas** as 1 155 notas e 703 frequências
+> semeadas para treino.
+
+- [x] `npm run backup` — Firestore, contas do Auth e Storage, com os ids
+- [x] `backups/` no `.gitignore`: é dado de menor de idade
+- [ ] Seletor de ano letivo visível na tela inicial, e que vale para
+      todas as telas
+- [ ] O boletim de um ano passado usar a turma **daquele** ano
+      (`matriculas`), e não `alunos.turmaId`, que aponta para a turma de
+      hoje
+- [ ] Matrícula nova nunca reaproveita um número já usado
+- [ ] `scripts/restaurar.mts`, quando a restauração virar rotina
+
 ### 3.30 Boletim 2 — a cópia de valores fixos
 
 > Pedido do colégio: um segundo boletim, cópia do calculado, com valores

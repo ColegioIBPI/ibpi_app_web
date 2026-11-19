@@ -61,3 +61,6 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 .firebase/
+
+# backup do banco: dado pessoal de menor de idade, nunca versionado
+/backups/
