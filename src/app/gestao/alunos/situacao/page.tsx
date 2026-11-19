@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import {
   ROTULOS_DE_SITUACAO_DA_MATRICULA,
   situacaoDaMatriculaSchema,
@@ -11,7 +12,11 @@ import {
 import { Card } from "@/core/ui/card";
 import { MudancaDeSituacao } from "@/features/alunos/components/mudanca-de-situacao";
 import { ordenarPorNome, turmasDaLista } from "@/features/alunos/domain/busca";
-import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
+import { alunosDoAno } from "@/features/alunos/domain/matricula-do-ano";
+import {
+  listarAlunosVisiveis,
+  listarMatriculasDoAno,
+} from "@/features/alunos/services/alunos.server";
 
 export const metadata: Metadata = { title: "Situação das matrículas" };
 
@@ -39,7 +44,20 @@ export default async function SituacaoDasMatriculasPage({
       ? (filtros.situacao as (typeof situacaoDaMatriculaSchema.options)[number])
       : "ativa";
 
-  const todos = await listarAlunosVisiveis(sessao);
+  /*
+    A lista é a **do ano selecionado**, com a situação daquele ano — a
+    mesma que a ação vai mudar. Ler a situação de hoje aqui faria a
+    secretaria filtrar "Ativa" em 2026 e receber quem está ativo agora:
+    marcaria como concluídos alunos que não cursaram o ano.
+  */
+  const anoLetivo = await anoLetivoEscolhido();
+
+  const [cadastrados, registros] = await Promise.all([
+    listarAlunosVisiveis(sessao),
+    listarMatriculasDoAno(anoLetivo),
+  ]);
+
+  const todos = alunosDoAno(cadastrados, registros, anoLetivo).alunos;
 
   const encontrados = ordenarPorNome(
     todos
@@ -69,7 +87,9 @@ export default async function SituacaoDasMatriculasPage({
         </h1>
         <p className="text-ink-muted mt-1 text-sm">
           Marcar concluídos, transferidos ou cancelados em lote. É a situação
-          que alimenta as atas e a ficha do aluno.
+          que alimenta as atas e a ficha do aluno — e ela é{" "}
+          <strong className="text-ink">de {anoLetivo}</strong>, o ano
+          selecionado no menu.
         </p>
       </div>
 

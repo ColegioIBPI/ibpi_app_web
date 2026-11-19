@@ -9,10 +9,13 @@ import {
   type FrequenciaDiaria,
 } from "@/core/modelo";
 import type { SessionUser } from "@/core/auth/session";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
 import { getAdminDb } from "@/core/firebase/admin";
+import { alunosDoAno } from "@/features/alunos/domain/matricula-do-ano";
 import {
   listarAlunosVisiveis,
+  listarMatriculasDoAno,
   type AlunoComId,
 } from "@/features/alunos/services/alunos.server";
 
@@ -77,12 +80,27 @@ const COLUNAS_DE_ALUNO: Coluna<AlunoComId>[] = [
   },
 ];
 
+/**
+ * O planilhão.
+ *
+ * Sai do **ano selecionado**, com a turma e a situação daquele ano — ele
+ * fica lado a lado com a lista de alunos, com os mesmos filtros, e uma
+ * planilha que discorda da tela de onde saiu é uma planilha que ninguém
+ * mais confere.
+ */
 export async function planilhaDeAlunos(
   sessao: SessionUser,
   filtro: { turma?: string; incluirInativos?: boolean } = {},
 ): Promise<Buffer> {
-  const alunos = (await listarAlunosVisiveis(sessao))
-    .filter((aluno) => filtro.incluirInativos || aluno.ativo)
+  const anoLetivo = await anoLetivoEscolhido();
+
+  const [cadastrados, registros] = await Promise.all([
+    listarAlunosVisiveis(sessao),
+    listarMatriculasDoAno(anoLetivo),
+  ]);
+
+  const alunos = alunosDoAno(cadastrados, registros, anoLetivo)
+    .alunos.filter((aluno) => filtro.incluirInativos || aluno.ativo)
     .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma)
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 

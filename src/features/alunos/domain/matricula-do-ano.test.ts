@@ -4,7 +4,9 @@ import type { Aluno, Matricula } from "@/core/modelo";
 import {
   alunosDaTurmaNoAno,
   alunosDoAno,
+  camposDaSituacao,
   idDaMatriculaDoAno,
+  situacaoDoAno,
   turmaDoAno,
 } from "@/features/alunos/domain/matricula-do-ano";
 
@@ -112,6 +114,99 @@ describe("quem estava na turma naquele ano", () => {
   });
 });
 
+type RegistroDoAno = Pick<
+  Matricula,
+  | "matricula"
+  | "turmaId"
+  | "turmaCodigo"
+  | "serie"
+  | "turno"
+  | "situacao"
+  | "dataDaSituacao"
+>;
+
+describe("a situação daquele ano", () => {
+  const cadastro = {
+    situacaoMatricula: "cancelada",
+    dataDaSituacao: "2027-03-10",
+  } as const;
+
+  it("o registro do ano ganha do cadastro", () => {
+    // O aluno cancelou em 2027. Em 2026 ele estudou o ano inteiro, e a
+    // ata de 2026 não pode dizer que ele estava cancelado.
+    const doAno = situacaoDoAno(
+      { situacao: "ativa", dataDaSituacao: null },
+      cadastro,
+    );
+
+    expect(doAno.situacaoMatricula).toBe("ativa");
+    expect(doAno.ativo).toBe(true);
+    expect(doAno.dataDaSituacao).toBeNull();
+  });
+
+  it("a data vem do mesmo lugar que a situação", () => {
+    // Misturar as duas daria "concluída" com a data do cancelamento do
+    // ano seguinte — uma data que não é de fato nenhum.
+    const doAno = situacaoDoAno(
+      { situacao: "concluida", dataDaSituacao: "2026-12-15" },
+      cadastro,
+    );
+
+    expect(doAno.dataDaSituacao).toBe("2026-12-15");
+  });
+
+  it("sem registro do ano, vale o cadastro", () => {
+    const doAno = situacaoDoAno(null, cadastro);
+
+    expect(doAno.situacaoMatricula).toBe("cancelada");
+    expect(doAno.dataDaSituacao).toBe("2027-03-10");
+    expect(doAno.ativo).toBe(false);
+  });
+
+  it("registro antigo sem data devolve nulo, não `undefined`", () => {
+    // Os 73 registros migrados nasceram antes do campo existir. O
+    // Firestore recusa `undefined`, e a planilha imprimiria vazio.
+    expect(
+      situacaoDoAno({ situacao: "concluida" } as Matricula, {}).dataDaSituacao,
+    ).toBeNull();
+  });
+
+  it("sem registro e sem cadastro, a matrícula é ativa", () => {
+    expect(situacaoDoAno(null, {}).ativo).toBe(true);
+  });
+});
+
+describe("o que o registro do ano guarda de situação", () => {
+  it("matrícula ativa não guarda data", () => {
+    // No cadastro este campo vira a data de matrícula. Copiá-la para o
+    // registro faria a ata imprimir "transferido em" na linha de quem
+    // está estudando.
+    expect(
+      camposDaSituacao({
+        situacaoMatricula: "ativa",
+        dataDaSituacao: "2026-01-16",
+      }),
+    ).toEqual({ situacao: "ativa", dataDaSituacao: null });
+  });
+
+  it("matrícula encerrada guarda o dia do fato", () => {
+    expect(
+      camposDaSituacao({
+        situacaoMatricula: "transferida",
+        dataDaSituacao: "2026-09-30",
+      }),
+    ).toEqual({ situacao: "transferida", dataDaSituacao: "2026-09-30" });
+  });
+
+  it("encerrada sem data guarda nulo, e não `undefined`", () => {
+    // O Firestore recusa `undefined`. A pendência aparece na ata como
+    // coluna vazia, que é onde a secretaria a vê.
+    expect(
+      camposDaSituacao({ situacaoMatricula: "cancelada", dataDaSituacao: null }),
+    ).toEqual({ situacao: "cancelada", dataDaSituacao: null });
+  });
+});
+
 describe("a lista de alunos de um ano", () => {
   /** Cadastro: a turma é a de hoje, 2027. */
   const cadastro = [
@@ -125,12 +220,14 @@ describe("a lista de alunos de um ano", () => {
     turmaCodigo: string | null;
     serie: string | null;
     turno: Aluno["turno"] | null;
+    situacaoMatricula?: Matricula["situacao"];
+    dataDaSituacao?: string | null;
   }>;
 
   const de2026 = [
-    { matricula: "25001", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha" },
-    { matricula: "25002", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha" },
-  ] as Array<Pick<Matricula, "matricula" | "turmaId" | "turmaCodigo" | "serie" | "turno">>;
+    { matricula: "25001", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha", situacao: "ativa", dataDaSituacao: null },
+    { matricula: "25002", turmaId: "2026-EM2A", turmaCodigo: "EM2A", serie: "2", turno: "manha", situacao: "ativa", dataDaSituacao: null },
+  ] as RegistroDoAno[];
 
   it("mostra a turma daquele ano, não a de hoje", () => {
     // A tela de 2026 tirada em 2027 diria EM3A na coluna TURMA.
@@ -194,5 +291,29 @@ describe("a lista de alunos de um ano", () => {
     alunosDoAno(cadastro, de2026, 2026);
 
     expect(cadastro[0].turmaCodigo).toBe("EM3A");
+  });
+
+  it("traz a situação daquele ano, não a de hoje", () => {
+    // A Alice cancelou em 2027. A ata de 2026 e a contagem da turma
+    // precisam dela como ativa: ela cursou 2026 inteiro.
+    const hoje = [
+      { ...cadastro[0], situacaoMatricula: "cancelada" as const, dataDaSituacao: "2027-03-10" },
+    ];
+
+    const { alunos } = alunosDoAno(hoje, de2026, 2026);
+
+    expect(alunos[0].situacaoMatricula).toBe("ativa");
+    expect(alunos[0].dataDaSituacao).toBeNull();
+  });
+
+  it("quem concluiu no ano sai como concluído naquele ano", () => {
+    const concluida = [
+      { ...de2026[0], situacao: "concluida" as const, dataDaSituacao: "2026-12-15" },
+    ];
+
+    const { alunos } = alunosDoAno([cadastro[0]], concluida, 2026);
+
+    expect(alunos[0].situacaoMatricula).toBe("concluida");
+    expect(alunos[0].dataDaSituacao).toBe("2026-12-15");
   });
 });

@@ -249,7 +249,10 @@ export async function passarAlunosDeTurma(
         // do ano anterior, que seria errada em todo aluno promovido.
         serie: "",
         turno: destino.turno,
+        // Matrícula nova, ano novo: ativa e sem data de encerramento. A
+        // situação do ano anterior fica no registro de lá.
         situacao: "ativa",
+        dataDaSituacao: null,
         origem: "portal",
       }),
     );

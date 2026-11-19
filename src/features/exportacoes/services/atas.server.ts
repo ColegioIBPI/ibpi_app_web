@@ -1,18 +1,21 @@
 import "server-only";
 
 import type { SessionUser } from "@/core/auth/session";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { montarPlanilha, type Coluna } from "@/core/exportacao/planilha";
 import {
   ROTULOS_DE_SITUACAO_DA_MATRICULA,
   ROTULOS_DE_TURNO,
   type SituacaoDaMatricula,
 } from "@/core/modelo";
+import { alunosDoAno } from "@/features/alunos/domain/matricula-do-ano";
 import {
   dataDoStatus,
   ehMatriculaAtiva,
 } from "@/features/alunos/domain/situacao";
 import {
   listarAlunosVisiveis,
+  listarMatriculasDoAno,
   type AlunoComId,
 } from "@/features/alunos/services/alunos.server";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
@@ -25,7 +28,36 @@ import { listarCursos } from "@/features/cursos/services/cursos.server";
  * **número sequencial** na primeira coluna. Ele não é dado do aluno — é a
  * posição na ata, e existe porque é por ele que as linhas são citadas na
  * conferência ("o nº 14 está com a data errada").
+ *
+ * Todas saem do **ano selecionado no menu**, com a turma, a série e a
+ * situação daquele ano. É a diferença entre a ata de 2026 e uma ata de
+ * hoje com o cabeçalho de 2026: depois da virada, a segunda traria os
+ * alunos nas turmas de 2027, e os concluídos de dezembro apareceriam
+ * concluídos também em março.
  */
+
+/**
+ * Os alunos do ano, já com turma e situação daquele ano.
+ *
+ * Uma função só, usada por todas as atas: cada uma repetindo a leitura
+ * seria uma esquecida um dia, e uma ata errada não dá sinal — ela sai
+ * bonita, assinada, com os dados do ano errado.
+ */
+async function alunosDaAta(
+  sessao: SessionUser,
+  filtro: { turma?: string },
+): Promise<AlunoComId[]> {
+  const anoLetivo = await anoLetivoEscolhido();
+
+  const [cadastrados, registros] = await Promise.all([
+    listarAlunosVisiveis(sessao),
+    listarMatriculasDoAno(anoLetivo),
+  ]);
+
+  return alunosDoAno(cadastrados, registros, anoLetivo).alunos.filter(
+    (aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma,
+  );
+}
 
 interface LinhaDaAta {
   sequencial: number;
@@ -92,9 +124,7 @@ export async function ataDeMatriculas(
   sessao: SessionUser,
   filtro: { turma?: string } = {},
 ): Promise<Buffer> {
-  const alunos = (await listarAlunosVisiveis(sessao)).filter(
-    (aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma,
-  );
+  const alunos = await alunosDaAta(sessao, filtro);
 
   return montarPlanilha({
     aba: "Matrículas",
@@ -129,9 +159,9 @@ export async function ataDeAlunosAtivos(
   sessao: SessionUser,
   filtro: { turma?: string } = {},
 ): Promise<Buffer> {
-  const alunos = (await listarAlunosVisiveis(sessao))
-    .filter((aluno) => ehMatriculaAtiva(aluno.situacaoMatricula))
-    .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma);
+  const alunos = (await alunosDaAta(sessao, filtro)).filter((aluno) =>
+    ehMatriculaAtiva(aluno.situacaoMatricula),
+  );
 
   return montarPlanilha({
     aba: "Alunos ativos",
@@ -160,9 +190,9 @@ function ataDeSaida(
     sessao: SessionUser,
     filtro: { turma?: string } = {},
   ): Promise<Buffer> => {
-    const alunos = (await listarAlunosVisiveis(sessao))
-      .filter((aluno) => aluno.situacaoMatricula === situacao)
-      .filter((aluno) => !filtro.turma || aluno.turmaCodigo === filtro.turma);
+    const alunos = (await alunosDaAta(sessao, filtro)).filter(
+      (aluno) => aluno.situacaoMatricula === situacao,
+    );
 
     return montarPlanilha({
       aba: nomeDaAba,

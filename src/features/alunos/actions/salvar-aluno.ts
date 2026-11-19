@@ -7,18 +7,17 @@ import { sincronizarChavesDoAluno } from "@/features/avisos/services/chaves.serv
 import { exigirPermissao } from "@/core/auth/guards";
 import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { getAdminDb } from "@/core/firebase/admin";
-import {
-  COLECOES,
-  matriculaSchema,
-  type SituacaoDaMatricula,
-  type Turma,
-} from "@/core/modelo";
+import { COLECOES, matriculaSchema, type Turma } from "@/core/modelo";
 import {
   formularioDoAlunoSchema,
   paraAluno,
   type FormularioDoAluno,
 } from "@/features/alunos/domain/formulario";
-import { idDaMatriculaDoAno } from "@/features/alunos/domain/matricula-do-ano";
+import {
+  camposDaSituacao,
+  idDaMatriculaDoAno,
+} from "@/features/alunos/domain/matricula-do-ano";
+import { propagarSituacaoParaOAno } from "@/features/alunos/services/matricula-do-ano.server";
 
 /**
  * Salva a edição do cadastro do aluno.
@@ -82,12 +81,14 @@ export async function salvarAluno(
   });
 
   /*
-    Vincular o aluno a uma turma é matriculá-lo no ano — e é o registro
-    de matrícula do ano que responde "quem cursou 2026, e em que turma".
-    Sem gravá-lo aqui, o aluno que ganha turma pela ficha ficaria fora da
-    lista do ano, do boletim e da ata, sem erro nenhum na tela.
+    O registro de matrícula do ano é quem responde "o que foi deste aluno
+    em 2026" — turma, série, turno e situação daquele ano. A ficha mexe
+    nas duas coisas que ele guarda, e sem levá-las para lá o aluno
+    ficaria fora da lista do ano, do boletim e da ata, sem erro nenhum na
+    tela.
   */
   if (vinculo.turma) {
+    // Turma nova: o registro daquele ano nasce (ou se refaz) inteiro.
     await getAdminDb()
       .collection(COLECOES.matriculas)
       .doc(idDaMatriculaDoAno(vinculo.turma.anoLetivo, matricula))
@@ -101,16 +102,21 @@ export async function salvarAluno(
           segmento: vinculo.turma.segmento,
           serie: aluno.serie ?? "",
           turno: vinculo.turma.turno,
-          // A situação vem do documento gravado, não do formulário: a
-          // ficha edita o cadastro, e quem encerra matrícula é a tela de
-          // situação.
-          situacao:
-            (anterior.situacaoMatricula as SituacaoDaMatricula | undefined) ??
-            "ativa",
+          ...camposDaSituacao({
+            situacaoMatricula: aluno.situacaoMatricula,
+            dataDaSituacao: aluno.dataDaSituacao ?? null,
+          }),
           origem: "portal",
         }),
         { merge: true },
       );
+  } else if ("situacaoMatricula" in alteracoes || "dataDaSituacao" in alteracoes) {
+    // Só a situação mudou: o registro do ano continua o mesmo, com a
+    // situação nova.
+    await propagarSituacaoParaOAno(anoLetivo, matricula, {
+      situacaoMatricula: aluno.situacaoMatricula,
+      dataDaSituacao: aluno.dataDaSituacao ?? null,
+    });
   }
 
   // Turma e segmento do aluno viram chave de aviso — dele e de quem o

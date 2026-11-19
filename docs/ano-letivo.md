@@ -40,8 +40,14 @@ turno e situação por ano. A regra está em
 - **`alunosDaTurmaNoAno`** — quem estava naquela turma naquele ano. Usado
   pela **ata de resultado final**, que sem isso sairia, em 2027, com os
   alunos de 2027.
+- **`situacaoDoAno`** — ativa, concluída, transferida ou cancelada
+  **naquele ano**, com a data do fato. O cadastro guarda uma situação só,
+  e ela é a de hoje: o aluno que concluiu em dezembro apareceria
+  concluído também em março, e o que cancelar em 2027 apareceria
+  cancelado na ata de 2026, um ano que cursou inteiro.
 - **`alunosDoAno`** — a lista de alunos do ano, cada um já com a turma, a
-  série e o turno **daquele ano**. Usada pela tela `Alunos`.
+  série, o turno e a situação **daquele ano**. Usada pela tela `Alunos`,
+  pela tela de situação, pelas atas e pelo planilhão.
 
 A queda para o cadastro cobre o ano em curso e o aluno criado sem registro
 de matrícula. A decisão é por **ano inteiro**: se o ano tem registro, ele
@@ -62,17 +68,43 @@ encolhe calada é a que faz a secretaria duvidar do sistema.**
 
 ### Quem mantém o registro do ano
 
-Três ações gravam `matriculas/{ano}-{matrícula}`:
-
 | Ação | Quando grava |
 | --- | --- |
 | `criarAluno` | no cadastro novo, se uma turma foi escolhida |
-| `salvarAluno` | quando a ficha **muda a turma** do aluno |
+| `salvarAluno` | quando a ficha muda **a turma** ou **a situação** |
+| `alterarSituacaoEmLote` | na tela de situação das matrículas |
 | `passarAlunosDeTurma` | na abertura do ano seguinte |
 
 `salvarAluno` escolhe a turma **do ano selecionado** quando o mesmo código
 existe em mais de um ano: pegar a mais recente colocaria em 2027 o aluno de
 quem só se corrigiu o nome em 2026.
+
+A situação vai para o registro **do ano selecionado, e só para ele**:
+encerrar a matrícula de 2026 não é encerrar a de 2027. Quem decide o que
+gravar é `camposDaSituacao`, uma função só para os três caminhos de
+escrita — a data é a de **encerramento**, e fica `null` em matrícula
+ativa, onde o cadastro guardaria a data de matrícula.
+
+`propagarSituacaoParaOAno` **só atualiza registro que existe**: criá-lo
+ali exigiria turma, segmento e turno, que a ação não tem, e um documento
+pela metade quebraria quem espera o registro inteiro. Aluno sem registro
+no ano já aparece como "fora do ano" na lista.
+
+### Corrigir registros antigos
+
+Até a situação passar a ser por ano, só o cadastro era atualizado: os
+registros nasceram na migração e nunca mudaram. O script
+[`scripts/sincronizar-situacao-do-ano.mts`](../scripts/sincronizar-situacao-do-ano.mts)
+alinha um ano com o cadastro:
+
+```
+npx tsx --conditions=react-server --env-file=.env.local \
+  scripts/sincronizar-situacao-do-ano.mts 2026 --gravar
+```
+
+Sem `--gravar` ele só mostra o que mudaria. **Rode apenas no ano que era o
+corrente** quando a situação ainda vivia no cadastro: num ano passado ele
+faria o contrário do que se quer, carimbando nele a situação de hoje.
 
 ## O seletor
 
@@ -149,17 +181,28 @@ ano anterior continuam de lá, pelo registro daquele ano.
 > A **série** nasce vazia no registro novo, em vez de repetir a do ano
 > anterior: repetida, ela estaria errada em todo aluno promovido.
 
-## As listas seguem o ano
+## As telas e os documentos seguem o ano
 
-`Alunos` e `Turmas` mostram **o ano selecionado**, e dizem qual no
-subtítulo.
+Seguem o seletor, com turma e situação daquele ano:
+
+| Onde | O que muda |
+| --- | --- |
+| `Alunos` | quem cursou o ano, na turma e com a situação do ano |
+| `Turmas` | as turmas do ano, e quantos alunos ativos cada uma teve |
+| `Situação das matrículas` | a lista a mudar é a do ano, e o cabeçalho diz qual |
+| Atas (matrículas, ativos, cancelados, concluídos, transferidos) | o documento que a escola assina |
+| Planilhão | fica ao lado da lista, com os mesmos filtros |
 
 Em `Turmas`, a tela mostrava todos os anos de uma vez, com `EM1A` repetida
 uma vez por ano: dava para clicar na de 2026 achando que era a de 2027 e
 lançar nota no ano errado. A coluna `ALUNOS` conta pelo **registro de
-matrícula daquele ano** quando ele existe, cruzado com o `ativo` do
-cadastro — o mesmo critério da lista de alunos, para que o número da turma
-bata com a lista que ela abre.
+matrícula daquele ano**, pelo mesmo critério da lista de alunos — o número
+da turma bate com a lista que ela abre.
+
+**A chamada, o diário e o lançamento de nota continuam no cadastro**, de
+propósito: eles são sobre o dia de hoje, e é o cadastro que diz em que
+turma o aluno está agora. É a mesma decisão que a passagem de alunos
+registra, gravando as duas coisas.
 
 Ano aberto e ainda sem ninguém é o estado normal de quem acabou de copiar
 a estrutura: as duas telas dizem qual é o próximo passo, em vez de deixar a
@@ -170,8 +213,6 @@ secretaria concluir que perdeu os alunos.
 - **O painel da tela inicial** acerta o que vem de turma — chamada do dia,
   turmas sem grade. **Aluno e financeiro não**: `cobrancas` não tem ano
   letivo, e os indicadores de aluno ainda leem o cadastro inteiro.
-- **A situação da matrícula** só é gravada no cadastro. A tela de situação
-  em lote e a ficha não propagam para o registro do ano, então um aluno
-  cancelado hoje continua `ativa` no registro de 2026. Por isso as listas e
-  a contagem das turmas tiram o `ativo` do **cadastro**, e não do registro:
-  enquanto for assim, "situação" é a de hoje, não a do ano.
+- **A ficha do aluno** mostra a situação do cadastro, que é a de hoje. É o
+  certo para ela: a ficha é o retrato atual da pessoa, não o do ano. Quem
+  quer o ano abre a lista ou a ata com o seletor nele.

@@ -1,5 +1,9 @@
-import type { Aluno, Matricula } from "@/core/modelo";
+import type { Aluno, Matricula, SituacaoDaMatricula } from "@/core/modelo";
 import { anoDeEntrada } from "@/features/alunos/domain/nova-matricula";
+import {
+  dataDoStatus,
+  ehMatriculaAtiva,
+} from "@/features/alunos/domain/situacao";
 
 /**
  * Em que turma o aluno estava **naquele ano**.
@@ -104,6 +108,74 @@ export function alunosDaTurmaNoAno<
   return alunos.filter((aluno) => naTurma.has(aluno.matricula));
 }
 
+export interface SituacaoDoAno {
+  situacaoMatricula: SituacaoDaMatricula;
+  dataDaSituacao: string | null;
+  /** Derivado da situação, nunca guardado solto — ver `domain/situacao.ts`. */
+  ativo: boolean;
+}
+
+/**
+ * A situação da matrícula **naquele ano**.
+ *
+ * O cadastro guarda uma situação só, e ela é a de hoje. O aluno que
+ * concluiu o Ensino Médio em 2026 está `concluida` desde dezembro — e,
+ * se a ata de 2026 perguntasse ao cadastro, ela sairia com todo mundo
+ * concluído, inclusive quem ainda estava cursando em março.
+ *
+ * Pior no sentido contrário: o aluno que cancelou em 2027 apareceria
+ * como cancelado na ata de 2026, um ano em que ele estudou inteiro.
+ *
+ * Quem responde é o registro do ano. A queda para o cadastro cobre o ano
+ * em curso antes de existir registro, e o aluno migrado do Access.
+ */
+export function situacaoDoAno(
+  doAno: Pick<Matricula, "situacao" | "dataDaSituacao"> | null,
+  cadastro: {
+    situacaoMatricula?: SituacaoDaMatricula;
+    dataDaSituacao?: string | null;
+  },
+): SituacaoDoAno {
+  const situacaoMatricula =
+    doAno?.situacao ?? cadastro.situacaoMatricula ?? "ativa";
+
+  return {
+    situacaoMatricula,
+    dataDaSituacao: doAno
+      ? (doAno.dataDaSituacao ?? null)
+      : (cadastro.dataDaSituacao ?? null),
+    ativo: ehMatriculaAtiva(situacaoMatricula),
+  };
+}
+
+export interface SituacaoParaOAno {
+  situacaoMatricula: SituacaoDaMatricula;
+  dataDaSituacao: string | null;
+}
+
+/**
+ * O que o registro do ano guarda de situação, na hora de gravar.
+ *
+ * Uma função só, porque são **três caminhos de gravação**: a situação em
+ * lote, a ficha do aluno quando só a situação muda, e a ficha quando a
+ * troca de turma refaz o registro inteiro. Três cópias seriam três
+ * regras, e um dia uma delas guardaria a data em matrícula ativa
+ * enquanto as outras guardariam `null`.
+ *
+ * A data é a de **encerramento**, e por isso é `null` para quem está
+ * ativo: no cadastro esse campo vira a data de matrícula, que aqui não
+ * significa nada — o registro já é do ano.
+ */
+export function camposDaSituacao(situacao: SituacaoParaOAno): {
+  situacao: SituacaoDaMatricula;
+  dataDaSituacao: string | null;
+} {
+  return {
+    situacao: situacao.situacaoMatricula,
+    dataDaSituacao: dataDoStatus(situacao),
+  };
+}
+
 /** O mínimo que a listagem precisa do cadastro para virar lista do ano. */
 export interface AlunoDaLista {
   matricula: string;
@@ -111,6 +183,8 @@ export interface AlunoDaLista {
   turmaCodigo?: string | null;
   serie?: string | null;
   turno?: Aluno["turno"] | null;
+  situacaoMatricula?: SituacaoDaMatricula;
+  dataDaSituacao?: string | null;
 }
 
 export interface ListaDoAno<T> {
@@ -129,6 +203,11 @@ export interface ListaDoAno<T> {
  * sairia com os 73 alunos de 2026 ainda nas turmas de 2026 — a tela
  * diria 2027 e mostraria o ano anterior.
  *
+ * Vale para a **situação** também: cada aluno sai daqui com a turma, a
+ * série, o turno, a situação e a data **daquele ano**, e com `ativo`
+ * derivado dela. É o que faz a ata de 2026 trazer quem estava ativo em
+ * 2026, e não quem está ativo hoje.
+ *
  * Pertence ao ano quem tem registro nele. Mais uma exceção estreita: o
  * aluno **recém-cadastrado sem turma**, que não tem registro em ano
  * nenhum, aparece no ano em que entrou. Sem ela, a secretaria cadastraria
@@ -141,7 +220,16 @@ export interface ListaDoAno<T> {
 export function alunosDoAno<T extends AlunoDaLista>(
   alunos: readonly T[],
   matriculasDoAno: ReadonlyArray<
-    Pick<Matricula, "matricula" | "turmaId" | "turmaCodigo" | "serie" | "turno">
+    Pick<
+      Matricula,
+      | "matricula"
+      | "turmaId"
+      | "turmaCodigo"
+      | "serie"
+      | "turno"
+      | "situacao"
+      | "dataDaSituacao"
+    >
   >,
   anoLetivo: number,
 ): ListaDoAno<T> {
@@ -156,7 +244,11 @@ export function alunosDoAno<T extends AlunoDaLista>(
     const registro = doAno.get(aluno.matricula);
 
     if (registro) {
-      resultado.push({ ...aluno, ...turmaDoAno(registro, aluno) });
+      resultado.push({
+        ...aluno,
+        ...turmaDoAno(registro, aluno),
+        ...situacaoDoAno(registro, aluno),
+      });
       continue;
     }
 

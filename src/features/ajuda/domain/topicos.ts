@@ -129,7 +129,7 @@ export const TOPICOS: Topico[] = [
       {
         tipo: "paragrafo",
         texto:
-          "No alto do menu lateral há o **ano letivo**. Ele não é um filtro de uma tela só: é o ano em que você está trabalhando. Alunos, Turmas, boletins, notas e frequência seguem ele, e **o que você lançar entra naquele ano**.",
+          "No alto do menu lateral há o **ano letivo**. Ele não é um filtro de uma tela só: é o ano em que você está trabalhando. Alunos, Turmas, a situação das matrículas, as atas, o planilhão, boletins, notas e frequência seguem ele, e **o que você lançar entra naquele ano**.",
       },
       {
         tipo: "aviso",
@@ -279,7 +279,7 @@ export const TOPICOS: Topico[] = [
     id: "situacao-da-matricula",
     rotas: ["/gestao/alunos"],
     titulo: "A situação da matrícula",
-    resumo: "Ativa, concluída, transferida, cancelada e abandono.",
+    resumo: "Ativa, concluída, transferida, cancelada e abandono — por ano.",
     perfis: ["secretaria", "coordenacao", "admin"],
     onde: "Gestão › Alunos",
     blocos: [
@@ -292,6 +292,17 @@ export const TOPICOS: Topico[] = [
         tipo: "paragrafo",
         texto:
           "**Toda situação que não é “ativa” pede a data do fato** — é ela que sai na ata como data de conclusão, de transferência ou de cancelamento.",
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "**A situação é do ano selecionado no menu.** Marcar concluídos com o seletor em 2026 conclui as matrículas de 2026. Confira o ano antes de aplicar: o cabeçalho da tela diz qual é.",
+      },
+      {
+        tipo: "paragrafo",
+        texto:
+          "É isso que mantém as atas certas. A turma que concluiu em dezembro de 2026 fica concluída **em 2026**; se ela voltasse em 2027, a matrícula de 2027 é outra, e começa ativa. E quem cancelar em 2027 continua ativo na ata de 2026, um ano que cursou inteiro.",
       },
       {
         tipo: "paragrafo",

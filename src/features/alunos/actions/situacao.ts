@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { gravarComAuditoria } from "@/core/auditoria/registrar";
 import { exigirPermissao } from "@/core/auth/guards";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { getAdminDb } from "@/core/firebase/admin";
 import {
   COLECOES,
@@ -16,6 +17,7 @@ import {
   exigeDataPropria,
   normalizarSituacao,
 } from "@/features/alunos/domain/situacao";
+import { propagarSituacaoParaOAno } from "@/features/alunos/services/matricula-do-ano.server";
 
 /**
  * Mudança de situação de matrícula **em lote**.
@@ -70,6 +72,21 @@ export async function alterarSituacaoEmLote(
   }
 
   const db = getAdminDb();
+
+  /**
+   * A situação é **do ano em que a secretaria está**.
+   *
+   * O aluno que concluiu em 2026 está concluído desde dezembro; se a ata
+   * de 2026 perguntasse ao cadastro, ela sairia com todo mundo concluído,
+   * inclusive quem ainda cursava em março. E quem cancelar em 2027
+   * apareceria como cancelado na ata de 2026, um ano que ele estudou
+   * inteiro.
+   *
+   * Por isso a mudança vai também para o registro **daquele ano**, e só
+   * para ele: encerrar a matrícula de 2026 não é encerrar a de 2027.
+   */
+  const anoLetivo = await anoLetivoEscolhido();
+
   let alterados = 0;
 
   // Aluno por aluno, cada um com a própria trilha: mudar a situação de uma
@@ -82,17 +99,21 @@ export async function alterarSituacaoEmLote(
 
     const anterior = atual.data() as Aluno;
 
+    const normalizada = normalizarSituacao({
+      situacaoMatricula,
+      dataMatricula: anterior.dataMatricula ?? null,
+      dataDaSituacao,
+    });
+
     const alteracoes = await gravarComAuditoria({
       colecao: COLECOES.alunos,
       documentoId: matricula,
       antes: anterior,
-      depois: { ...normalizarSituacao({
-        situacaoMatricula,
-        dataMatricula: anterior.dataMatricula ?? null,
-        dataDaSituacao,
-      }) },
+      depois: { ...normalizada },
       autor: sessao,
     });
+
+    await propagarSituacaoParaOAno(anoLetivo, matricula, normalizada);
 
     // `gravarComAuditoria` devolve vazio quando nada mudou — aluno que já
     // estava nessa situação não conta como alterado.

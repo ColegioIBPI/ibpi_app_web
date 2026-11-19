@@ -188,6 +188,7 @@ export async function criarAluno(dados: NovoAluno): Promise<ResultadoDeCriar> {
             serie: "",
             turno: dadosDaTurma.turno,
             situacao: "ativa",
+            dataDaSituacao: null,
             origem: "portal",
           }),
         );

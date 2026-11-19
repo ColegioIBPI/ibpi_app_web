@@ -195,7 +195,14 @@ export const alunoNovoSchema = alunoEditavelSchema.extend({
 
 export type AlunoNovo = z.infer<typeof alunoNovoSchema>;
 
-/** Matrícula do aluno em uma turma, por ano letivo. */
+/**
+ * Matrícula do aluno em uma turma, **por ano letivo**.
+ *
+ * É quem responde "o que foi deste aluno em 2026": a turma, a série, o
+ * turno e a **situação daquele ano**. O cadastro guarda só o estado de
+ * hoje, e sem este registro a ata de 2026 sairia, em 2027, com a turma e
+ * a situação de 2027.
+ */
 export const matriculaSchema = z.object({
   matricula: z.string(),
   nome: z.string(),
@@ -205,7 +212,15 @@ export const matriculaSchema = z.object({
   segmento: segmentoSchema,
   serie: z.string(),
   turno: turnoSchema,
-  situacao: z.enum(["ativa", "cancelada", "transferida", "concluida"]),
+  /*
+    A mesma enum do cadastro, e não uma lista escrita à parte: a cópia
+    daqui não tinha `abandono`, e gravar um aluno com essa situação
+    quebraria na validação — num lugar sem relação nenhuma com a tela
+    que a secretaria usou.
+  */
+  situacao: situacaoDaMatriculaSchema,
+  /** O dia em que a matrícula daquele ano deixou de ser ativa. */
+  dataDaSituacao: z.string().nullable().default(null),
   origem: origemSchema,
 });
 

@@ -4,6 +4,7 @@ import { COLECOES, type Disciplina, type Turma } from "@/core/modelo";
 import { escopoDeAlunos } from "@/core/auth/roles";
 import type { SessionUser } from "@/core/auth/session";
 import { getAdminDb } from "@/core/firebase/admin";
+import { ehMatriculaAtiva } from "@/features/alunos/domain/situacao";
 import type { AlunoComId } from "@/features/alunos/services/alunos.server";
 
 /**
@@ -53,20 +54,16 @@ export async function listarTurmas(anoLetivo?: number): Promise<TurmaComId[]> {
   };
 
   /*
-    Com ano, a conta sai do **registro de matrícula daquele ano**, e não
-    do cadastro: o cadastro aponta para a turma de hoje, e depois da
-    virada ele esvaziaria as turmas de 2026 e encheria as de 2027.
-
-    O `ativo` continua vindo do cadastro, porque é ele que a tela de
-    situação mantém — assim o número da turma bate com a lista de alunos
-    daquele ano, que usa o mesmo critério.
+    Com ano, a conta sai inteira do **registro de matrícula daquele ano**
+    — turma e situação. O cadastro aponta para a turma de hoje e guarda a
+    situação de hoje: depois da virada ele esvaziaria as turmas de 2026, e
+    um aluno que cancelasse em 2027 sumiria da contagem de 2026, um ano
+    que ele cursou inteiro.
   */
   if (registros && !registros.empty) {
-    const ativos = new Set(alunos.docs.map((doc) => doc.id));
-
     for (const registro of registros.docs) {
-      const { matricula, turmaId } = registro.data();
-      if (ativos.has(matricula as string)) somar(turmaId);
+      const dados = registro.data();
+      if (ehMatriculaAtiva(dados.situacao)) somar(dados.turmaId);
     }
   } else {
     for (const aluno of alunos.docs) somar(aluno.data().turmaId);
