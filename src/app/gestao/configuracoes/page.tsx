@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { Card } from "@/core/ui/card";
 
 export const metadata: Metadata = { title: "Configurações" };
@@ -91,7 +91,7 @@ export default async function ConfiguracoesPage() {
         <h1 className="text-ink text-xl font-semibold">Configurações</h1>
         <p className="text-ink-muted mt-1 text-sm">
           O que se monta no começo do ano letivo, na ordem em que se monta.
-          Ano atual: {anoLetivoAtual()}.
+          Ano letivo: {await anoLetivoEscolhido()}.
         </p>
       </div>
 

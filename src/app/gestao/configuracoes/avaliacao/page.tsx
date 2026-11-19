@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoDaTela } from "@/core/escola/ano-letivo.server";
 import { FormularioDeCriterio } from "@/features/cursos/components/formulario-de-criterio";
 import { cursosAtivos } from "@/features/cursos/services/cursos.server";
 import {
@@ -19,7 +19,7 @@ export default async function AvaliacaoPage({
   await exigirPermissao("cadastros", "gerenciar");
 
   const { ano, curso } = await searchParams;
-  const anoLetivo = typeof ano === "string" ? Number(ano) : anoLetivoAtual();
+  const anoLetivo = await anoDaTela(ano);
   const cursoCodigo = typeof curso === "string" && curso ? curso : null;
 
   const [cursos, criterio] = await Promise.all([

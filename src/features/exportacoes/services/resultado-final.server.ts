@@ -12,10 +12,12 @@ import {
   type BoletimManual,
   type Disciplina,
   type FrequenciaDiaria,
+  type Matricula,
   type Nota,
   type SituacaoDePresenca,
   type Turma,
 } from "@/core/modelo";
+import { alunosDaTurmaNoAno } from "@/features/alunos/domain/matricula-do-ano";
 import { listarAlunosVisiveis } from "@/features/alunos/services/alunos.server";
 import { montarBoletim } from "@/features/notas/domain/boletim";
 import {
@@ -69,7 +71,7 @@ export async function ataDeResultadoFinal(
 ): Promise<Buffer> {
   const db = getAdminDb();
 
-  const [turmaDoc, alocacoes, disciplinasDocs] = await Promise.all([
+  const [turmaDoc, alocacoes, disciplinasDocs, matriculasDoAno] = await Promise.all([
     db.collection(COLECOES.turmas).doc(turmaId).get(),
     db
       .collection(COLECOES.alocacoes)
@@ -77,6 +79,13 @@ export async function ataDeResultadoFinal(
       .where("anoLetivo", "==", anoLetivo)
       .get(),
     db.collection(COLECOES.disciplinas).get(),
+    // Só o ano: duas igualdades pediriam índice composto, e a coleção
+    // tem uma linha por aluno por ano — filtrar a turma em memória é de
+    // graça.
+    db
+      .collection(COLECOES.matriculas)
+      .where("anoLetivo", "==", anoLetivo)
+      .get(),
   ]);
 
   const turma = turmaDoc.exists ? (turmaDoc.data() as Turma) : null;
@@ -114,11 +123,20 @@ export async function ataDeResultadoFinal(
       a.disciplinaNome.localeCompare(b.disciplinaNome, "pt-BR"),
   );
 
-  // O escopo da sessão continua valendo: a ata é cópia de dado de aluno
-  // saindo do sistema, e o professor só exporta a turma dele.
-  const alunos = (await listarAlunosVisiveis(sessao))
-    .filter((aluno) => aluno.turmaId === turmaId)
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  /*
+    O escopo da sessão continua valendo: a ata é cópia de dado de aluno
+    saindo do sistema, e o professor só exporta a turma dele.
+
+    Quem estava na turma vem do **registro de matrícula daquele ano**, e
+    não do cadastro — que guarda a turma de hoje. Sem isso, a ata de 2026
+    tirada em 2027 sairia com os alunos de 2027. Ver
+    `alunos/domain/matricula-do-ano.ts`.
+  */
+  const alunos = alunosDaTurmaNoAno(
+    await listarAlunosVisiveis(sessao),
+    matriculasDoAno.docs.map((doc) => doc.data() as Matricula),
+    turmaId,
+  ).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
   const matriculas = alunos.map((aluno) => aluno.matricula);
 

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { pode } from "@/core/auth/roles";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoDaTela } from "@/core/escola/ano-letivo.server";
 import { Card } from "@/core/ui/card";
 import { Boletim } from "@/features/notas/components/boletim";
 import { BlocosDoBoletim } from "@/features/notas/components/blocos-do-boletim";
@@ -23,7 +23,7 @@ export default async function BoletimDoAlunoPage({
   const sessao = await exigirPermissao("notas", "ler");
   const { matricula } = await params;
   const filtros = await searchParams;
-  const ano = Number(filtros.ano) || anoLetivoAtual();
+  const ano = await anoDaTela(filtros.ano);
 
   // Aluno fora do escopo responde 404, como no resto do sistema.
   const boletim = await boletimDoAluno(sessao, matricula, ano);

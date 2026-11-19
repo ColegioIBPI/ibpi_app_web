@@ -273,12 +273,22 @@ Referência de requisitos: [README.md](README.md).
 
 - [x] `npm run backup` — Firestore, contas do Auth e Storage, com os ids
 - [x] `backups/` no `.gitignore`: é dado de menor de idade
-- [ ] Seletor de ano letivo visível na tela inicial, e que vale para
-      todas as telas
-- [ ] O boletim de um ano passado usar a turma **daquele** ano
-      (`matriculas`), e não `alunos.turmaId`, que aponta para a turma de
-      hoje
-- [ ] Matrícula nova nunca reaproveita um número já usado
+- [x] O boletim de um ano passado usa a turma **daquele** ano
+      (`matriculas`) — com o cadastro, ele sairia sem coluna nenhuma
+      depois da virada, sem erro na tela
+- [x] A **ata de resultado final** também: sem isso, a ata de 2026 tirada
+      em 2027 sairia com os alunos de 2027
+- [x] Seletor de ano no menu lateral, em toda tela, com aviso quando não
+      é o ano corrente
+- [x] Cookie, e não URL nem `localStorage`: quem monta as telas é o
+      servidor
+- [ ] **Tela de cadastrar aluno** — não existe nenhuma: os 73 vieram da
+      migração. É o que falta para começar a digitar aluno de verdade
+- [ ] Matrícula nova por contador em transação, como o número do recibo:
+      sequencial do ano, e número usado não se repete
+- [ ] "Abrir o ano letivo": criar os registros de matrícula do ano novo a
+      partir do anterior
+- [ ] Painel: aluno e financeiro ainda não seguem o ano
 - [ ] `scripts/restaurar.mts`, quando a restauração virar rotina
 
 ### 3.30 Boletim 2 — a cópia de valores fixos

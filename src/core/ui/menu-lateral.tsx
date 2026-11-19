@@ -20,6 +20,14 @@ interface MenuLateralProps {
   inicio: string;
   nome: string;
   perfil: string;
+  /**
+   * O seletor de ano letivo, quando a área tem um.
+   *
+   * Vem montado de fora porque quem sabe os anos é o servidor, e o menu
+   * é cliente. A área de consulta não recebe nenhum: a família não
+   * circula entre anos.
+   */
+  anoLetivo?: React.ReactNode;
 }
 
 /**
@@ -32,7 +40,13 @@ interface MenuLateralProps {
  * Em telas pequenas ele vira gaveta: a lateral fixa comeria metade de um
  * celular, e é no celular que a família abre o boletim.
  */
-export function MenuLateral({ itens, inicio, nome, perfil }: MenuLateralProps) {
+export function MenuLateral({
+  itens,
+  inicio,
+  nome,
+  perfil,
+  anoLetivo,
+}: MenuLateralProps) {
   const pathname = usePathname();
   const [aberto, setAberto] = useState(false);
 
@@ -106,6 +120,13 @@ export function MenuLateral({ itens, inicio, nome, perfil }: MenuLateralProps) {
             <X className="size-5" aria-hidden />
           </button>
         </div>
+
+        {/*
+          Antes do menu, não depois: o ano é o contexto de tudo o que vem
+          abaixo, e embaixo ele ficaria fora da vista numa lista de
+          dezoito itens.
+        */}
+        {anoLetivo && <div className="px-2 pb-2">{anoLetivo}</div>}
 
         {itens.length > 0 && (
           <nav

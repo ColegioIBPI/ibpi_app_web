@@ -55,9 +55,16 @@ export interface Painel {
 export async function montarPainel(
   sessao: SessionUser,
   agora = new Date(),
+  /**
+   * O ano em que a pessoa está trabalhando.
+   *
+   * O painel fala de pendências, e pendência é do ano que está aberto na
+   * tela: quem monta 2027 em dezembro precisa ver as turmas de 2027 sem
+   * grade, não as de 2026 que já fecharam.
+   */
+  anoLetivo = anoLetivoAtual(agora),
 ): Promise<Painel> {
   const db = getAdminDb();
-  const anoLetivo = anoLetivoAtual(agora);
   const trimestre = trimestreSugerido(agora);
 
   const alunos = (await listarAlunosVisiveis(sessao)).filter((a) => a.ativo);

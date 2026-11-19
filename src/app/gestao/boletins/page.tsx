@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { Card } from "@/core/ui/card";
 import { EmptyState } from "@/core/ui/states";
 import { FiltrosDeAlunos } from "@/features/alunos/components/filtros-de-alunos";
@@ -26,7 +26,7 @@ export default async function BoletinsPage({
 }: PageProps<"/gestao/boletins">) {
   const sessao = await exigirPermissao("notas", "ler");
   const filtros = await searchParams;
-  const ano = anoLetivoAtual();
+  const ano = await anoLetivoEscolhido();
 
   const todos = await listarAlunosVisiveis(sessao);
   const encontrados = ordenarPorNome(

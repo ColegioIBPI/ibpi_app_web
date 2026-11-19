@@ -6,6 +6,7 @@ import { exigirArea } from "@/core/auth/guards";
 import { rotuloDoPerfil } from "@/core/auth/roles";
 import { Card } from "@/core/ui/card";
 import type { Gravidade } from "@/features/painel/domain/pendencias";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { montarPainel } from "@/features/painel/services/painel.server";
 
 export const metadata: Metadata = { title: "Gestão" };
@@ -22,7 +23,7 @@ export const metadata: Metadata = { title: "Gestão" };
  */
 export default async function GestaoPage() {
   const sessao = await exigirArea("gestao");
-  const painel = await montarPainel(sessao);
+  const painel = await montarPainel(sessao, new Date(), await anoLetivoEscolhido());
 
   return (
     <div className="flex flex-col gap-6">

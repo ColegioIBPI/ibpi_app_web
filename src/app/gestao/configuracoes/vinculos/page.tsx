@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoDaTela } from "@/core/escola/ano-letivo.server";
 import { getAdminDb } from "@/core/firebase/admin";
 import { COLECOES, type Turma } from "@/core/modelo";
 import { rotuloDoCurso } from "@/features/cursos/domain/curso";
@@ -26,7 +26,7 @@ export default async function VinculosPage({
   await exigirPermissao("cadastros", "gerenciar");
 
   const { ano } = await searchParams;
-  const anoLetivo = typeof ano === "string" ? Number(ano) : anoLetivoAtual();
+  const anoLetivo = await anoDaTela(ano);
 
   const [turmasDocs, cursos, professores, opcoes] = await Promise.all([
     getAdminDb()

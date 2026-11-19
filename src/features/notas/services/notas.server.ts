@@ -6,6 +6,7 @@ import {
   type Alocacao,
   type Boletim,
   type BoletimManual,
+  type Matricula,
   type DiarioDeClasse,
   type Disciplina,
   type FrequenciaDiaria,
@@ -23,6 +24,10 @@ import { faltasNaDisciplina, idDoDiario } from "@/core/escola/aulas";
 import { contar, percentualDePresenca } from "@/core/escola/frequencia";
 import { getAdminDb } from "@/core/firebase/admin";
 import { isEquipe } from "@/core/auth/roles";
+import {
+  idDaMatriculaDoAno,
+  turmaDoAno,
+} from "@/features/alunos/domain/matricula-do-ano";
 import { obterAlunoVisivel } from "@/features/alunos/services/alunos.server";
 import { boletimQueVale } from "@/features/notas/domain/boletim-manual";
 import { somenteLiberadas } from "@/features/notas/domain/liberacao";
@@ -140,7 +145,7 @@ export async function boletimDoAluno(
 
   const db = getAdminDb();
 
-  const [notasDocs, boletimDoc, manualDoc, percentual, grade] =
+  const [notasDocs, boletimDoc, manualDoc, percentual, matriculaDoAnoDoc] =
     await Promise.all([
       db
         .collection(COLECOES.notas)
@@ -156,8 +161,26 @@ export async function boletimDoAluno(
         .doc(idDoBoletimManual(anoLetivo, matricula))
         .get(),
       frequenciaGeral(matricula),
-      gradeDaTurma(aluno.turmaId ?? null, anoLetivo),
+      db
+        .collection(COLECOES.matriculas)
+        .doc(idDaMatriculaDoAno(anoLetivo, matricula))
+        .get(),
     ]);
+
+  /*
+    A turma **daquele ano**, não a de hoje.
+
+    O cadastro do aluno guarda uma turma só, a atual. Depois da virada de
+    ano, montar o boletim de 2026 com ela procuraria alocações de uma
+    turma de 2027 dentro de 2026 — não acha nenhuma, e o boletim sai sem
+    coluna nenhuma, sem erro na tela. Ver `domain/matricula-do-ano.ts`.
+  */
+  const doAno = turmaDoAno(
+    matriculaDoAnoDoc.exists ? (matriculaDoAnoDoc.data() as Matricula) : null,
+    aluno,
+  );
+
+  const grade = await gradeDaTurma(doAno.turmaId, anoLetivo);
 
   const documento = boletimDoc.exists ? (boletimDoc.data() as Boletim) : null;
 
@@ -186,14 +209,16 @@ export async function boletimDoAluno(
   return {
     matricula,
     nome: aluno.nome,
-    turmaCodigo: aluno.turmaCodigo ?? null,
+    // Identificação do boletim também é a do ano: a segunda via de 2026
+    // precisa dizer EM2A mesmo com o aluno já na EM3A.
+    turmaCodigo: doAno.turmaCodigo,
     // `rotuloDoCurso`, e não o objeto indexado: curso novo devolvia
     // `undefined` e o boletim imprimia o campo em branco.
     segmentoRotulo: aluno.segmento
       ? rotuloDoCurso(aluno.segmento, await listarCursos())
       : null,
     cursoCodigo: aluno.segmento ?? null,
-    serie: aluno.serie ?? null,
+    serie: doAno.serie,
     dataMatricula: aluno.dataMatricula ?? null,
     anoLetivo,
     percentualDeFrequencia: percentual,

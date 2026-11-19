@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
 import { alocacoesVisiveis } from "@/core/escola/alocacoes.server";
-import { anoLetivoAtual, trimestreDaQuery } from "@/core/lib/ano-letivo";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
+import { trimestreDaQuery } from "@/core/lib/ano-letivo";
 import { resumoDoCriterio } from "@/features/cursos/domain/criterio";
 import { criterioPublicado } from "@/features/cursos/services/criterios.server";
 import { Card } from "@/core/ui/card";
@@ -25,7 +26,7 @@ export default async function NotasPage({
   // critério **geral** do colégio. O da turma aparece na tela de
   // lançamento, onde há uma turma só. Publicado apenas: uma linha solta
   // não tem onde dizer que é rascunho.
-  const geral = await criterioPublicado(anoLetivoAtual(), null);
+  const geral = await criterioPublicado(await anoLetivoEscolhido(), null);
 
   return (
     <div className="flex flex-col gap-6">

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { exigirPermissao } from "@/core/auth/guards";
-import { anoLetivoAtual } from "@/core/lib/ano-letivo";
+import { anoLetivoEscolhido } from "@/core/escola/ano-letivo.server";
 import { Card } from "@/core/ui/card";
 import { BotaoDeImpressao } from "@/core/ui/botao-de-impressao";
 import { agruparPorAluno, aVencerAte } from "@/features/financeiro/domain/abertas";
@@ -90,7 +90,7 @@ export default async function RelatorioDeInadimplentesPage({
       <Card>
         <RelatorioDeInadimplentes
           grupos={grupos}
-          anoLetivo={anoLetivoAtual()}
+          anoLetivo={await anoLetivoEscolhido()}
           posicaoAte={ate}
         />
       </Card>
