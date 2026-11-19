@@ -1,3 +1,4 @@
+import { CalendarPlus } from "lucide-react";
 import Link from "next/link";
 
 import { ROTULOS_DE_TURNO, type Turno } from "@/core/modelo";
@@ -38,6 +39,11 @@ export function TabelaDeAlunos({
         Ano aberto e ainda sem ninguém é o estado normal de quem acabou
         de criar o ano novo — e é aí que a secretaria precisa saber qual
         é o próximo passo, em vez de concluir que perdeu os alunos.
+
+        O botão leva à abertura **já com o ano de origem certo**: mandar
+        para "Configurações" e deixar a pessoa achar o caminho foi
+        exatamente o que fez alguém abrir a tela e encontrar o ano
+        seguinte ao que queria.
       */
       <EmptyState
         title={
@@ -45,10 +51,20 @@ export function TabelaDeAlunos({
         }
         description={
           anoLetivo
-            ? `Os alunos do ano anterior entram em ${anoLetivo} pela abertura do ano letivo, em Configurações. Um aluno novo entra por "Novo aluno".`
+            ? `Os alunos de ${anoLetivo - 1} entram em ${anoLetivo} pela abertura do ano letivo. Um aluno novo entra por "Novo aluno".`
             : "Os alunos aparecem aqui depois da matrícula."
         }
-      />
+      >
+        {anoLetivo && (
+          <Link
+            href={`/gestao/configuracoes/abertura?de=${anoLetivo - 1}`}
+            className="border-line bg-surface text-ink hover:bg-surface-subtle mt-2 inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+          >
+            <CalendarPlus className="size-4" aria-hidden />
+            Passar os alunos de {anoLetivo - 1} para {anoLetivo}
+          </Link>
+        )}
+      </EmptyState>
     );
   }
 

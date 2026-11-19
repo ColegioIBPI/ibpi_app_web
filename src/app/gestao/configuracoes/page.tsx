@@ -83,9 +83,9 @@ const PASSOS: Passo[] = [
   },
   {
     href: "/gestao/configuracoes/abertura",
-    titulo: "Abrir o ano seguinte",
+    titulo: "Abrir o ano letivo",
     descricao:
-      "Copia turmas e vínculos para o ano novo e passa os alunos, turma a turma. Nada do ano atual é apagado.",
+      "Traz as turmas, os vínculos e os alunos de um ano para o seguinte, turma a turma. Nada do ano de origem é apagado.",
     icone: CalendarPlus,
   },
 ];

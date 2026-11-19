@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Matricula } from "@/core/modelo";
 import {
+  anoBaseDaAbertura,
   alunosParaPassar,
   turmasParaCriar,
   vinculosParaCriar,
@@ -159,5 +160,50 @@ describe("quem passa de ano", () => {
 
   it("turma sem ninguém ativo devolve vazio", () => {
     expect(alunosParaPassar(base, [], "2026-EF6A")).toEqual([]);
+  });
+});
+
+describe("de que ano partir ao abrir a tela", () => {
+  const ano = (ano: number, matriculas: number) => ({ ano, matriculas });
+
+  it("ano selecionado ainda vazio: copia do ano cheio", () => {
+    // O caso que motivou isto: a secretaria troca o seletor para 2027
+    // porque quer ver 2027, encontra a lista vazia, vem para cá — e a
+    // tela oferecia abrir 2028, um beco sem saída.
+    expect(anoBaseDaAbertura(2027, [ano(2026, 74), ano(2027, 0)])).toBe(2026);
+  });
+
+  it("passagem pela metade não faz o ano parecer pronto", () => {
+    // Dezessete alunos foram parar em 2027 numa passagem incompleta. Com
+    // "tem matrícula" como critério, isso bastava para a tela voltar a
+    // oferecer 2028 e deixar as outras nove turmas para trás.
+    expect(anoBaseDaAbertura(2027, [ano(2026, 74), ano(2027, 17)])).toBe(2026);
+  });
+
+  it("ano já aberto por inteiro: o próximo é o seguinte", () => {
+    // Empate conta como aberto, e aí vale o mais recente.
+    expect(anoBaseDaAbertura(2027, [ano(2026, 74), ano(2027, 74)])).toBe(2027);
+  });
+
+  it("dezembro, montando o ano que vem a partir do corrente", () => {
+    expect(anoBaseDaAbertura(2026, [ano(2026, 74)])).toBe(2026);
+  });
+
+  it("anos posteriores ao selecionado não entram na conta", () => {
+    // Com o seletor em 2026 a tela fala de 2027, mesmo com 2028 montado.
+    expect(
+      anoBaseDaAbertura(2026, [ano(2026, 74), ano(2027, 74), ano(2028, 80)]),
+    ).toBe(2026);
+  });
+
+  it("base nova, sem matrícula em ano nenhum", () => {
+    // Empatados em zero, vale o mais recente: copia-se de 2026 para 2027.
+    expect(anoBaseDaAbertura(2026, [ano(2025, 0), ano(2026, 0)])).toBe(2026);
+  });
+
+  it("nenhum ano com turma até o selecionado", () => {
+    // Não há o que copiar; a tela dirá isso em vez de oferecer um clique
+    // que não faz nada.
+    expect(anoBaseDaAbertura(2026, [])).toBe(2025);
   });
 });

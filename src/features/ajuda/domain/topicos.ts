@@ -145,16 +145,23 @@ export const TOPICOS: Topico[] = [
       {
         tipo: "paragrafo",
         texto:
-          "Por isso um ano recém-aberto aparece **vazio**: ele ainda não tem ninguém. Isso é o esperado, e não perda de dados — a tela diz qual é o próximo passo.",
+          "Por isso um ano recém-aberto aparece **vazio**: ele ainda não tem ninguém. Isso é o esperado, e não perda de dados — a tela traz o botão que leva direto à abertura, já com o ano de origem certo.",
       },
       {
         tipo: "passos",
         itens: [
-          "**Copiar a estrutura** — em Configurações › Abrir o ano letivo, a partir do ano selecionado no menu. Traz as turmas e os vínculos. É seguro e dá para repetir: o que já existe não é duplicado, e o ano anterior não muda.",
+          "**Abrir a tela** — Configurações › Abrir o ano letivo. No alto dela está **de que ano para que ano**: confira esse par antes de qualquer clique, porque é ele que decide para onde a turma inteira vai. O ano novo é sempre o seguinte ao de origem.",
+          "**Copiar a estrutura** — traz as turmas e os vínculos. É seguro e dá para repetir: o que já existe não é duplicado, e o ano de origem não muda.",
           "**Corrigir o quadro** — os vínculos vêm como sugestão, porque o quadro do ano seguinte quase sempre muda. Corrigir é muito menos trabalho que montar do zero.",
           "**Passar os alunos** — turma por turma, escolhendo o destino de cada uma. Dá para desmarcar quem não passa.",
           "**Trocar o seletor para o ano novo** — e trabalhar nele.",
         ],
+      },
+      {
+        tipo: "aviso",
+        tom: "cuidado",
+        texto:
+          "**Não passe alunos antes de copiar a estrutura.** Com poucas turmas no ano novo, o menu de destino oferece poucas opções — e turmas diferentes acabam na mesma. Se o ano novo tiver menos turmas que o de origem, a tela avisa em vermelho.",
       },
       {
         tipo: "aviso",

@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { CalendarPlus, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -62,8 +62,16 @@ export default async function TurmasPage() {
         {turmas.length === 0 ? (
           <EmptyState
             title={`Nenhuma turma em ${anoLetivo}`}
-            description={`Copie as turmas do ano anterior em Configurações › Abrir o ano letivo, ou crie a primeira turma de ${anoLetivo} aqui.`}
-          />
+            description={`As turmas de ${anoLetivo - 1} podem ser copiadas para ${anoLetivo} de uma vez, ou você cria a primeira à mão em "Nova turma".`}
+          >
+            <Link
+              href={`/gestao/configuracoes/abertura?de=${anoLetivo - 1}`}
+              className="border-line bg-surface text-ink hover:bg-surface-subtle mt-2 inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium"
+            >
+              <CalendarPlus className="size-4" aria-hidden />
+              Copiar as turmas de {anoLetivo - 1}
+            </Link>
+          </EmptyState>
         ) : (
           <Table caption="Turmas do colégio">
             <TableHead>

@@ -79,6 +79,14 @@ export function AberturaDoAno({
 
   const faltamTurmas = turmasDoAnoNovo.length === 0;
 
+  /*
+    Ano novo com menos turmas que o base é estrutura pela metade. Pode
+    ser legítimo — uma turma que fecha —, e por isso avisa em vez de
+    travar. Mas é o sinal de que o passo 1 não rodou.
+  */
+  const estruturaIncompleta =
+    !faltamTurmas && turmasDoAnoNovo.length < turmasDoAnoBase.length;
+
   return (
     <div className="flex flex-col gap-6">
       {erro && (
@@ -143,6 +151,31 @@ export function AberturaDoAno({
           </p>
         ) : (
           <>
+            {/*
+              O aviso existe porque o estrago já aconteceu: com uma única
+              turma em {anoNovo}, a 3ª série e o 9º ano foram parar os dois
+              na mesma EM1A. O menu de destino oferecia uma opção só, e uma
+              opção só não parece escolha errada — parece a única.
+            */}
+            {estruturaIncompleta && (
+              <p
+                role="alert"
+                className="border-danger bg-danger-surface text-danger mb-4 flex gap-2 rounded-md border px-3 py-2 text-sm"
+              >
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>
+                  <strong>
+                    A estrutura de {anoNovo} está incompleta: {turmasDoAnoNovo.length}{" "}
+                    {turmasDoAnoNovo.length === 1 ? "turma" : "turmas"} para as{" "}
+                    {turmasDoAnoBase.length} de {anoBase}.
+                  </strong>{" "}
+                  Copie a estrutura acima antes de passar alunos. Com poucos
+                  destinos, turmas diferentes acabam na mesma — e desfazer
+                  isso é trabalho manual.
+                </span>
+              </p>
+            )}
+
             <p className="border-warning bg-warning-surface text-warning mb-4 flex gap-2 rounded-md border px-3 py-2 text-sm">
               <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
               <span>

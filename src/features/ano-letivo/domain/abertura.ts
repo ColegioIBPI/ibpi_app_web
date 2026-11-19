@@ -21,6 +21,46 @@ import type { Alocacao, Matricula, Turma } from "@/core/modelo";
  * só pergunta para onde vai cada uma.
  */
 
+/**
+ * De que ano partir, quando a secretaria abre a tela.
+ *
+ * A tela abre **o ano seguinte ao ano base**, e durante um tempo o base
+ * foi simplesmente o do seletor. Isso erra no caso mais comum de todos:
+ * a secretaria troca o seletor para 2027 justamente porque quer ver
+ * 2027, encontra a lista vazia, vai em Configurações — e a tela oferece
+ * abrir 2028. Beco sem saída, sem nada na tela que explique.
+ *
+ * A pergunta certa não é "em que ano você está", é **de que ano se
+ * copia**. E copia-se do ano cheio: o de origem é o que tem mais
+ * matrículas até o ano selecionado. Empatou, vale o mais recente — dois
+ * anos cheios significam que o de cima já foi aberto, e o próximo é o
+ * seguinte.
+ *
+ * "Tem matrícula" sozinho não serve, e o colégio provou: uma passagem
+ * feita pela metade deixou 17 alunos em 2027, o que bastou para a tela
+ * considerar o ano pronto e voltar a oferecer 2028.
+ *
+ * Continua sendo um palpite de abertura, e a tela deixa trocar: passar
+ * uma turma esquecida depois que o ano encheu é caso real.
+ */
+export function anoBaseDaAbertura(
+  anoSelecionado: number,
+  anos: ReadonlyArray<{ ano: number; matriculas: number }>,
+): number {
+  const candidatos = anos.filter((item) => item.ano <= anoSelecionado);
+
+  // Nenhum ano com turma até aqui: só resta propor o anterior, e a tela
+  // dirá que não há o que copiar.
+  if (candidatos.length === 0) return anoSelecionado - 1;
+
+  return candidatos.reduce((melhor, atual) =>
+    atual.matriculas > melhor.matriculas ||
+    (atual.matriculas === melhor.matriculas && atual.ano > melhor.ano)
+      ? atual
+      : melhor,
+  ).ano;
+}
+
 /** Só o que distingue uma turma, para comparar entre anos. */
 export type TurmaComId = Turma & { id: string };
 

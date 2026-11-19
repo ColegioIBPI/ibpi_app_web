@@ -141,10 +141,32 @@ cadastro de anos em outro lugar.
 Aceita do corrente **−10 ao +2**: o passado para consulta, e dois à frente
 porque o ano seguinte se monta em dezembro.
 
-## Abrir o ano seguinte
+## Abrir o ano letivo
 
-`Configurações › Abrir o ano seguinte`, a partir do ano selecionado no
-menu. Em **duas fases**, porque os riscos são diferentes.
+`Configurações › Abrir o ano letivo`. Em **duas fases**, porque os riscos
+são diferentes.
+
+### De que ano para que ano
+
+A tela abre sempre o ano **seguinte ao de origem**, e a origem é
+escolhida na própria tela, numa lista dos anos que têm turma.
+
+O padrão já foi "o ano do seletor", e errava no caso mais comum: quem
+troca o seletor para 2027 faz isso **porque quer ver 2027**, encontra a
+lista vazia, vem para cá — e recebia uma tela sobre 2028. Beco sem saída,
+sem nada que explicasse.
+
+Hoje o padrão é o **ano cheio**: o que tem mais matrículas até o ano
+selecionado, com empate resolvido pelo mais recente. Copia-se do ano
+cheio para o que está vazio. "Tem matrícula" sozinho não serve, e o
+colégio provou: uma passagem feita pela metade deixou 17 alunos em 2027,
+o que bastou para a tela considerar o ano pronto e voltar a oferecer
+2028.
+
+Quando a origem não é o ano do seletor, a tela diz isso em uma frase. E
+os vazios de `Alunos` e `Turmas` trazem um botão que já chega aqui com a
+origem certa — mandar para "Configurações" e deixar a pessoa achar o
+caminho foi exatamente o que produziu o engano.
 
 ### 1. Estrutura — segura e repetível
 
@@ -171,6 +193,13 @@ botão "passar todo mundo" tiraria dela a única parte que precisa pensar.
 Só entra quem está com matrícula **ativa** naquela turma: concluído,
 transferido e cancelado não voltam no ano que vem. Quem já passou é
 pulado, não duplicado.
+
+> **A estrutura vem primeiro, e a tela avisa quando não veio.** Com uma
+> única turma no ano novo, o menu de destino oferece uma opção só — e uma
+> opção só não parece escolha errada, parece a única. Foi assim que a 3ª
+> série e o 9º ano foram parar os dois na mesma `EM1A` de 2027. Ano novo
+> com menos turmas que o base agora sai com aviso em vermelho. Avisa, não
+> trava: uma turma que fecha é caso legítimo.
 
 A passagem grava **duas coisas**: o registro de matrícula do ano novo, e o
 cadastro do aluno apontando para a turma nova. O cadastro é o que a
